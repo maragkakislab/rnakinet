@@ -60,32 +60,19 @@ def process_fast5_read(read, window, skip=1000, zscore=True):
     """ Normalizes and extracts specified region from raw signal """
 
     s = read.get_raw_data(scale=True)  # Expensive
-
+    
+    #TODO check normalization
     if zscore:
         s = stats.zscore(s)
-
+    #TODO why do we skip the first 1000 signals?
     pos = random.randint(skip, len(s)-window)
 
     return s[pos:pos+window].reshape((window, 1))
 
-
-# class MyIterator():
-#     def __init__(self, files, label, window):
-#         self.files = files
-#         self.label = label
-#         self.window = window
-#     def __iter__(self):
-#         return self
-#     def __next__(self):
-#         for fast5 in self.files:
-#             with get_fast5_file(fast5, mode='r') as f5:
-#                 for read in f5.get_reads():
-#                     x = process_fast5_read(read, self.window)
-#                     y = np.array(self.label)
-#                     yield x.reshape(-1,1).swapaxes(0,1), np.array([y], dtype=np.float32)
-        
+       
 def myite(files, label, window):
     for fast5 in files:
+        #TODO now i only shuffle files and then read one to the end - randomize properly?
         with get_fast5_file(fast5, mode='r') as f5:
             for read in f5.get_reads():
                 x = process_fast5_read(read, window)
@@ -108,36 +95,12 @@ class MyMixedDatasetTrain(IterableDataset):
         self.positive_files = positive_files
         self.negative_files = negative_files
         self.ratio = 0.5
-        # self.window = window
-        #TODO hack with iter, how to do it properly?
         self.pos_gen = myite(positive_files, 1, window)
         self.neg_gen = myite(negative_files, 0, window)
         self.ultimate = myUltimateIte(positive_files, negative_files, window)
-        
-    # def __iter__(self):
-        # return self
     
     def __iter__(self): #former __next__
         return self.ultimate
-#         if random.random() < self.ratio:
-#             # print('RETURNING POS\n')
-#             yield next(self.pos_gen)
-#             # for fast5 in self.positive_files:
-#             #     with get_fast5_file(fast5, mode='r') as f5:
-#             #         for read in f5.get_reads():
-#             #             x = process_fast5_read(read, self.window)
-#             #             y = np.array(1)
-#             #             yield x.reshape(-1,1).swapaxes(0,1), np.array([y], dtype=np.float32)
-                        
-#         for fast5 in self.negative_files:
-#             # print('RETURNING NEG\n')
-#             yield next(self.neg_gen)
-#             # with get_fast5_file(fast5, mode='r') as f5:
-#             #     for read in f5.get_reads():
-#             #         x = process_fast5_read(read, self.window)
-#             #         y = np.array(0)
-#             #         yield x.reshape(-1,1).swapaxes(0,1), np.array([y], dtype=np.float32)
-
             
     
                     
