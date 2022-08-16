@@ -53,7 +53,7 @@ class CNN(pl.LightningModule):
       return self.net(x)
 
     def configure_optimizers(self):
-      print("LEARNING RATE:",self.learning_rate)
+      # print("LEARNING RATE:",self.learning_rate)
       optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate, weight_decay=0.01) #1e-3
       return optimizer
 

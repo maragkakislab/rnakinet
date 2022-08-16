@@ -17,7 +17,7 @@ valid_loader = DataLoader(valid_dset, batch_size=32, num_workers=32,
 
 logger = CometLogger(api_key="TEVQbgxxvilM1WdTyqZLJ57ac", project_name='RNAModif')
 trainer= pl.Trainer(
-    max_steps = 500000, logger=logger, accelerator='gpu', #max_epochs=-1,
+    max_steps = 1000000, logger=logger, accelerator='gpu', #max_epochs=-1,
     auto_lr_find=False, val_check_interval=500, log_every_n_steps=500, profiler="simple",benchmark=True) #try benchmark=tru
 trainer.fit(model, train_loader, valid_loader)
 
