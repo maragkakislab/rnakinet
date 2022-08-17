@@ -153,6 +153,10 @@ def get_my_dataset(window=1000, pos_files = 'pos_2022', neg_files='neg_2022', va
     random.shuffle(train_pos_files)
     random.shuffle(train_neg_files)
     
+    print('valid files indicies')
+    for files in [valid_pos_files, valid_neg_files]:
+        print(sorted([int(Path(x).stem.split('_')[-1]) for x in files]))
+    
     # Check for deterministic valid selection and random training shuffling
     # def f(files, message):
     #     indicies = [int(Path(x).stem.split('_')[-1]) for x in files]

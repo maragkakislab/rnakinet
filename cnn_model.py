@@ -13,11 +13,11 @@ class CNN(pl.LightningModule):
       # PREIMPLEMENTED CNN
       preimplemented_net = ResNet1D(
         in_channels=1,
-        base_filters=64, #64
+        base_filters=128, #64
         # ratio=1.0,
         # filter_list = [64, 160, 160, 400, 400, 1024, 1024],
         # m_blocks_list = [2, 2, 2, 3, 3, 4, 4],
-        kernel_size=25, #3
+        kernel_size=5, #3
         stride=1,
         # groups_width=16,
         groups=1,
@@ -27,7 +27,7 @@ class CNN(pl.LightningModule):
       
       self.net = nn.Sequential(
           preimplemented_net,
-          nn.Sigmoid()
+          # nn.Sigmoid()
       )
 
       # CUSTOM CNN
@@ -54,13 +54,14 @@ class CNN(pl.LightningModule):
 
     def configure_optimizers(self):
       # print("LEARNING RATE:",self.learning_rate)
-      optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate, weight_decay=0.01) #1e-3
+      optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate, weight_decay=0) #wd 0.01
       return optimizer
 
     def training_step(self, train_batch, batch_idx):
       x,y = train_batch
       output = self.net(x)
-      loss = F.binary_cross_entropy(output, y)
+      # loss = F.binary_cross_entropy(output, y)
+      loss = F.binary_cross_entropy_with_logits(output, y)
       self.log('train_loss', loss)
       acc =self.acc(output, y.int())
       self.log('train acc', acc)
@@ -69,7 +70,8 @@ class CNN(pl.LightningModule):
     def validation_step(self, val_batch, batch_idx):
       x,y = val_batch
       output = self.net(x)
-      loss = F.binary_cross_entropy(output, y)
+      # loss = F.binary_cross_entropy(output, y)
+      loss = F.binary_cross_entropy_with_logits(output, y)
       self.log('valid_loss', loss)
       acc = self.acc(output, y.int())
       self.log('valid acc', acc)
