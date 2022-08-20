@@ -6,22 +6,22 @@ import torchmetrics
 from resnet1d.resnet1d import ResNet1D
 
 class CNN(pl.LightningModule):
-    def __init__(self, learning_rate):
+    def __init__(self, learning_rate, base_filters, kernel_size, n_block):
       super().__init__()
       self.learning_rate = learning_rate
 
       # PREIMPLEMENTED CNN
       preimplemented_net = ResNet1D(
         in_channels=1,
-        base_filters=128, #64
+        base_filters=base_filters, #64
         # ratio=1.0,
         # filter_list = [64, 160, 160, 400, 400, 1024, 1024],
         # m_blocks_list = [2, 2, 2, 3, 3, 4, 4],
-        kernel_size=5, #3
+        kernel_size=kernel_size, #3
         stride=1,
         # groups_width=16,
         groups=1,
-        n_block=3, #TODO?
+        n_block=n_block, #3#TODO?
         verbose=False,
         n_classes=1) 
       
@@ -54,7 +54,7 @@ class CNN(pl.LightningModule):
 
     def configure_optimizers(self):
       # print("LEARNING RATE:",self.learning_rate)
-      optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate, weight_decay=0) #wd 0.01
+      optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate, weight_decay=0.01) #wd 0.01
       return optimizer
 
     def training_step(self, train_batch, batch_idx):

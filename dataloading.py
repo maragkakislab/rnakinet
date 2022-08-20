@@ -176,6 +176,7 @@ def get_my_dataset(window=1000, pos_files = 'pos_2022', neg_files='neg_2022', va
         def __init__(self,generator,limit):
             self.datapoints = []
             for i in range(limit):
+                #TODO sample randomly, not from the beginning?
                 self.datapoints.append(next(iter(generator)))
                 
         def __getitem__(self,idx):
