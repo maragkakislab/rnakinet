@@ -114,9 +114,9 @@ class BonitoPretrained(pl.LightningModule):
         # loss = F.binary_cross_entropy(output, y)
         loss = F.binary_cross_entropy_with_logits(output, y)
         #TODO try to log on_epoch = True for aggregated training metrics
-        self.log('train_loss', loss)
+        self.log('train_loss', loss, on_epoch=True)
         acc =self.acc(output, y.int())
-        self.log('train acc', acc)
+        self.log('train acc', acc, on_epoch=True)
 
         sch = self.lr_schedulers()
         sch.step()

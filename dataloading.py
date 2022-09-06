@@ -70,7 +70,7 @@ def process_fast5_read(read, window, skip=1000, zscore=True, smartskip = True):
         
     last_start_index = len(s)-window
     if(last_start_index < skip):
-        print('SKIP too long', skip, last_start_index)
+        # print('SKIP too long', skip, last_start_index)
         # if sequence is not long enough, last #window signals is taken, ignoring the skip index
         skip = last_start_index
     pos = random.randint(skip, last_start_index)
