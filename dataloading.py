@@ -12,6 +12,7 @@ from pathlib import Path
 from ont_fast5_api.fast5_interface import get_fast5_file
 from scipy import stats
 from datamap import experiment_files
+from bonito_pulled.bonito.reader import trim
 
 
 def get_demo_dataset(valid_limit=5000):
@@ -55,17 +56,26 @@ def get_demo_dataset(valid_limit=5000):
 
 
 
-
-def process_fast5_read(read, window, skip=1000, zscore=True):
+def process_fast5_read(read, window, skip=1000, zscore=True, smartskip = True):
     """ Normalizes and extracts specified region from raw signal """
 
     s = read.get_raw_data(scale=True)  # Expensive
     
     if zscore:
         s = stats.zscore(s)
-    #TODO why do we skip the first 1000 signals?
-    pos = random.randint(skip, len(s)-window)
+    
+    #TODO trying out bonito skipping
+    if(smartskip):
+        skip, _ = trim(s[:8000])
+        
+    last_start_index = len(s)-window
+    if(last_start_index < skip):
+        print('SKIP too long', skip, last_start_index)
+        # if sequence is not long enough, last #window signals is taken, ignoring the skip index
+        skip = last_start_index
+    pos = random.randint(skip, last_start_index)
 
+    #TODO remove reshape
     return s[pos:pos+window].reshape((window, 1))
 
 def myite(files, label, window):
@@ -117,7 +127,8 @@ def mixed_generator(positive_files, negative_files, window):
         while True:
             if random.random()<0.5:
                 yield next(pos_gen)
-            yield next(neg_gen)
+            else:
+                yield next(neg_gen)
     
 class MyMixedDatasetTrain(IterableDataset):
     def __init__(self, positive_files, negative_files, window):

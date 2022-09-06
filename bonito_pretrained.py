@@ -33,7 +33,7 @@ class RNNPooler(torch.nn.Module):
         
 
 class BonitoPretrained(pl.LightningModule):
-    def __init__(self, learning_rate=2e-3, warmup_steps = 100000):
+    def __init__(self, pretrained_lr=5e-4, my_layers_lr=2e-3, warmup_steps = 10000):
         #LR default 2e-3, doc 5e-4
         super().__init__()
         #TODO there are multiple models, this one is _fast
@@ -43,7 +43,6 @@ class BonitoPretrained(pl.LightningModule):
         dirname = __models__/'dna_r10.4.1_e8.2_fast@v3.5.1'
         # dirname = __models__/'dna_r10.4_e8.1_sup@v3.4'
         
-        self.warmup_steps = warmup_steps
         model = load_model(
             dirname, 
             self.device, 
@@ -64,7 +63,6 @@ class BonitoPretrained(pl.LightningModule):
             # Permute((1,2,0)), #TODO commented out for my pooler
             #TODO maxpool make it dynamic for any seq length? not hardcoded 2000 for 10000 length
             # torch.nn.MaxPool1d(200), _fast model
-            #TODO activation function? Is RNN output activated by relu or smth?
             RNNPooler(features_to_pool=320, seq_len=200),
             #TODO pooling the wrong dimension!!?? (length vs features)
             # torch.nn.MaxPool1d(167), #maxpooling over the whole RNN length, instead do convolution maybe? or maxpool + take last and first vectors
@@ -86,16 +84,27 @@ class BonitoPretrained(pl.LightningModule):
         # seq_model(x).shape
         self.model = seq_model
         
-        self.learning_rate = learning_rate
+        self.pretrained_layers_lr = pretrained_lr
+        self.my_layers_lr = my_layers_lr
+        self.warmup_steps = warmup_steps
+        
         self.acc = torchmetrics.Accuracy()
         
     def forward(self, x):
         return self.model(x)
     
     def configure_optimizers(self):
-        optimizer = torch.optim.AdamW(self.parameters(), lr=self.learning_rate, weight_decay=0) #wd 0.01
+        #different LR for my own layers (higher)
+        my_layers_lr = self.my_layers_lr
+        pretrained_layers_lr = self.pretrained_layers_lr
+        lr_list = [pretrained_layers_lr, *[my_layers_lr for _ in range(5)]] #5 custom layers after pretrained model
+        groups = [{'params': list(m.parameters()), 'lr': lr} for (m, lr) in zip(self.model.children(), lr_list)]
+        optimizer = torch.optim.AdamW(groups, lr=self.pretrained_layers_lr, weight_decay=0.01) #wd 0.01
+        
+        # optimizer = torch.optim.AdamW(self.parameters(), lr=self.learning_rate, weight_decay=0) #wd 0.01
+        # return optimizer
+        
         scheduler = torch.optim.lr_scheduler.LinearLR(optimizer, total_iters=self.warmup_steps)
-
         return [optimizer], [scheduler]
     
     def training_step(self, train_batch, batch_idx):
@@ -104,6 +113,7 @@ class BonitoPretrained(pl.LightningModule):
         output = self(x)
         # loss = F.binary_cross_entropy(output, y)
         loss = F.binary_cross_entropy_with_logits(output, y)
+        #TODO try to log on_epoch = True for aggregated training metrics
         self.log('train_loss', loss)
         acc =self.acc(output, y.int())
         self.log('train acc', acc)
@@ -111,7 +121,11 @@ class BonitoPretrained(pl.LightningModule):
         sch = self.lr_schedulers()
         sch.step()
         
-        self.log('learning rate (scheduled)', sch.get_last_lr()[0])
+        current_lr_list = sch.get_last_lr()
+        pretrained_lr = current_lr_list[0]
+        my_layer_lr = current_lr_list[-1] #the same for all custom layers
+        self.log('learning rate (pretrained part)', pretrained_lr)
+        self.log('learning rate (custom part)', my_layer_lr)
 
         return loss
     
