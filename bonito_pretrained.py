@@ -23,7 +23,7 @@ class RNNPooler(torch.nn.Module):
         # print(max_pool.shape)
         avg_pool = self.flatten(self.avg_pool(x))
         # print(avg_pool.shape)
-        last = x[:,:,-1] #?? right dims?
+        last = x[:,:,-1] #TODO check dims
         # print(last.shape)
         stack = torch.stack([max_pool, avg_pool, last]) #concating
         stack = torch.swapaxes(stack, 0, -1)
@@ -64,7 +64,8 @@ class BonitoPretrained(pl.LightningModule):
             #TODO maxpool make it dynamic for any seq length? not hardcoded 2000 for 10000 length
             # torch.nn.MaxPool1d(200), _fast model
             RNNPooler(features_to_pool=320, seq_len=200),
-            #TODO pooling the wrong dimension!!?? (length vs features)
+            #TODO pooling the wrong dimension? (length vs features)
+            #TODO why 320 features, crf should output 256?
             # torch.nn.MaxPool1d(167), #maxpooling over the whole RNN length, instead do convolution maybe? or maxpool + take last and first vectors
             torch.nn.Flatten(),
             #TODO activation?
