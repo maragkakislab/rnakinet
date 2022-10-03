@@ -186,9 +186,10 @@ def get_my_dataset(window=1000, pos_files = 'pos_2022', neg_files='neg_2022', va
     class MyMixedDatasetValidStatic(Dataset):
         def __init__(self,generator,limit):
             self.datapoints = []
+            gen = iter(generator)
             for i in range(limit):
                 #TODO sample randomly, not from the beginning?
-                self.datapoints.append(next(iter(generator)))
+                self.datapoints.append(next(gen))
                 
         def __getitem__(self,idx):
             return self.datapoints[idx]
@@ -197,4 +198,45 @@ def get_my_dataset(window=1000, pos_files = 'pos_2022', neg_files='neg_2022', va
     
     return train, MyMixedDatasetValidStatic(valid, valid_limit)
     
+
+def get_my_valid_dataset(window=1000, pos_files = 'pos_2022', neg_files='neg_2022', valid_limit=1000, valid_files_count=3, valid_select_seed=42):
+    pos_files = sorted(experiment_files[pos_files])
+    neg_files = sorted(experiment_files[neg_files])
+    
+    #TODO previous validation = last 3 files
+    seed = valid_select_seed
+    deterministic_random = random.Random(seed)
+    deterministic_random.shuffle(pos_files)
+    deterministic_random.shuffle(neg_files)
+    
+    train_pos_files = pos_files[:-valid_files_count]
+    train_neg_files = neg_files[:-valid_files_count]
+    valid_pos_files = pos_files[-valid_files_count:]
+    valid_neg_files = neg_files[-valid_files_count:]
+    #always shuffling training data
+    random.shuffle(train_pos_files)
+    random.shuffle(train_neg_files)
+    
+    print('valid files indicies')
+    for files in [valid_pos_files, valid_neg_files]:
+        print(sorted([int(Path(x).stem.split('_')[-1]) for x in files]))
+    
+    valid = MyMixedDatasetValid(valid_pos_files, valid_neg_files, window=window, limit=valid_limit, valid_files_count=valid_files_count)
+
+    class MyMixedDatasetValidStatic(Dataset):
+        def __init__(self,generator,limit):
+            self.datapoints = []
+            gen = iter(generator)
+            for i in range(limit):
+                if(i%10 == 0):
+                    print(i)
+                #TODO sample randomly, not from the beginning?
+                self.datapoints.append(next(gen))
+                
+        def __getitem__(self,idx):
+            return self.datapoints[idx]
+        def __len__(self):
+            return len(self.datapoints)
+    
+    return MyMixedDatasetValidStatic(valid, valid_limit)
     
