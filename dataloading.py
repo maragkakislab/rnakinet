@@ -14,48 +14,6 @@ from scipy import stats
 from datamap import experiment_files
 from bonito_pulled.bonito.reader import trim
 
-
-def get_demo_dataset(valid_limit=5000):
-    #TODO currently using only one experiment, for real run use all of them
-    pth = Path('../../meta/martinekv/store/seq/ont/experiments')
-    fast5files_path_positives = Path(list((Path(list(pth.iterdir())[2])/'runs').iterdir())[0]/'fast5')
-    fast5files_path_negatives = Path(list((Path(list(pth.iterdir())[0])/'runs').iterdir())[0]/'fast5')
-    fast5s_positives = get_all_fast5s([fast5files_path_positives])
-    fast5s_negatives = get_all_fast5s([fast5files_path_negatives])
-
-    #TODO what window size ??? should be the whole read to not introduce more false positives?
-    #TODO par = num_of_cpus
-    #TODO last reads are typically longer = bias, validate on RANDOM files?
-    both_generator_train = skew_generators(fast5s_positives[:-3], fast5s_negatives[:-3], 1, 0, window=1000, skew=0.5, par=1)
-    both_generator_valid = skew_generators(fast5s_positives[-3:], fast5s_negatives[-3:], 1, 0, window=1000, skew=0.5, par=1)
-
-    def mapper(ele):
-        x,y = ele
-        return x.reshape(-1,1).swapaxes(0,1), np.array([y], dtype=np.float32)
-
-    class MyMixedDatasetTrain(IterableDataset):
-        def __iter__(self):
-            
-            return map(mapper, both_generator_train)
-        
-    class MyMixedDatasetValid(Dataset):
-        def __init__(self):
-            self.valid_elements = []
-            for _ in range(valid_limit):
-                self.valid_elements.append(next(map(mapper,both_generator_valid)))
-        
-        def __len__(self):
-            return len(self.valid_elements)
-        
-        def __getitem__(self, index):
-            return self.valid_elements[index]
-
-
-    
-    return MyMixedDatasetTrain(), MyMixedDatasetValid()
-
-
-
 def process_fast5_read(read, window, skip=1000, zscore=True, smartskip = True):
     """ Normalizes and extracts specified region from raw signal """
 
@@ -66,7 +24,10 @@ def process_fast5_read(read, window, skip=1000, zscore=True, smartskip = True):
     
     #TODO trying out bonito skipping
     if(smartskip):
-        skip, _ = trim(s[:8000])
+        # skip, _ = trim(s[:8000])
+        
+        #Using custom trim arguments according to Explore notebook
+        skip, _ = my_trim(signal=s[:26000])
         
     last_start_index = len(s)-window
     if(last_start_index < skip):
@@ -112,7 +73,7 @@ def myite_valid(files, label, window, limit):
                 
 
 
-def mixed_generator_valid(positive_files, negative_files, window, limit, valid_files_count):
+def mixed_generator_valid(positive_files, negative_files, window, limit):
     pos_gen = myite_valid(positive_files, 1, window, limit//2)
     neg_gen = myite_valid(negative_files, 0, window, limit//2)
     for i in range(limit):
@@ -138,19 +99,21 @@ class MyMixedDatasetTrain(IterableDataset):
         return self.mixed
     
 class MyMixedDatasetValid(IterableDataset):
-    def __init__(self, positive_files, negative_files, window, limit, valid_files_count):
-        self.mixed = mixed_generator_valid(positive_files, negative_files, window, limit, valid_files_count)
+    def __init__(self, positive_files, negative_files, window, limit):
+        self.mixed = mixed_generator_valid(positive_files, negative_files, window, limit)
     
     def __iter__(self):
         return self.mixed
+
+
+def get_default_split(pos_files, neg_files):
+    valid_select_seed = 42
+    valid_files_count = 10
     
-                    
-                    
-def get_my_dataset(window=1000, pos_files = 'pos_2022', neg_files='neg_2022', valid_limit=1000, valid_files_count=3, valid_select_seed=42):
-    pos_files = sorted(experiment_files[pos_files])
-    neg_files = sorted(experiment_files[neg_files])
+    sortkey = lambda x: int(Path(x).stem.split('_')[-1])
+    pos_files = sorted(experiment_files[pos_files], key=sortkey)
+    neg_files = sorted(experiment_files[neg_files], key=sortkey)
     
-    #TODO previous validation = last 3 files
     seed = valid_select_seed
     deterministic_random = random.Random(seed)
     deterministic_random.shuffle(pos_files)
@@ -160,12 +123,64 @@ def get_my_dataset(window=1000, pos_files = 'pos_2022', neg_files='neg_2022', va
     train_neg_files = neg_files[:-valid_files_count]
     valid_pos_files = pos_files[-valid_files_count:]
     valid_neg_files = neg_files[-valid_files_count:]
+    
+    return {
+        'train_pos_files':train_pos_files,
+        'train_neg_files':train_neg_files,
+        'valid_pos_files':valid_pos_files,
+        'valid_neg_files':valid_neg_files,
+    }
+
+
+def get_kfold_split_func(total_k, current_k, shuffle=True):
+    def f(pos_files, neg_files):
+        sortkey = lambda x: int(Path(x).stem.split('_')[-1])
+        pos_files = sorted(experiment_files[pos_files], key=sortkey)
+        neg_files = sorted(experiment_files[neg_files], key=sortkey)
+        
+        if(shuffle):
+            seed = 42
+            deterministic_random = random.Random(seed)
+            deterministic_random.shuffle(pos_files)
+            deterministic_random.shuffle(neg_files)
+        
+        pos_k_size = len(pos_files)//total_k
+        neg_k_size = len(neg_files)//total_k
+        
+        valid_pos_files = pos_files[pos_k_size*current_k:pos_k_size*(current_k+1)]
+        valid_neg_files = neg_files[neg_k_size*current_k:neg_k_size*(current_k+1)]
+        
+        train_pos_files = pos_files[:pos_k_size*current_k] + pos_files[pos_k_size*(current_k+1):]
+        train_neg_files = neg_files[:neg_k_size*current_k] + neg_files[neg_k_size*(current_k+1):]
+        
+        return {
+            'train_pos_files':train_pos_files,
+            'train_neg_files':train_neg_files,
+            'valid_pos_files':valid_pos_files,
+            'valid_neg_files':valid_neg_files,
+        }
+        
+        
+    return f
+        
+def get_my_dataset(window=1000, pos_files = 'pos_2022', neg_files='neg_2022', valid_limit=1000, split_method=get_default_split):
+    split = split_method(pos_files=pos_files, neg_files=neg_files)
+    
+    train_pos_files = split['train_pos_files']
+    train_neg_files = split['train_neg_files']
+    valid_pos_files = split['valid_pos_files']
+    valid_neg_files = split['valid_neg_files']
+    
     #always shuffling training data
     random.shuffle(train_pos_files)
     random.shuffle(train_neg_files)
     
     print('valid files indicies')
     for files in [valid_pos_files, valid_neg_files]:
+        print(sorted([int(Path(x).stem.split('_')[-1]) for x in files]))
+        
+    print('train files indicies')
+    for files in [train_pos_files, train_neg_files]:
         print(sorted([int(Path(x).stem.split('_')[-1]) for x in files]))
     
     # Check for deterministic valid selection and random training shuffling
@@ -179,7 +194,7 @@ def get_my_dataset(window=1000, pos_files = 'pos_2022', neg_files='neg_2022', va
     # f(valid_neg_files, 'valid_negatives')
     
     train = MyMixedDatasetTrain(train_pos_files, train_neg_files, window=window)
-    valid = MyMixedDatasetValid(valid_pos_files, valid_neg_files, window=window, limit=valid_limit, valid_files_count=valid_files_count)
+    valid = MyMixedDatasetValid(valid_pos_files, valid_neg_files, window=window, limit=valid_limit)
     
     #TODO resolve stopIterationException after iterating throught the whole training dset
     #TODO resolve so i can use generator istead
@@ -239,4 +254,22 @@ def get_my_valid_dataset(window=1000, pos_files = 'pos_2022', neg_files='neg_202
             return len(self.datapoints)
     
     return MyMixedDatasetValidStatic(valid, valid_limit)
-    
+
+
+def my_trim(signal, window_size=200, threshold=1.9, min_elements=25):
+
+    min_trim = 10
+    signal = signal[min_trim:]
+    num_windows = len(signal) // window_size
+
+    seen_peak = False
+    for pos in range(num_windows):
+        start = pos * window_size
+        end = start + window_size
+        window = signal[start:end]
+        if len(window[window > threshold]) > min_elements or seen_peak:
+            seen_peak = True
+            if window[-1] > threshold:
+                continue
+            return min(end + min_trim, len(signal)), len(signal)
+    return min_trim, len(signal)

@@ -90,6 +90,7 @@ class BonitoPretrained(pl.LightningModule):
         self.warmup_steps = warmup_steps
         
         self.acc = torchmetrics.Accuracy()
+        self.cm = torchmetrics.ConfusionMatrix(num_classes=2, normalize='true')
         
     def forward(self, x):
         return self.model(x)
@@ -117,6 +118,17 @@ class BonitoPretrained(pl.LightningModule):
         #TODO try to log on_epoch = True for aggregated training metrics
         self.log('train_loss', loss, on_epoch=True)
         acc =self.acc(output, y.int())
+        
+        cm = self.cm(output, y.int())
+        true_negatives_perc = cm[0][0]
+        false_negatives_perc = cm[0][1]
+        true_positives_perc = cm[1][1]
+        false_positives_perc = cm[1][0]
+        self.log('train true_negatives_perc', true_negatives_perc, on_epoch=True)
+        self.log('train false_negatives_perc', false_negatives_perc, on_epoch=True)
+        self.log('train true_positives_perc', true_positives_perc, on_epoch=True)
+        self.log('train false_positives_perc', false_positives_perc, on_epoch=True)
+        
         self.log('train acc', acc, on_epoch=True)
 
         sch = self.lr_schedulers()
@@ -136,5 +148,16 @@ class BonitoPretrained(pl.LightningModule):
         # loss = F.binary_cross_entropy(output, y)
         loss = F.binary_cross_entropy_with_logits(output, y)
         self.log('valid_loss', loss)
+        
+        cm = self.cm(output, y.int())
+        true_negatives_perc = cm[0][0]
+        false_negatives_perc = cm[0][1]
+        true_positives_perc = cm[1][1]
+        false_positives_perc = cm[1][0]
+        self.log('valid true_negatives_perc', true_negatives_perc, on_epoch=True)
+        self.log('valid false_negatives_perc', false_negatives_perc, on_epoch=True)
+        self.log('valid true_positives_perc', true_positives_perc, on_epoch=True)
+        self.log('valid false_positives_perc', false_positives_perc, on_epoch=True)
+        
         acc = self.acc(output, y.int())
         self.log('valid acc', acc)
