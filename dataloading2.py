@@ -3,7 +3,7 @@ from datamap import experiment_files
 from data_utils.split_methods import get_kfold_split_func, get_default_split
 from data_utils.trimming import primer_trim
 import random
-from torch.utils.data import IterableDataset
+from torch.utils.data import IterableDataset, Dataset
 from itertools import cycle, islice
 from torch.utils.data import DataLoader
 from pathlib import Path
@@ -43,8 +43,8 @@ class nanopore_datamodule(pl.LightningDataModule):
         self.train_pos_files = train_pos_files
         self.train_neg_files = train_neg_files
         
-        self.valid_pos_files = valid_pos_files[0:1] #TODOOOOOOOOOOOOO REMOVE
-        self.valid_neg_files = valid_neg_files[0:1]
+        self.valid_pos_files = valid_pos_files
+        self.valid_neg_files = valid_neg_files
         
     def setup(self, stage=None):
         if(stage == 'fit' or stage==None):
@@ -69,14 +69,12 @@ class nanopore_datamodule(pl.LightningDataModule):
     
     
     def val_dataloader(self):
-        # workers_per_dataset = self.workers//2
-        # workers_per_dataset = 1 #TODO fix (loop error pytorch)
-        # batch_size_per_dataset = self.batch_size//2
-        
         val_loader =  DataLoader(self.valid_dataset, batch_size=self.batch_size, num_workers=1, pin_memory=True)
         return val_loader
         
-        
+        # workers_per_dataset = self.workers//2
+        # workers_per_dataset = 1 #TODO fix (loop error pytorch)
+        # batch_size_per_dataset = self.batch_size//2
         # pos_loader =  DataLoader(self.valid_dataset_pos, batch_size=batch_size_per_dataset, num_workers=workers_per_dataset, pin_memory=True)
         # neg_loader =  DataLoader(self.valid_dataset_neg, batch_size=batch_size_per_dataset, num_workers=workers_per_dataset, pin_memory=True)
         # return [pos_loader, neg_loader]
@@ -95,25 +93,48 @@ class MyIterableDatasetSingle(IterableDataset):
     def __iter__(self):
         return self.get_stream()
 
-class MyMappedDatasetMixed(IterableDataset):
+class MyMappedDatasetMixed(Dataset):
     def __init__(self, pos_files, neg_files, window, limit=None):
         self.pos_files = pos_files
         self.neg_files = neg_files
         self.window = window
         self.limit = limit
+        
+        self.items = self.get_data()
+        
+        
    
-    def get_stream(self):
-        pos_gen = process_files(pos_files, label=1, window=self.window)
-        neg_gen = process_files(neg_files, label=0, window=self.window)
+    def get_data(self):
+        #TODO check if i sample from all files equally
+        items = []
+        pos_gens = []
+        for pos_file in self.pos_files:
+            pos_gens.append(process_files([pos_file], label=1, window=self.window))
+
+        neg_gens = []
+        for neg_file in self.neg_files:
+            neg_gens.append(process_files([neg_file], label=0, window=self.window))
+            
         count = 0
+        current_pos_gen = 0
+        current_neg_gen = 0
         while (count < self.limit):
             if(count < self.limit//2):
-                yield next(pos_gen)
+                items.append(next(pos_gens[current_pos_gen]))
+                count+=1
+                current_pos_gen = (current_pos_gen+1)%len(pos_gens)
             else:
-                yield next(neg_gen)
+                items.append(next(neg_gens[current_neg_gen]))
+                count+=1
+                current_neg_gen = (current_neg_gen+1)%len(neg_gens)
+                
+        return items     
   
-    def __iter__(self):
-        return self.get_stream()
+    def __len__(self):
+        return len(self.items)
+    
+    def __getitem__(self, idx):
+        return self.items[idx]
 
 def process_files(files, label, window):
     for fast5 in files:

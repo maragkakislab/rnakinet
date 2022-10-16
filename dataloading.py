@@ -24,19 +24,18 @@ def process_fast5_read(read, window, skip=1000, zscore=True, smartskip = True):
     if zscore:
         s = stats.zscore(s)
     
-    #TODO trying out bonito skipping
     if(smartskip):
-        # skip, _ = trim(s[:8000])
-        
-        #Using custom trim arguments according to Explore notebook
         skip, _ = my_trim(signal=s[:26000])
-        
+         
     last_start_index = len(s)-window
     if(last_start_index < skip):
         # print('SKIP too long', skip, last_start_index)
         # if sequence is not long enough, last #window signals is taken, ignoring the skip index
         skip = last_start_index
-    pos = random.randint(skip, last_start_index)
+        
+    #Using torch rand becasue of multiple workers
+    pos = torch.randint(skip, last_start_index+1, (1,))
+    # pos = random.randint(skip, last_start_index)
 
     #TODO remove reshape
     return s[pos:pos+window].reshape((window, 1))
@@ -50,10 +49,16 @@ def myite(files, label, window):
         #TODO why do random operations freeze trainer? shuffle in another way?
         # random.shuffle(files)
         for fast5 in files:
+            print(Path(fast5).stem, label)
             with get_fast5_file(fast5, mode='r') as f5:
+                
                 for read in f5.get_reads():
+                    # a,b =  np.zeros((1,1000),dtype=np.half), np.array([0], dtype=np.float32)
+                    # yield a, b
+                    # continue
                     x = process_fast5_read(read, window)
                     y = np.array(label)
+                    
                     yield x.reshape(-1,1).swapaxes(0,1), np.array([y], dtype=np.float32)
                 
 def myite_valid(files, label, window, limit):
@@ -95,10 +100,11 @@ def mixed_generator(positive_files, negative_files, window):
     
 class MyMixedDatasetTrain(IterableDataset):
     def __init__(self, positive_files, negative_files, window):
-        self.mixed = mixed_generator(positive_files, negative_files, window)
-    
+        self.positive_files = positive_files
+        self.negative_files = negative_files
+        self.window = window
     def __iter__(self):
-        return self.mixed
+        return mixed_generator(self.positive_files, self.negative_files, self.window)
     
 class MyMixedDatasetValid(IterableDataset):
     def __init__(self, positive_files, negative_files, window, limit):
@@ -185,15 +191,6 @@ def get_my_dataset(window=1000, pos_files = 'pos_2022', neg_files='neg_2022', va
     for files in [train_pos_files, train_neg_files]:
         print(sorted([int(Path(x).stem.split('_')[-1]) for x in files]))
     
-    # Check for deterministic valid selection and random training shuffling
-    # def f(files, message):
-    #     indicies = [int(Path(x).stem.split('_')[-1]) for x in files]
-    #     print(message)
-    #     print(indicies)
-    # f(train_pos_files, 'train_positives')
-    # f(train_neg_files, 'train_negatives')
-    # f(valid_pos_files, 'valid_positives')
-    # f(valid_neg_files, 'valid_negatives')
     
     train = MyMixedDatasetTrain(train_pos_files, train_neg_files, window=window)
     valid = MyMixedDatasetValid(valid_pos_files, valid_neg_files, window=window, limit=valid_limit)
@@ -308,8 +305,8 @@ def worker_init_fn(worker_id):
     # print(sorted([int(Path(x).stem.split('_')[-1]) for x in dataset.positive_files]))
     # print(sorted([int(Path(x).stem.split('_')[-1]) for x in dataset.negative_files]))
     
-    assert(len(dataset.positive_files)>0), f'{pos_per_worker*current_worker}: {pos_per_worker*(current_worker+1)}'
-    assert(len(dataset.negative_files)>0), f'{neg_per_worker*current_worker}: {neg_per_worker*(current_worker+1)}'
+    assert(len(dataset.positive_files)>0)
+    assert(len(dataset.negative_files)>0)
 
 
                          
