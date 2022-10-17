@@ -92,12 +92,7 @@ class BonitoPretrained(pl.LightningModule):
         return [optimizer], [scheduler]
     
     def training_step(self, train_batch, batch_idx, dataloader_idx=None):
-        xa,ya = train_batch['a']
-        xb,yb = train_batch['b']
-    
-        x = torch.cat([xa,xb])
-        y = torch.cat([ya,yb])
-
+        x,y = train_batch
         output = self(x)
         loss = F.binary_cross_entropy_with_logits(output, y)
         self.log('train_loss', loss, on_epoch=True)
@@ -131,11 +126,8 @@ class BonitoPretrained(pl.LightningModule):
         self.log(f'{prefix} true_positives_perc', true_positives_perc, on_epoch=True)
         self.log(f'{prefix} false_positives_perc', false_positives_perc, on_epoch=True)
         
-        on_epoch = False
-        if(prefix == 'train'):
-            on_epoch = True
         acc = self.acc(output, labels)
-        self.log(f'{prefix} acc', acc, on_epoch=on_epoch)
+        self.log(f'{prefix} acc', acc, on_epoch=True)
         
         
         
