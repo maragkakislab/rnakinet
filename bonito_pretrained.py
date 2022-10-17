@@ -15,20 +15,13 @@ class RNNPooler(torch.nn.Module):
         self.flatten = torch.nn.Flatten()
         
     def forward(self, x):
-        # print('rnn_pooler_shape')
-        # print(x.shape)
         x = torch.swapaxes(x, 0,-1)
         
         max_pool = self.flatten(self.max_pool(x))
-        # print(max_pool.shape)
         avg_pool = self.flatten(self.avg_pool(x))
-        # print(avg_pool.shape)
         last = x[:,:,-1] #TODO check dims
-        # print(last.shape)
         stack = torch.stack([max_pool, avg_pool, last]) #concating
         stack = torch.swapaxes(stack, 0, -1)
-        # print(stack.shape)
-        # stack = self.flatten(stack)
         return stack
         
 
@@ -37,9 +30,7 @@ class BonitoPretrained(pl.LightningModule):
         #LR default 2e-3, doc 5e-4
         super().__init__()
         #TODO there are multiple models, this one is _fast
-        
         # dna_r10.4_e8.1_sup@v3.4 , 5e-4 #OFFICIAL PRETRAINED ARGS 
-        #TODO load pretrained LR scheduler
         dirname = __models__/'dna_r10.4.1_e8.2_fast@v3.5.1'
         # dirname = __models__/'dna_r10.4_e8.1_sup@v3.4'
         
@@ -54,7 +45,6 @@ class BonitoPretrained(pl.LightningModule):
             quantize=False, #None/False default
             use_koi=False #True uses weird modules
         )
-        
 
         # model = model.encoder[:-1] #SKipping the CRF encoder
 
@@ -74,15 +64,9 @@ class BonitoPretrained(pl.LightningModule):
             torch.nn.Linear(960, 100),
             torch.nn.ReLU(),
             torch.nn.Linear(100,1),
-            
-            #TODO sigmoid vs CE with logits
-            
-        )#.half()
+        )
         
         
-        # ).to('cuda').half()
-                # x = torch.rand(32,1,10000).to('cuda').half()
-        # seq_model(x).shape
         self.model = seq_model
         
         self.pretrained_layers_lr = pretrained_lr
@@ -101,39 +85,26 @@ class BonitoPretrained(pl.LightningModule):
         pretrained_layers_lr = self.pretrained_layers_lr
         lr_list = [pretrained_layers_lr, *[my_layers_lr for _ in range(5)]] #5 custom layers after pretrained model
         groups = [{'params': list(m.parameters()), 'lr': lr} for (m, lr) in zip(self.model.children(), lr_list)]
-        optimizer = torch.optim.AdamW(groups, lr=self.pretrained_layers_lr, weight_decay=0.01) #wd 0.01
+        optimizer = torch.optim.AdamW(groups, lr=self.pretrained_layers_lr, weight_decay=0.01)
         
-        # optimizer = torch.optim.AdamW(self.parameters(), lr=self.learning_rate, weight_decay=0) #wd 0.01
-        # return optimizer
         
         scheduler = torch.optim.lr_scheduler.LinearLR(optimizer, total_iters=self.warmup_steps)
         return [optimizer], [scheduler]
     
-    def training_step(self, train_batch, batch_idx):
-        x,y = train_batch
+    def training_step(self, train_batch, batch_idx, dataloader_idx=None):
+        xa,ya = train_batch['a']
+        xb,yb = train_batch['b']
+    
+        x = torch.cat([xa,xb])
+        y = torch.cat([ya,yb])
 
         output = self(x)
-        # loss = F.binary_cross_entropy(output, y)
         loss = F.binary_cross_entropy_with_logits(output, y)
-        #TODO try to log on_epoch = True for aggregated training metrics
         self.log('train_loss', loss, on_epoch=True)
-        acc =self.acc(output, y.int())
-        
-        cm = self.cm(output, y.int())
-        true_negatives_perc = cm[0][0]
-        false_negatives_perc = cm[0][1]
-        true_positives_perc = cm[1][1]
-        false_positives_perc = cm[1][0]
-        self.log('train true_negatives_perc', true_negatives_perc, on_epoch=True)
-        self.log('train false_negatives_perc', false_negatives_perc, on_epoch=True)
-        self.log('train true_positives_perc', true_positives_perc, on_epoch=True)
-        self.log('train false_positives_perc', false_positives_perc, on_epoch=True)
-        
-        self.log('train acc', acc, on_epoch=True)
+        self.log_metrics(output, y.int(), 'train')
 
         sch = self.lr_schedulers()
         sch.step()
-        
         current_lr_list = sch.get_last_lr()
         pretrained_lr = current_lr_list[0]
         my_layer_lr = current_lr_list[-1] #the same for all custom layers
@@ -142,22 +113,30 @@ class BonitoPretrained(pl.LightningModule):
 
         return loss
     
-    def validation_step(self, val_batch, batch_idx):
+    def validation_step(self, val_batch, batch_idx, dataloader_idx=None):
         x,y = val_batch
         output = self(x)
-        # loss = F.binary_cross_entropy(output, y)
         loss = F.binary_cross_entropy_with_logits(output, y)
         self.log('valid_loss', loss)
-        
-        cm = self.cm(output, y.int())
+        self.log_metrics(output, y.int(), 'valid')
+    
+    def log_metrics(self, output, labels, prefix):
+        cm = self.cm(output, labels)
         true_negatives_perc = cm[0][0]
         false_negatives_perc = cm[0][1]
         true_positives_perc = cm[1][1]
         false_positives_perc = cm[1][0]
-        self.log('valid true_negatives_perc', true_negatives_perc, on_epoch=True)
-        self.log('valid false_negatives_perc', false_negatives_perc, on_epoch=True)
-        self.log('valid true_positives_perc', true_positives_perc, on_epoch=True)
-        self.log('valid false_positives_perc', false_positives_perc, on_epoch=True)
+        self.log(f'{prefix} true_negatives_perc', true_negatives_perc, on_epoch=True)
+        self.log(f'{prefix} false_negatives_perc', false_negatives_perc, on_epoch=True)
+        self.log(f'{prefix} true_positives_perc', true_positives_perc, on_epoch=True)
+        self.log(f'{prefix} false_positives_perc', false_positives_perc, on_epoch=True)
         
-        acc = self.acc(output, y.int())
-        self.log('valid acc', acc)
+        on_epoch = False
+        if(prefix == 'train'):
+            on_epoch = True
+        acc = self.acc(output, labels)
+        self.log(f'{prefix} acc', acc, on_epoch=on_epoch)
+        
+        
+        
+        

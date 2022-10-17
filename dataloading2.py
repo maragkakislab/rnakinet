@@ -11,15 +11,21 @@ from ont_fast5_api.fast5_interface import get_fast5_file
 from scipy import stats
 import torch
 import numpy as np
-from data_utils.workers import worker_init_simple_fn
+from data_utils.workers import worker_init_simple_fn, worker_init_fn
 
 class nanopore_datamodule(pl.LightningDataModule):
-    def __init__(self, pos_files='pos_2022', neg_files='neg_2022', split_method=get_default_split, verbose=True, workers=32, batch_size=256, valid_limit=None):
+    def __init__(self, pos_files='pos_2022', neg_files='neg_2022', split_method=get_default_split, verbose=0, workers=32, batch_size=256, valid_limit=None, window=1000):
+        """
+        verbose == 1 -> print file indicies
+        verbose == 2 -> + print loading file numbers
+        """
         super().__init__()
         
         self.workers = workers
         self.batch_size = batch_size
         self.valid_limit = valid_limit
+        self.verbose = verbose
+        self.window = window
         
         split = split_method(pos_files=pos_files, neg_files=neg_files)
     
@@ -31,7 +37,7 @@ class nanopore_datamodule(pl.LightningDataModule):
         valid_pos_files = split['valid_pos_files']
         valid_neg_files = split['valid_neg_files']
         
-        if(verbose):
+        if(verbose >= 1):
             print('valid files indicies')
             for files in [valid_pos_files, valid_neg_files]:
                 print(sorted([int(Path(x).stem.split('_')[-1]) for x in files]))
@@ -48,72 +54,57 @@ class nanopore_datamodule(pl.LightningDataModule):
         
     def setup(self, stage=None):
         if(stage == 'fit' or stage==None):
-            self.train_dataset_pos = MyIterableDatasetSingle(self.train_pos_files, label=1, window=1000)
-            self.train_dataset_neg = MyIterableDatasetSingle(self.train_neg_files, label=0, window=1000)
+            self.train_dataset = MyIterableDatasetMixed(self.train_pos_files, self.train_neg_files, window=self.window, verbose=self.verbose)
+            self.valid_dataset = MyMappedDatasetMixed(self.valid_pos_files, self.valid_neg_files, window=self.window, limit=self.valid_limit, verbose=self.verbose)
             
-            self.valid_dataset = MyMappedDatasetMixed(self.valid_pos_files, self.valid_neg_files, window=1000, limit=self.valid_limit)
-            
-            # self.valid_dataset_pos = MyIterableDatasetSingle(self.valid_pos_files, label=1, window=1000, limit=self.valid_limit//2)
-            # self.valid_dataset_neg = MyIterableDatasetSingle(self.valid_neg_files, label=0, window=1000, limit=self.valid_limit//2)
-        
     def train_dataloader(self):
         #TODO worker file distribution is exhaustive check
-        #TODO properly mix dataloaders, not 50/50 exactly
-        workers_per_dataset = self.workers//2
-        batch_size_per_dataset = self.batch_size//2
-        
-        pos_loader =  DataLoader(self.train_dataset_pos, batch_size=batch_size_per_dataset, num_workers=workers_per_dataset, pin_memory=True, worker_init_fn=worker_init_simple_fn)
-        neg_loader =  DataLoader(self.train_dataset_neg, batch_size=batch_size_per_dataset, num_workers=workers_per_dataset, pin_memory=True, worker_init_fn=worker_init_simple_fn)
-        
-        return {'a':pos_loader,'b':neg_loader}
-    
+        train_loader = DataLoader(self.train_dataset, batch_size=self.batch_size, num_workers=self.workers, pin_memory=True, worker_init_fn=worker_init_fn)
+        return train_loader
     
     def val_dataloader(self):
-        val_loader =  DataLoader(self.valid_dataset, batch_size=self.batch_size, num_workers=1, pin_memory=True)
+        val_loader =  DataLoader(self.valid_dataset, batch_size=self.batch_size)
         return val_loader
         
-        # workers_per_dataset = self.workers//2
-        # workers_per_dataset = 1 #TODO fix (loop error pytorch)
-        # batch_size_per_dataset = self.batch_size//2
-        # pos_loader =  DataLoader(self.valid_dataset_pos, batch_size=batch_size_per_dataset, num_workers=workers_per_dataset, pin_memory=True)
-        # neg_loader =  DataLoader(self.valid_dataset_neg, batch_size=batch_size_per_dataset, num_workers=workers_per_dataset, pin_memory=True)
-        # return [pos_loader, neg_loader]
-        
 
-class MyIterableDatasetSingle(IterableDataset):
-    def __init__(self, files, label, window, limit=None):
-        self.files = files
-        self.label = label
+class MyIterableDatasetMixed(IterableDataset):
+    def __init__(self, pos_files, neg_files, window, verbose=0):
+        self.positive_files = pos_files
+        self.negative_files = neg_files
         self.window = window
-        self.limit = limit
+        self.verbose = verbose
    
     def get_stream(self):
-        return cycle(process_files(files=self.files, label=self.label, window=self.window))
+        pos_gen = process_files(files=self.positive_files, label=1, window=self.window, verbose=self.verbose)
+        neg_gen = process_files(files=self.negative_files, label=0, window=self.window, verbose=self.verbose)
+        while True:
+            if(torch.rand(1) > 0.5):
+                yield next(pos_gen)
+            else:
+                yield next(neg_gen)
   
     def __iter__(self):
         return self.get_stream()
-
+        
 class MyMappedDatasetMixed(Dataset):
-    def __init__(self, pos_files, neg_files, window, limit=None):
+    def __init__(self, pos_files, neg_files, window, limit=None, verbose=0):
         self.pos_files = pos_files
         self.neg_files = neg_files
         self.window = window
         self.limit = limit
-        
+        self.verbose = verbose
         self.items = self.get_data()
-        
-        
    
     def get_data(self):
         #TODO check if i sample from all files equally
         items = []
         pos_gens = []
         for pos_file in self.pos_files:
-            pos_gens.append(process_files([pos_file], label=1, window=self.window))
+            pos_gens.append(process_files([pos_file], label=1, window=self.window, verbose=self.verbose))
 
         neg_gens = []
         for neg_file in self.neg_files:
-            neg_gens.append(process_files([neg_file], label=0, window=self.window))
+            neg_gens.append(process_files([neg_file], label=0, window=self.window, verbose=self.verbose))
             
         count = 0
         current_pos_gen = 0
@@ -136,15 +127,18 @@ class MyMappedDatasetMixed(Dataset):
     def __getitem__(self, idx):
         return self.items[idx]
 
-def process_files(files, label, window):
-    for fast5 in files:
-        # print(Path(fast5).stem, label)
-        with get_fast5_file(fast5, mode='r') as f5:
-            for read in f5.get_reads(): #Slow
-                x = process_read(read, window)
-                y = np.array(label)
-                #TODO put to tensors?
-                yield x.reshape(-1,1).swapaxes(0,1), np.array([y], dtype=np.float32)
+def process_files(files, label, window, verbose):
+    while True:
+        #TODO shuffle?
+        for fast5 in files:
+            if(verbose ==2):
+                print(f'{Path(fast5).stem}[-{label}-]')
+            with get_fast5_file(fast5, mode='r') as f5:
+                for read in f5.get_reads(): #Slow
+                    x = process_read(read, window)
+                    y = np.array(label)
+                    #TODO put to tensors?
+                    yield x.reshape(-1,1).swapaxes(0,1), np.array([y], dtype=np.float32)
 
 def process_read(read, window):
     s = read.get_raw_data(scale=True)  # Expensive
