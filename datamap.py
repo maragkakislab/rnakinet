@@ -23,4 +23,17 @@ for name, exp in experiments_dict.items():
     experiment_files[name]=list((dire[0]/'fast5').iterdir())
 
 
+#TODO change to local path
+# covid_pth = Path('../../meta/martinekv/store/seq/ont/experiments')
+covid_pth = Path('../local_store/store/seq/ont/experiments')
 
+covid_experiments = [exp for exp in covid_pth.iterdir() if 'hsa' not in str(exp)]
+covid_experiments_dict = {exp.stem:exp for exp in covid_experiments}
+
+covid_experiment_files = {}
+for name, exp in covid_experiments_dict.items():
+    dire = list((exp/'fast5').glob('./*.fast5'))
+    assert len(dire) > 0
+    covid_experiment_files[name] = dire
+
+experiment_files.update(covid_experiment_files)
