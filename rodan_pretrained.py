@@ -1,67 +1,34 @@
-from bonito_pulled.bonito.util import load_model
-from bonito_pulled.bonito.util import __models__
+from RODAN.basecall import load_model
 import torch
-from bonito_pulled.bonito.nn import Permute
 import torchmetrics
 import pytorch_lightning as pl
 from torch.nn import functional as F
+from types import SimpleNamespace
+from bonito_pretrained import RNNPooler
+from bonito_pulled.bonito.nn import Permute
 
-
-class RNNPooler(torch.nn.Module):
-    def __init__(self, features_to_pool, seq_len):
-        super().__init__()
-        self.max_pool = torch.nn.MaxPool1d(seq_len)
-        self.avg_pool = torch.nn.AvgPool1d(seq_len)
-        self.flatten = torch.nn.Flatten()
-        
-    def forward(self, x):
-        x = torch.swapaxes(x, 0,-1)
-        
-        max_pool = self.flatten(self.max_pool(x))
-        avg_pool = self.flatten(self.avg_pool(x))
-        last = x[:,:,-1] #TODO check dims
-        stack = torch.stack([max_pool, avg_pool, last]) #concating
-        stack = torch.swapaxes(stack, 0, -1)
-        return stack
-        
-
-class BonitoPretrained(pl.LightningModule):
+class RodanPretrained(pl.LightningModule):
     def __init__(self, pretrained_lr=5e-4, my_layers_lr=2e-3, warmup_steps = 10000):
-        #LR default 2e-3, doc 5e-4
         super().__init__()
-        #TODO there are multiple models, this one is _fast
-        # dna_r10.4_e8.1_sup@v3.4 , 5e-4 #OFFICIAL PRETRAINED ARGS 
-        dirname = __models__/'dna_r10.4.1_e8.2_fast@v3.5.1'
-        # dirname = __models__/'dna_r10.4_e8.1_sup@v3.4'
-        
-        model = load_model(
-            dirname, 
-            self.device, 
-            weights=None, #Default loadds from directory
-            half=False, #half precision is handled by PL
-            chunksize=1000,  #4000 default
-            batchsize=64,  #64 default
-            overlap=0,  #500 default
-            quantize=False, #None/False default
-            use_koi=False #True uses weird modules
-        )
 
-        # model = model.encoder[:-1] #SKipping the CRF encoder
+        #TODO fix module importing without hacking imports
+        #TODO vocab ATCG - but rna is AUCG
+        torchdict = torch.load('./RODAN/rna.torch', map_location="cpu")
+        origconfig = torchdict["config"]
+        d = origconfig
+        n = SimpleNamespace(**d)
+        args = {
+            'debug':False, #True prints out more info
+            'arch':None,
+        }
+        model, device = load_model('./RODAN/rna.torch', config=n, args=SimpleNamespace(**args))
 
         seq_model = torch.nn.Sequential(
             model,
-            # Permute((1,2,0)), #TODO commented out for my pooler
-            #TODO maxpool make it dynamic for any seq length? not hardcoded 2000 for 10000 length
-            # torch.nn.MaxPool1d(200), _fast model
-            RNNPooler(features_to_pool=320, seq_len=200),
-            #TODO pooling the wrong dimension? (length vs features)
-            #TODO why 320 features, crf should output 256?
-            # torch.nn.MaxPool1d(167), #maxpooling over the whole RNN length, instead do convolution maybe? or maxpool + take last and first vectors
+            # RNNPooler(features_to_pool=5, seq_len=420),
+            Permute((1,0,2)),
             torch.nn.Flatten(),
-            #TODO activation?
-            # torch.nn.Linear(320, 1), _fast model
-            
-            torch.nn.Linear(960, 100),
+            torch.nn.Linear(420*5, 100),
             torch.nn.ReLU(),
             torch.nn.Linear(100,1),
         )
@@ -83,7 +50,7 @@ class BonitoPretrained(pl.LightningModule):
         #different LR for my own layers (higher)
         my_layers_lr = self.my_layers_lr
         pretrained_layers_lr = self.pretrained_layers_lr
-        lr_list = [pretrained_layers_lr, *[my_layers_lr for _ in range(5)]] #5 custom layers after pretrained model
+        lr_list = [pretrained_layers_lr, *[my_layers_lr for _ in range(4)]] #5 custom layers after pretrained model
         groups = [{'params': list(m.parameters()), 'lr': lr} for (m, lr) in zip(self.model.children(), lr_list)]
         optimizer = torch.optim.AdamW(groups, lr=self.pretrained_layers_lr, weight_decay=0.01)
         

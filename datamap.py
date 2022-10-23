@@ -23,7 +23,6 @@ for name, exp in experiments_dict.items():
     experiment_files[name]=list((dire[0]/'fast5').iterdir())
 
 
-#TODO change to local path
 # covid_pth = Path('../../meta/martinekv/store/seq/ont/experiments')
 covid_pth = Path('../local_store/store/seq/ont/experiments')
 

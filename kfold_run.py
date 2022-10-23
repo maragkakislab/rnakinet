@@ -5,7 +5,9 @@ from pytorch_lightning.loggers import CometLogger
 from pytorch_lightning.callbacks import ModelCheckpoint
 from bonito_pretrained import BonitoPretrained
 
+#OBSOLETE
 def run_kfold(total_k, current_k):
+    print('TODO ADD WORKER PARALELIZATION')
     print(f'CURRENT FOLD {current_k}/{total_k}')
     experiment_name = f'bonito_2022data_kfold_{current_k}/{total_k}'
 

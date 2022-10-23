@@ -1,12 +1,13 @@
 from datamap import experiment_files
 from pathlib import Path
 import random
+from data_utils.sorting import get_experiment_sort
 
 def get_kfold_split_func(total_k, current_k, shuffle=True):
     def f(pos_files, neg_files):
         sortkey = lambda x: int(Path(x).stem.split('_')[-1])
-        pos_files = sorted(experiment_files[pos_files], key=sortkey)
-        neg_files = sorted(experiment_files[neg_files], key=sortkey)
+        pos_files = sorted(experiment_files[pos_files], key=get_experiment_sort(pos_files))
+        neg_files = sorted(experiment_files[neg_files], key=get_experiment_sort(neg_files))
         
         if(shuffle):
             seed = 42
@@ -39,8 +40,8 @@ def get_default_split(pos_files, neg_files):
     valid_files_count = 10
     
     sortkey = lambda x: int(Path(x).stem.split('_')[-1])
-    pos_files = sorted(experiment_files[pos_files], key=sortkey)
-    neg_files = sorted(experiment_files[neg_files], key=sortkey)
+    pos_files = sorted(experiment_files[pos_files], key=get_experiment_sort(pos_files))
+    neg_files = sorted(experiment_files[neg_files], key=get_experiment_sort(neg_files))
     
     seed = valid_select_seed
     deterministic_random = random.Random(seed)

@@ -12,6 +12,8 @@ from scipy import stats
 import torch
 import numpy as np
 from data_utils.workers import worker_init_simple_fn, worker_init_fn
+from data_utils.sorting import get_experiment_sort
+
 
 class nanopore_datamodule(pl.LightningDataModule):
     def __init__(self, pos_files='pos_2022', neg_files='neg_2022', split_method=get_default_split, verbose=0, workers=32, batch_size=256, valid_limit=None, window=1000):
@@ -40,11 +42,11 @@ class nanopore_datamodule(pl.LightningDataModule):
         if(verbose >= 1):
             print('valid files indicies')
             for files in [valid_pos_files, valid_neg_files]:
-                print(sorted([int(Path(x).stem.split('_')[-1]) for x in files]))
+                print(sorted([get_experiment_sort(pos_files)(x) for x in files]))
 
             print('train files indicies')
             for files in [train_pos_files, train_neg_files]:
-                print(sorted([int(Path(x).stem.split('_')[-1]) for x in files]))
+                print(sorted([get_experiment_sort(pos_files)(x) for x in files]))
     
         self.train_pos_files = train_pos_files
         self.train_neg_files = train_neg_files
