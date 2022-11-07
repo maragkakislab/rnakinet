@@ -15,6 +15,7 @@ from datamap import experiment_files
 from bonito_pulled.bonito.reader import trim
 import torch
 import math
+from data_utils.trimming import primer_trim
 
 def process_fast5_read(read, window, skip=1000, zscore=True, smartskip = True):
     """ Normalizes and extracts specified region from raw signal """
@@ -234,7 +235,9 @@ def get_my_valid_dataset_unlimited(window=1000, pos_files = 'pos_2022', neg_file
         s = stats.zscore(s)
 
         #Using custom trim arguments according to Explore notebook
-        skip, _ = my_trim(signal=s[:26000])
+        # skip, _ = primer_trim(signal=s[:26000])
+        skip = primer_trim(signal=s[:26000])
+        
 
         last_start_index = len(s)-window
         if(last_start_index < skip):
@@ -247,7 +250,7 @@ def get_my_valid_dataset_unlimited(window=1000, pos_files = 'pos_2022', neg_file
     def myite_full(files, label, window):
         for fast5 in files:
             # yield (Path(fast5).stem + f'_lab_{label}')
-            # print(Path(fast5).stem,'starting')
+            print(Path(fast5).stem,'starting', 'label', label)
             with get_fast5_file(fast5, mode='r') as f5:
                 for i, read in enumerate(f5.get_reads()):
                     # print(Path(fast5).stem, 'READ',i, 'TODO DELETE PRINT')

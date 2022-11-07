@@ -76,6 +76,7 @@ class RodanPretrained(pl.LightningModule):
         return loss
     
     def validation_step(self, val_batch, batch_idx, dataloader_idx=None):
+        print(val_batch)
         x,y = val_batch
         output = self(x)
         loss = F.binary_cross_entropy_with_logits(output, y)
