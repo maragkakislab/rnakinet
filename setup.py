@@ -1,7 +1,8 @@
-from distutils.core import setup
+from setuptools import setup, find_packages
 # !git clone https://github.com/hsd1503/resnet1d.git
 # https://github.com/maxjcohen/transformer.git
-setup(name='RNAModif',
+setup(name='rnamodif',
       version='1.0',
-      py_modules=['RNAModif'],
+      packages=find_packages(),
+      # py_modules=['RNAModif'],
 )
