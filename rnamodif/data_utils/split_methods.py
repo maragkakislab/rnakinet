@@ -3,7 +3,7 @@ from pathlib import Path
 import random
 from rnamodif.data_utils.sorting import get_experiment_sort
 
-def get_kfold_split_func(total_k, current_k, shuffle=True):
+def get_kfold_split_func(total_k, current_k, shuffle=True, limit=None):
     def f(pos_files, neg_files):
         sortkey = lambda x: int(Path(x).stem.split('_')[-1])
         pos_files = sorted(experiment_files[pos_files], key=get_experiment_sort(pos_files))
@@ -14,6 +14,10 @@ def get_kfold_split_func(total_k, current_k, shuffle=True):
             deterministic_random = random.Random(seed)
             deterministic_random.shuffle(pos_files)
             deterministic_random.shuffle(neg_files)
+        
+        if(limit):
+            pos_files = pos_files[:limit]
+            neg_files = neg_files[:limit]
         
         pos_k_size = len(pos_files)//total_k
         neg_k_size = len(neg_files)//total_k
@@ -59,3 +63,24 @@ def get_default_split(pos_files, neg_files):
         'valid_pos_files':valid_pos_files,
         'valid_neg_files':valid_neg_files,
     }
+
+
+def get_fullvalid_split(limit=None, shuffle=False):
+    def fullvalid_split(pos_files, neg_files):
+        valid_pos_files = experiment_files[pos_files]
+        valid_neg_files = experiment_files[neg_files]
+        
+        if(shuffle):
+            random.shuffle(valid_pos_files)
+            random.shuffle(valid_neg_files)
+        if(limit):
+            valid_pos_files=valid_pos_files[:limit]
+            valid_neg_files=valid_neg_files[:limit]
+        return {
+            'train_pos_files':[],
+            'train_neg_files':[],
+            'valid_pos_files':valid_pos_files,
+            'valid_neg_files':valid_neg_files,
+        }
+    
+    return fullvalid_split
