@@ -17,6 +17,7 @@ import torch
 import math
 from rnamodif.data_utils.trimming import primer_trim
 from rnamodif.data_utils.split_methods import *
+from rnamodif.data_utils.dataloading2 import process_read
 
                      
 def get_my_valid_dataset_unlimited(window=1000, pos_files = 'pos_2022', neg_files='neg_2022', split_method=get_default_split, verbose=1, read_blacklist=[]):
@@ -28,43 +29,15 @@ def get_my_valid_dataset_unlimited(window=1000, pos_files = 'pos_2022', neg_file
     valid_pos_files = split['valid_pos_files']
     valid_neg_files = split['valid_neg_files']
     
-    print('valid files indicies')
-    if(verbose==1):
-        for files in [valid_pos_files, valid_neg_files]:
-            print(sorted([int(Path(x).stem.split('_')[-1]) for x in files]))
-    
-    
-    def process_fast5_read_full(read, window):
-        """ Normalizes and extracts specified region from raw signal """
-
-        s = read.get_raw_data(scale=True)  # Expensive
-        s = stats.zscore(s)
-
-        #Using custom trim arguments according to Explore notebook
-        # skip, _ = primer_trim(signal=s[:26000])
-        skip = primer_trim(signal=s[:26000])
-        
-
-        last_start_index = len(s)-window
-        if(last_start_index < skip):
-            # if sequence is not long enough, last #window signals is taken, ignoring the skip index
-            skip = last_start_index
-        s = s[skip:]
-        
-        return s
-    
     def myite_full(files, label, window):
         for fast5 in files:
-            # yield (Path(fast5).stem + f'_lab_{label}')
             if(verbose==1):
                 print(Path(fast5).stem,'starting', 'label', label)
             with get_fast5_file(fast5, mode='r') as f5:
                 for i, read in enumerate(f5.get_reads()):
                     if(read.read_id in read_blacklist):
-                        # print('skipping')
                         continue
-                    # print(Path(fast5).stem, 'READ',i, 'TODO DELETE PRINT')
-                    x = process_fast5_read_full(read, window)
+                    x = process_read(read, window=None) #getting the full read and slicing later
                     y = np.array(label)
                     for start in range(0, len(x), window)[:-1]: #Cutoff the last incomplete signal
                         stop = start+window

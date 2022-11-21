@@ -9,10 +9,10 @@ pos_2020 = pth/'20201016_hsa_dRNASeq_HeLa_5EU_polyA_REL5_short_1/runs'
 neg_2020 = pth/'20201016_hsa_dRNASeq_HeLa_dmso_polyA_REL5_short_1/runs'
 
 experiments_dict = {
-    '5eu_2022':pos_2022, #old pos_2022
-    'UNM_2022':neg_2022, #old neg_2022
-    '5eu_2020':pos_2020, #old pos_2020
-    'UNM_2020':neg_2020, #old neg_2020
+    '5eu_2022_nia':pos_2022, #old pos_2022
+    'UNM_2022_nia':neg_2022, #old neg_2022
+    '5eu_2020_nia':pos_2020, #old pos_2020
+    'UNM_2020_nia':neg_2020, #old neg_2020
 }
 experiment_files = {
 }
@@ -28,7 +28,7 @@ covid_experiment_files = {}
 for name, exp in covid_experiments_dict.items():
     dire = list((exp/'fast5').glob('./*.fast5'))
     assert len(dire) > 0
-    covid_experiment_files[name] = dire
+    covid_experiment_files[name+"_covid"] = dire
 
 experiment_files.update(covid_experiment_files)
 
@@ -43,6 +43,7 @@ unm_novoa_replicate_1 = novoa_data_path/'RNAAB089716_m6A_UNM_fast5'
 unm_novoa_replicate_2 = novoa_data_path/'RNA081120181_m6A_UNM_fast5'
 unm_novoa_short = novoa_data_path/'RNAAB063141_00DMS_fast5'
 
+#TODO Uncomment
 novoa_experiments_dict = {
     'm5c_novoa':m5c_novoa,
     'm6a_novoa_1':m6a_novoa_replicate_1,

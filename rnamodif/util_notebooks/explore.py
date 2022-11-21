@@ -68,7 +68,7 @@ def myite(files, read_index, file_index, zscore, scale, smartskip, exp_label):
             yield x.reshape(-1,1).swapaxes(0,1), cutoff
             
 
-def plot_reads(exp_list, zscore=True, scale=True, total_limit=None, read_index=random.randint(0,100), file_index=None):
+def plot_reads(exp_list, zscore=True, scale=True, total_limit=None, read_index=0, file_index=None, y_axis_lim=None):
     smartskip = True
     
     seqs = {}
@@ -84,6 +84,8 @@ def plot_reads(exp_list, zscore=True, scale=True, total_limit=None, read_index=r
     
     for i,exp in enumerate(exp_list):
         axs[i].plot(seqs[exp])
+        if(y_axis_lim):
+            axs[i].set_ylim(y_axis_lim)
         axs[i].hlines(y=[-2,2], xmin=0, xmax=max_x, colors='red')
         axs[i].vlines(x=cutoffs[exp], color='purple',ymin=-5, ymax=5)
         axs[i].set_title(exp)
