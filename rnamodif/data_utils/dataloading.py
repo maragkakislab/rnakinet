@@ -16,61 +16,108 @@ from bonito_pulled.bonito.reader import trim
 import torch
 import math
 from rnamodif.data_utils.trimming import primer_trim
-from rnamodif.data_utils.split_methods import *
 from rnamodif.data_utils.dataloading2 import process_read
+from rnamodif.data_utils.generators import alternating_gen, uniform_gen, sequential_gen
 
-                     
-def get_my_valid_dataset_unlimited(window=1000, pos_files = 'pos_2022', neg_files='neg_2022', split_method=get_default_split, verbose=1, read_blacklist=[]):
-    #IN PROGRESS
-    split = split_method(pos_files=pos_files, neg_files=neg_files)
-    
-    train_pos_files = split['train_pos_files']
-    train_neg_files = split['train_neg_files']
-    valid_pos_files = split['valid_pos_files']
-    valid_neg_files = split['valid_neg_files']
-    
-    def myite_full(files, label, window):
+
+def get_valid_dataset_unlimited(splits, window=1000, verbose=1, read_blacklist=[]):
+    def process_files_fully(files, label, window):
         for fast5 in files:
             if(verbose==1):
                 print(Path(fast5).stem,'starting', 'label', label)
             with get_fast5_file(fast5, mode='r') as f5:
                 for i, read in enumerate(f5.get_reads()):
-                    if(read.read_id in read_blacklist):
-                        continue
+                    if(read_blacklist):
+                        if(read.read_id in read_blacklist):
+                            continue
                     x = process_read(read, window=None) #getting the full read and slicing later
                     y = np.array(label)
                     for start in range(0, len(x), window)[:-1]: #Cutoff the last incomplete signal
                         stop = start+window
-                        identifier = {'file':str(fast5),
-                                      'readid':read.read_id,
-                                      'read_index_in_file':i,
-                                      'start':start,
-                                      'stop':stop,
-                                      'label':label
-                                     }
+                        # identifier = {'file':str(fast5),
+                        #               'readid':read.read_id,
+                        #               'read_index_in_file':i,
+                        #               'start':start,
+                        #               'stop':stop,
+                        #               'label':label
+                        #              }
                         
                         yield x[start:stop].reshape(-1,1).swapaxes(0,1), np.array([y], dtype=np.float32)
                         #TODO resolve returning identifier for labelcleaning
                         # yield x[start:stop].reshape(-1,1).swapaxes(0,1), np.array([y], dtype=np.float32), identifier
-                        
-                        
+                    
+    pos_files = [s['valid_pos_files'] for s in splits if len(s['valid_pos_files'])>0]
+    neg_files = [s['valid_neg_files'] for s in splits if len(s['valid_neg_files'])>0]
     
-    def mixed_generator_full(positive_files, negative_files, window):
-        pos_gen = myite_full(positive_files, 1, window)
-        neg_gen = myite_full(negative_files, 0, window)
-        for pos in pos_gen:
-            yield pos
-        for neg in neg_gen:
-            yield neg
-    
-    class FullValidDataset(IterableDataset):
+    class FullDataset(IterableDataset):
         def __init__(self, positive_files, negative_files, window):
             self.positive_files = positive_files
             self.negative_files = negative_files
             self.window = window
 
         def __iter__(self):
-            return mixed_generator_full(self.positive_files, self.negative_files, self.window)
+            pos_gens = []
+            for files in self.positive_files:
+                pos_gens.append(process_files_fully(files, label=1, window=self.window))
+            neg_gens = []
+            for files in self.negative_files:
+                neg_gens.append(process_files_fully(files, label=0, window=self.window))
+            return sequential_gen(pos_gens+neg_gens)
     
-    return FullValidDataset(valid_pos_files, valid_neg_files, window=window)
+    return FullDataset(pos_files, neg_files, window=window)
+
+                     
+# def get_my_valid_dataset_unlimited_legacy(window=1000, pos_files = 'pos_2022', neg_files='neg_2022', split_method=get_default_split, verbose=1, read_blacklist=[]):
+#     #IN PROGRESS
+#     split = split_method(pos_files=pos_files, neg_files=neg_files)
+    
+#     train_pos_files = split['train_pos_files']
+#     train_neg_files = split['train_neg_files']
+#     valid_pos_files = split['valid_pos_files']
+#     valid_neg_files = split['valid_neg_files']
+    
+#     def myite_full(files, label, window):
+#         for fast5 in files:
+#             if(verbose==1):
+#                 print(Path(fast5).stem,'starting', 'label', label)
+#             with get_fast5_file(fast5, mode='r') as f5:
+#                 for i, read in enumerate(f5.get_reads()):
+#                     if(read.read_id in read_blacklist):
+#                         continue
+#                     x = process_read(read, window=None) #getting the full read and slicing later
+#                     y = np.array(label)
+#                     for start in range(0, len(x), window)[:-1]: #Cutoff the last incomplete signal
+#                         stop = start+window
+#                         identifier = {'file':str(fast5),
+#                                       'readid':read.read_id,
+#                                       'read_index_in_file':i,
+#                                       'start':start,
+#                                       'stop':stop,
+#                                       'label':label
+#                                      }
+                        
+#                         yield x[start:stop].reshape(-1,1).swapaxes(0,1), np.array([y], dtype=np.float32)
+#                         #TODO resolve returning identifier for labelcleaning
+#                         # yield x[start:stop].reshape(-1,1).swapaxes(0,1), np.array([y], dtype=np.float32), identifier
+                        
+                        
+    
+#     def mixed_generator_full(positive_files, negative_files, window):
+#         pos_gen = myite_full(positive_files, 1, window)
+#         neg_gen = myite_full(negative_files, 0, window)
+#         for pos in pos_gen:
+#             yield pos
+#         for neg in neg_gen:
+#             yield neg
+    
+#     class FullValidDataset(IterableDataset):
+#         def __init__(self, positive_files, negative_files, window):
+#             self.positive_files = positive_files
+#             self.negative_files = negative_files
+#             self.window = window
+
+#         def __iter__(self):
+#             return mixed_generator_full(self.positive_files, self.negative_files, self.window)
+    
+#     return FullValidDataset(valid_pos_files, valid_neg_files, window=window)
 

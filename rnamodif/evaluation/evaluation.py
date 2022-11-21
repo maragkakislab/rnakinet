@@ -1,12 +1,13 @@
 import pytorch_lightning as pl
 from torch.utils.data import DataLoader
-from rnamodif.data_utils.dataloading import get_my_valid_dataset_unlimited
+from rnamodif.data_utils.dataloading import get_valid_dataset_unlimited
 from rnamodif.data_utils.split_methods import get_fullvalid_split
+from rnamodif.data_utils.workers import worker_init_fn_multisplit
 
-def model_dataset_eval(model, dataset, multiprocessing):
-    if multiprocessing:
-        valid_loader = DataLoader(dataset, batch_size=128, num_workers=32,
-                                  pin_memory=True, persistent_workers=True)
+def model_dataset_eval(model, dataset, workers):
+    if workers>1:
+        valid_loader = DataLoader(dataset, batch_size=32, num_workers=workers,
+                                  pin_memory=True, worker_init_fn = worker_init_fn_multisplit)
     else:
         valid_loader = DataLoader(dataset, batch_size=32) 
     
@@ -20,19 +21,18 @@ def get_trained_model(architecture, checkpoint):
 
 def run_eval(config):
     if('read_blacklist' not in config.keys()):
-        config['read_blacklist'] = []
-    if('multiprocessing' not in config.keys()):
-        config['multiprocessing'] = False
-    #TODO remove need for splits
-    dset = get_my_valid_dataset_unlimited(
+        config['read_blacklist'] = None
+    if('workers' not in config.keys()):
+        config['workers'] = 1
+        
+    splits = [config['split'](pos_files=config['pos_files'], neg_files=config['neg_files'])]
+    dset = get_valid_dataset_unlimited(
+        splits=splits,
         window=config['window'],
-        pos_files=config['pos_files'],
-        neg_files=config['neg_files'],
-        split_method=config['split'],
         verbose=0,
         read_blacklist=config['read_blacklist'],
     )
     model = get_trained_model(config['arch'], config['checkpoint'])
     
-    return model_dataset_eval(model, dset, config['multiprocessing'])
+    return model_dataset_eval(model, dset, config['workers'])
     
