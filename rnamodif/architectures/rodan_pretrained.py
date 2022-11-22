@@ -42,8 +42,8 @@ class RodanPretrained(pl.LightningModule):
         self.my_layers_lr = my_layers_lr
         self.warmup_steps = warmup_steps
         
-        self.acc = torchmetrics.Accuracy()
-        self.cm = torchmetrics.ConfusionMatrix(num_classes=2, normalize='true')
+        self.acc = torchmetrics.classification.BinaryAccuracy()
+        self.cm = torchmetrics.classification.BinaryConfusionMatrix(normalize='true')
         
     def forward(self, x):
         return self.model(x)
@@ -87,13 +87,17 @@ class RodanPretrained(pl.LightningModule):
     def log_metrics(self, output, labels, prefix):
         cm = self.cm(output, labels)
         true_negatives_perc = cm[0][0]
-        false_negatives_perc = cm[0][1]
+        false_negatives_perc = cm[1][0]
         true_positives_perc = cm[1][1]
-        false_positives_perc = cm[1][0]
-        self.log(f'{prefix} true_negatives_perc', true_negatives_perc, on_epoch=True)
-        self.log(f'{prefix} false_negatives_perc', false_negatives_perc, on_epoch=True)
-        self.log(f'{prefix} true_positives_perc', true_positives_perc, on_epoch=True)
-        self.log(f'{prefix} false_positives_perc', false_positives_perc, on_epoch=True)
+        false_positives_perc = cm[0][1]
+        
+        if(true_positives_perc+false_negatives_perc > 0):
+            self.log(f'{prefix} true_positives_perc', true_positives_perc, on_epoch=True)
+            self.log(f'{prefix} false_negatives_perc', false_negatives_perc, on_epoch=True)
+            
+        if(true_negatives_perc+false_positives_perc > 0):
+            self.log(f'{prefix} true_negatives_perc', true_negatives_perc, on_epoch=True)
+            self.log(f'{prefix} false_positives_perc', false_positives_perc, on_epoch=True)
         
         acc = self.acc(output, labels)
         self.log(f'{prefix} acc', acc, on_epoch=True)
