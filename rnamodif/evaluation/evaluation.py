@@ -25,7 +25,7 @@ def run_eval(config):
     if('workers' not in config.keys()):
         config['workers'] = 1
         
-    splits = [config['split'](pos_files=config['pos_files'], neg_files=config['neg_files'])]
+    splits = config['split'](pos_files=config['pos_files'], neg_files=config['neg_files'])
     dset = get_valid_dataset_unlimited(
         splits=splits,
         window=config['window'],

@@ -21,7 +21,7 @@ from rnamodif.data_utils.generators import alternating_gen, uniform_gen, sequent
 
 
 def get_valid_dataset_unlimited(splits, window=1000, verbose=1, read_blacklist=[]):
-    def process_files_fully(files, label, window):
+    def process_files_fully(files, exp, label, window):
         for fast5 in files:
             if(verbose==1):
                 print(Path(fast5).stem,'starting', 'label', label)
@@ -42,12 +42,14 @@ def get_valid_dataset_unlimited(splits, window=1000, verbose=1, read_blacklist=[
                         #               'label':label
                         #              }
                         
-                        yield x[start:stop].reshape(-1,1).swapaxes(0,1), np.array([y], dtype=np.float32)
+                        yield x[start:stop].reshape(-1,1).swapaxes(0,1), np.array([y], dtype=np.float32), exp
                         #TODO resolve returning identifier for labelcleaning
                         # yield x[start:stop].reshape(-1,1).swapaxes(0,1), np.array([y], dtype=np.float32), identifier
-                    
-    pos_files = [s['valid_pos_files'] for s in splits if len(s['valid_pos_files'])>0]
-    neg_files = [s['valid_neg_files'] for s in splits if len(s['valid_neg_files'])>0]
+    def keycheck(dictionary, key): #TODO remove duplicate
+        return key in dictionary.keys() and len(dictionary[key]) > 0
+    
+    pos_files = [(s['exp'],s['valid_pos_files']) for s in splits if keycheck(s, 'valid_pos_files')]
+    neg_files = [(s['exp'],s['valid_neg_files']) for s in splits if keycheck(s, 'valid_neg_files')]
     
     class FullDataset(IterableDataset):
         def __init__(self, positive_files, negative_files, window):
@@ -57,11 +59,11 @@ def get_valid_dataset_unlimited(splits, window=1000, verbose=1, read_blacklist=[
 
         def __iter__(self):
             pos_gens = []
-            for files in self.positive_files:
-                pos_gens.append(process_files_fully(files, label=1, window=self.window))
+            for exp,files in self.positive_files:
+                pos_gens.append(process_files_fully(files, exp, label=1, window=self.window))
             neg_gens = []
-            for files in self.negative_files:
-                neg_gens.append(process_files_fully(files, label=0, window=self.window))
+            for exp,files in self.negative_files:
+                neg_gens.append(process_files_fully(files, exp, label=0, window=self.window))
             return sequential_gen(pos_gens+neg_gens)
     
     return FullDataset(pos_files, neg_files, window=window)

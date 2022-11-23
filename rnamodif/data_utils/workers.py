@@ -2,6 +2,7 @@ import torch
 import time
 
 def worker_init_fn_multisplit(worker_id):
+    #TODO new split structute with 'exp' -> adjust workers? or datamodule?
     worker_info = torch.utils.data.get_worker_info()
     dataset = worker_info.dataset
     total_workers = worker_info.num_workers
@@ -13,9 +14,9 @@ def worker_init_fn_multisplit(worker_id):
     
 def slice_splits(split, total_workers, current_worker):
     new_split = []
-    for files in split:
+    for exp, files in split:
         new_files = get_files_partition(files, total_workers, current_worker)
-        new_split.append(new_files)
+        new_split.append((exp,new_files))
     return new_split
 
 def get_files_partition(files, total, current):

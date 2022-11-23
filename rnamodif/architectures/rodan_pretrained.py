@@ -6,6 +6,7 @@ from torch.nn import functional as F
 from types import SimpleNamespace
 from rnamodif.architectures.bonito_pretrained import RNNPooler
 from bonito_pulled.bonito.nn import Permute
+import numpy as np
 
 class RodanPretrained(pl.LightningModule):
     def __init__(self, pretrained_lr=5e-4, my_layers_lr=2e-3, warmup_steps = 10000):
@@ -73,11 +74,11 @@ class RodanPretrained(pl.LightningModule):
         return [optimizer], [scheduler]
     
     def training_step(self, train_batch, batch_idx, dataloader_idx=None):
-        x,y = train_batch
+        x,y,exp = train_batch
         output = self(x)
         loss = F.binary_cross_entropy_with_logits(output, y)
         self.log('train_loss', loss, on_epoch=True)
-        self.log_metrics(output, y.int(), 'train')
+        self.log_metrics(output, y.int(), exp, 'train')
 
         sch = self.lr_schedulers()
         sch.step()
@@ -90,30 +91,46 @@ class RodanPretrained(pl.LightningModule):
         return loss
     
     def validation_step(self, val_batch, batch_idx, dataloader_idx=None):
-        x,y = val_batch
+        x,y,exp = val_batch
         output = self(x)
         loss = F.binary_cross_entropy_with_logits(output, y)
         self.log('valid_loss', loss, on_epoch=True) #ADDED on_epoch=True
-        self.log_metrics(output, y.int(), 'valid')
+        self.log_metrics(output, y.int(), exp, 'valid')
     
-    def log_metrics(self, output, labels, prefix):
+    def log_metrics(self, output, labels, exp, prefix):
+        self.log_cm(output, labels, prefix)
+        acc = self.acc(output, labels)
+        self.log(f'{prefix} acc', acc, on_epoch=True)
+        
+        exps = np.array(exp)
+        for e in np.unique(exp):
+            indicies = exps == e
+            batch_size = sum(indicies)
+            if(batch_size>0):
+                e_output = output[exps==e]
+                e_labels = labels[exps==e]
+                
+                self.log_cm(e_output, e_labels, f'{e} {prefix}')
+                
+                e_acc = self.acc(e_output, e_labels)
+                self.log(f'{e} {prefix} acc', e_acc, on_epoch=True, batch_size=batch_size)
+        
+        
+        
+    def log_cm(self, output, labels, prefix):
+        
         cm = self.cm(output, labels)
         true_negatives_perc = cm[0][0]
         false_negatives_perc = cm[1][0]
         true_positives_perc = cm[1][1]
         false_positives_perc = cm[0][1]
         
+        batch_size = len(output)
         if(true_positives_perc+false_negatives_perc > 0):
-            self.log(f'{prefix} true_positives_perc', true_positives_perc, on_epoch=True)
-            self.log(f'{prefix} false_negatives_perc', false_negatives_perc, on_epoch=True)
+            self.log(f'{prefix} true_positives_perc', true_positives_perc, on_epoch=True, batch_size=batch_size)
+            self.log(f'{prefix} false_negatives_perc', false_negatives_perc, on_epoch=True, batch_size=batch_size)
             
         if(true_negatives_perc+false_positives_perc > 0):
-            self.log(f'{prefix} true_negatives_perc', true_negatives_perc, on_epoch=True)
-            self.log(f'{prefix} false_positives_perc', false_positives_perc, on_epoch=True)
-        
-        acc = self.acc(output, labels)
-        self.log(f'{prefix} acc', acc, on_epoch=True)
-        
-        
-        
-        
+            self.log(f'{prefix} true_negatives_perc', true_negatives_perc, on_epoch=True, batch_size=batch_size)
+            self.log(f'{prefix} false_positives_perc', false_positives_perc, on_epoch=True, batch_size=batch_size)
+    

@@ -35,15 +35,15 @@ class nanopore_datamodule(pl.LightningDataModule):
                 return key in dictionary.keys() and len(dictionary[key]) > 0
             
             self.train_dataset = MyIterableDatasetMixed(
-                pos_files = [s['train_pos_files'] for s in self.splits if keycheck(s, 'train_pos_files')], 
-                neg_files = [s['train_neg_files'] for s in self.splits if keycheck(s, 'train_neg_files')], 
+                pos_files = [(s['exp'],s['train_pos_files']) for s in self.splits if keycheck(s, 'train_pos_files')], 
+                neg_files = [(s['exp'],s['train_neg_files']) for s in self.splits if keycheck(s, 'train_neg_files')], 
                 window=self.window, 
                 verbose=self.verbose, 
                 blacklist=self.positives_blacklist
             )
             self.valid_dataset = MyMappedDatasetMixed(
-                pos_files = [s['valid_pos_files'] for s in self.splits if keycheck(s, 'valid_pos_files')], 
-                neg_files = [s['valid_neg_files'] for s in self.splits if keycheck(s, 'valid_neg_files')], 
+                pos_files = [(s['exp'],s['valid_pos_files']) for s in self.splits if keycheck(s, 'valid_pos_files')], 
+                neg_files = [(s['exp'],s['valid_neg_files']) for s in self.splits if keycheck(s, 'valid_neg_files')], 
                 window=self.window, 
                 limit=self.valid_limit, 
                 verbose=self.verbose, 
@@ -75,20 +75,22 @@ class MyIterableDatasetMixed(IterableDataset):
         pos_gens = [
             process_files(
                 files=f, 
+                exp=exp,
                 label=1, 
                 window=self.window, 
                 verbose=self.verbose, 
                 shuffle=True, 
-                blacklist=self.blacklist) for f in self.positive_files
+                blacklist=self.blacklist) for (exp,f) in self.positive_files
         ]
         neg_gens = [
             process_files(
                 files=f, 
+                exp=exp,
                 label=0, 
                 window=self.window, 
                 verbose=self.verbose, 
                 shuffle=True, 
-                blacklist=self.blacklist) for f in self.negative_files
+                blacklist=self.blacklist) for (exp,f) in self.negative_files
         ]
         #Uniformly sampling from all splits across single label
         pos_gen = uniform_gen(pos_gens)
@@ -117,15 +119,15 @@ class MyMappedDatasetMixed(Dataset):
         #TODO determinize shuffling for deterministic valid set
         
         pos_gens = []
-        for files in self.pos_files:
+        for exp,files in self.pos_files:
             for file in files:
-                gen = process_files([file], label=1, window=self.window, verbose=self.verbose, blacklist=self.blacklist, shuffle=True)
+                gen = process_files([file], exp=exp,label=1, window=self.window, verbose=self.verbose, blacklist=self.blacklist, shuffle=True)
                 pos_gens.append(gen)
         
         neg_gens = []
-        for files in self.neg_files:
+        for exp,files in self.neg_files:
             for file in files:
-                gen = process_files([file], label=0, window=self.window, verbose=self.verbose, blacklist=self.blacklist, shuffle=True)
+                gen = process_files([file], exp=exp,label=0, window=self.window, verbose=self.verbose, blacklist=self.blacklist, shuffle=True)
                 neg_gens.append(gen)
         
         pos_gen = alternating_gen(pos_gens)
@@ -144,7 +146,7 @@ class MyMappedDatasetMixed(Dataset):
     def __getitem__(self, idx):
         return self.items[idx]
 
-def process_files(files, label, window, verbose, shuffle, blacklist=None):
+def process_files(files, exp, label, window, verbose, shuffle, blacklist=None):
     while True:
         if(shuffle):
             random.shuffle(files)
@@ -160,7 +162,7 @@ def process_files(files, label, window, verbose, shuffle, blacklist=None):
                     x = process_read(read, window)
                     y = np.array(label)
                     #TODO put to tensors?
-                    yield x.reshape(-1,1).swapaxes(0,1), np.array([y], dtype=np.float32)
+                    yield x.reshape(-1,1).swapaxes(0,1), np.array([y], dtype=np.float32), exp
                     
                     
 def process_read(read, window):

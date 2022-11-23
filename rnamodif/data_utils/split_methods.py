@@ -39,6 +39,7 @@ def kfold_split_single(total_k, current_k, shuffle=True, limit=None, verbose=Fal
             print('train_files', len(train_files))
         
         return {
+            'exp':exp,
             f'train_{label}_files':train_files,
             f'valid_{label}_files':valid_files,
         }
@@ -169,21 +170,18 @@ def get_default_split(pos_files, neg_files):
 
 
 def get_fullvalid_split(limit=None, shuffle=False):
-    def fullvalid_split(pos_files, neg_files):
-        valid_pos_files = experiment_files[pos_files]
-        valid_neg_files = experiment_files[neg_files]
+    def files_to_splits(files, prefix):
+        res = []
+        for file in files:
+            valid_files = experiment_files[file]
+            if(shuffle):
+                random.shuffle(valid_files)
+            if(limit):
+                valid_files = valid_files[:limit]
+            res.append({'exp':file, f'valid_{prefix}_files':valid_files})
+        return res
         
-        if(shuffle):
-            random.shuffle(valid_pos_files)
-            random.shuffle(valid_neg_files)
-        if(limit):
-            valid_pos_files=valid_pos_files[:limit]
-            valid_neg_files=valid_neg_files[:limit]
-        return {
-            'train_pos_files':[],
-            'train_neg_files':[],
-            'valid_pos_files':valid_pos_files,
-            'valid_neg_files':valid_neg_files,
-        }
+    def fullvalid_split(pos_files, neg_files):
+        return files_to_splits(pos_files, 'pos')+files_to_splits(neg_files,'neg')
     
     return fullvalid_split
