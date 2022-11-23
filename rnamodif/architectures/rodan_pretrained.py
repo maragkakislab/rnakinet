@@ -25,16 +25,26 @@ class RodanPretrained(pl.LightningModule):
         }
         model, device = load_model('/home/jovyan/RNAModif/RODAN/rna.torch', config=n, args=SimpleNamespace(**args))
 
+        #ORIGINAL
+        # seq_model = torch.nn.Sequential(
+        #     model,
+        #     # RNNPooler(features_to_pool=5, seq_len=420),
+        #     Permute((1,0,2)),
+        #     torch.nn.Flatten(),
+        #     torch.nn.Linear(420*5, 100),
+        #     torch.nn.ReLU(),
+        #     torch.nn.Linear(100,1),
+        # )
+        
+        #CUT ACUGN CLASSIFIER layer
+        model.final = torch.nn.Identity()
         seq_model = torch.nn.Sequential(
             model,
-            # RNNPooler(features_to_pool=5, seq_len=420),
-            Permute((1,0,2)),
+            torch.nn.Linear(768, 1),
+            Permute((1,2,0)),
+            torch.nn.MaxPool1d(420),
             torch.nn.Flatten(),
-            torch.nn.Linear(420*5, 100),
-            torch.nn.ReLU(),
-            torch.nn.Linear(100,1),
         )
-        
         
         self.model = seq_model
         
@@ -52,10 +62,12 @@ class RodanPretrained(pl.LightningModule):
         #different LR for my own layers (higher)
         my_layers_lr = self.my_layers_lr
         pretrained_layers_lr = self.pretrained_layers_lr
-        lr_list = [pretrained_layers_lr, *[my_layers_lr for _ in range(4)]] #5 custom layers after pretrained model
+        
+        pretrained_layers_count = 1 #one item in the seq_model definition
+        custom_layers_count = len(list(self.model.children())) - pretrained_layers_count
+        lr_list = [pretrained_layers_lr, *[my_layers_lr for _ in range(custom_layers_count)]] 
         groups = [{'params': list(m.parameters()), 'lr': lr} for (m, lr) in zip(self.model.children(), lr_list)]
         optimizer = torch.optim.AdamW(groups, lr=self.pretrained_layers_lr, weight_decay=0.01)
-        
         
         scheduler = torch.optim.lr_scheduler.LinearLR(optimizer, total_iters=self.warmup_steps)
         return [optimizer], [scheduler]

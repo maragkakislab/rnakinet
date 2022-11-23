@@ -167,7 +167,7 @@ def process_read(read, window):
     s = read.get_raw_data(scale=True)  # Expensive
     s = stats.zscore(s)
 
-    skip = primer_trim(signal=s[:26000]) #TODO remove 26000 limit
+    skip = primer_trim(signal=s[:26000]) #TODO remove 26000 limit?
     
     if(not window):
         return s[skip:]
