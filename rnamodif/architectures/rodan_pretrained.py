@@ -37,13 +37,23 @@ class RodanPretrained(pl.LightningModule):
         #     torch.nn.Linear(100,1),
         # )
         
-        #CUT ACUGN CLASSIFIER layer
-        model.final = torch.nn.Identity()
+        #CUT ACUGN CLASSIFIER layer (simplehead)
+        # model.final = torch.nn.Identity()
+        # seq_model = torch.nn.Sequential(
+        #     model,
+        #     torch.nn.Linear(768, 1),
+        #     Permute((1,2,0)),
+        #     torch.nn.MaxPool1d(420),
+        #     torch.nn.Flatten(),
+        # )
+
+        # Pooling version
         seq_model = torch.nn.Sequential(
             model,
-            torch.nn.Linear(768, 1),
+            torch.nn.Linear(5, 1),
             Permute((1,2,0)),
-            torch.nn.MaxPool1d(420),
+            # torch.nn.MaxPool1d(420), #TODO use torch max insted?
+            torch.nn.MaxPool1d(62), 
             torch.nn.Flatten(),
         )
         

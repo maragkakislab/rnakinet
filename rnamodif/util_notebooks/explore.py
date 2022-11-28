@@ -1,8 +1,7 @@
-from rnamodif.data_utils.datamap import experiment_files, experiments_dict
+from rnamodif.data_utils.datamap import experiment_files
 from Fast5Fetch.fast5fetch.fast5data import get_all_fast5s
 from ont_fast5_api.fast5_interface import get_fast5_file
 from matplotlib import pyplot as plt
-from rnamodif.data_utils.sorting import get_experiment_sort
 from statistics import mean
 from scipy import stats
 import numpy as np
@@ -12,14 +11,14 @@ import random
 from rnamodif.data_utils.trimming import primer_trim
 import pickle
 import pandas as pd
+from rnamodif.data_utils.dataloading2 import rodan_normalize
 
 
 def get_read_lengths(exp_list):
     exp_lengths = {}
     for k in exp_list:
         file_lengths = {}
-        index_func = get_experiment_sort(k)
-        for f in sorted(experiment_files[k], key=index_func):
+        for f in sorted(experiment_files[k]):
             # print(f.stem)
             lengths = []
             with get_fast5_file(f, mode='r') as f5:
@@ -45,18 +44,22 @@ def plot_avg_lengths(exp_lengths):
     ax.set_xlabel('Experiment file order (suffix number)')
     ax.legend(loc="upper left")
     
-def process_fast5_read(read, skip=0, zscore=True, scale=True, smartskip=True, exp_label=None):
+def process_fast5_read(read, skip=0, zscore=False, rodan_norm=True, scale=True, smartskip=True):
     """ Normalizes and extracts specified region from raw signal """
     s = read.get_raw_data(scale=scale)  
+    if zscore and rodan_norm:
+        print('WARNING NORMALIZING BY TWO WAYS - zscore and rodan')
     if zscore:
-        s = stats.zscore(s)
+        s = stats.zscore(s) 
+    if rodan_norm:
+        s = rodan_normalize(s) 
         
     if(smartskip):
         skip = primer_trim(signal=s[:26000])
         
     return s, skip
 
-def myite(files, read_index, file_index, zscore, scale, smartskip, exp_label):
+def myite(files, read_index, file_index, zscore, rodan_norm, scale, smartskip):
     while True:
         if(not file_index):
             fast5 = random.choice(files)
@@ -64,17 +67,17 @@ def myite(files, read_index, file_index, zscore, scale, smartskip, exp_label):
             fast5 = files[file_index]
         with get_fast5_file(fast5, mode='r') as f5:
             read = next(islice(f5.get_reads(), read_index, None))
-            x, cutoff = process_fast5_read(read, zscore=zscore, scale=scale, smartskip=smartskip, exp_label=exp_label)
+            x, cutoff = process_fast5_read(read, zscore=zscore, scale=scale, smartskip=smartskip, rodan_norm=rodan_norm)
             yield x.reshape(-1,1).swapaxes(0,1), cutoff
             
 
-def plot_reads(exp_list, zscore=True, scale=True, total_limit=None, read_index=0, file_index=None, y_axis_lim=None):
+def plot_reads(exp_list, zscore=False, rodan_norm=True, scale=True, total_limit=None, read_index=0, file_index=None, y_axis_lim=None):
     smartskip = True
     
     seqs = {}
     cutoffs = {}
     for exp in exp_list:
-        ite = myite(experiment_files[exp], read_index=read_index, file_index=file_index, zscore=zscore, scale=scale, smartskip=smartskip, exp_label=exp) # picking from the first 100 reads
+        ite = myite(experiment_files[exp], read_index=read_index, file_index=file_index, zscore=zscore, rodan_norm=rodan_norm, scale=scale, smartskip=smartskip) # picking from the first 100 reads
         sample = next(ite)
         seqs[exp] = sample[0][0]
         cutoffs[exp] = sample[1]
