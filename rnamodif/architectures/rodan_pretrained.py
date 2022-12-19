@@ -4,9 +4,22 @@ import torchmetrics
 import pytorch_lightning as pl
 from torch.nn import functional as F
 from types import SimpleNamespace
-from rnamodif.architectures.bonito_pretrained import RNNPooler
-from bonito_pulled.bonito.nn import Permute
 import numpy as np
+
+class Permute(torch.nn.Module):
+
+    def __init__(self, dims):
+        super().__init__()
+        self.dims = dims
+
+    def forward(self, x):
+        # print('permute layer')
+        # print(x.shape)
+        # print(x.permute(*self.dims).shape)
+        return x.permute(*self.dims)
+
+    def to_dict(self, include_weights=False):
+        return {'dims': self.dims}
 
 class RodanPretrained(pl.LightningModule):
     def __init__(self, pretrained_lr=5e-4, my_layers_lr=2e-3, warmup_steps = 10000):
@@ -16,7 +29,6 @@ class RodanPretrained(pl.LightningModule):
         #TODO vocab ATCG - but rna is AUCG
         
         torchdict = torch.load('/home/jovyan/RNAModif/RODAN/rna.torch', map_location="cpu")
-        # torchdict = torch.load('./RODAN/rna.torch', map_location="cpu")
         origconfig = torchdict["config"]
         d = origconfig
         n = SimpleNamespace(**d)
@@ -24,40 +36,26 @@ class RodanPretrained(pl.LightningModule):
             'debug':False, #True prints out more info
             'arch':None,
         }
-        model, device = load_model('/home/jovyan/RNAModif/RODAN/rna.torch', config=n, args=SimpleNamespace(**args))
-
-        #ORIGINAL
-        # seq_model = torch.nn.Sequential(
-        #     model,
-        #     # RNNPooler(features_to_pool=5, seq_len=420),
-        #     Permute((1,0,2)),
-        #     torch.nn.Flatten(),
-        #     torch.nn.Linear(420*5, 100),
-        #     torch.nn.ReLU(),
-        #     torch.nn.Linear(100,1),
-        # )
+        self.trainable_rodan, device = load_model('/home/jovyan/RNAModif/RODAN/rna.torch', config=n, args=SimpleNamespace(**args))
+        self.original_rodan, _ = load_model('/home/jovyan/RNAModif/RODAN/rna.torch', config=n, args=SimpleNamespace(**args))
+        for par in self.original_rodan.parameters():
+            par.requires_grad = False
+    
         
-        #CUT ACUGN CLASSIFIER layer (simplehead)
-        # model.final = torch.nn.Identity()
-        # seq_model = torch.nn.Sequential(
-        #     model,
-        #     torch.nn.Linear(768, 1),
-        #     Permute((1,2,0)),
-        #     torch.nn.MaxPool1d(420),
-        #     torch.nn.Flatten(),
-        # )
-
         # Pooling version
         seq_model = torch.nn.Sequential(
-            model,
-            torch.nn.Linear(5, 1),
+            # model,
+            # torch.nn.Linear(5, 1),
+            torch.nn.Linear(10, 1), #Take neighbour vectors also? Convolution?
+            # torch.nn.ReLU(),
+            # torch.nn.Linear(30,1),
             Permute((1,2,0)),
-            # torch.nn.MaxPool1d(420), #TODO use torch max insted?
-            torch.nn.MaxPool1d(62), 
+            torch.nn.MaxPool1d(420), #TODO use torch max insted?
+            # torch.nn.MaxPool1d(62), # For input_size = 512
             torch.nn.Flatten(),
         )
         
-        self.model = seq_model
+        self.seq_model = seq_model
         
         self.pretrained_layers_lr = pretrained_lr
         self.my_layers_lr = my_layers_lr
@@ -67,17 +65,24 @@ class RodanPretrained(pl.LightningModule):
         self.cm = torchmetrics.classification.BinaryConfusionMatrix(normalize='true')
         
     def forward(self, x):
-        return self.model(x)
+        tx = self.trainable_rodan(x)
+        bx = self.original_rodan(x)
+        stack = torch.cat([tx,bx],dim=-1)
+        return self.seq_model(stack)
     
     def configure_optimizers(self):
         #different LR for my own layers (higher)
         my_layers_lr = self.my_layers_lr
         pretrained_layers_lr = self.pretrained_layers_lr
         
-        pretrained_layers_count = 1 #one item in the seq_model definition
-        custom_layers_count = len(list(self.model.children())) - pretrained_layers_count
-        lr_list = [pretrained_layers_lr, *[my_layers_lr for _ in range(custom_layers_count)]] 
-        groups = [{'params': list(m.parameters()), 'lr': lr} for (m, lr) in zip(self.model.children(), lr_list)]
+        # pretrained_layers_count = 1 #one item in the seq_model definition
+        # custom_layers_count = len(list(self.model.children())) - pretrained_layers_count
+        # lr_list = [pretrained_layers_lr, *[my_layers_lr for _ in range(custom_layers_count)]] 
+        # groups = [{'params': list(m.parameters()), 'lr': lr} for (m, lr) in zip(self.model.children(), lr_list)]
+        
+        layer_to_lr = [(self.trainable_rodan, pretrained_layers_lr), *[(child, my_layers_lr) for child in self.seq_model.children()]]
+        groups = [{'params':list(m.parameters()), 'lr':lr} for (m,lr) in layer_to_lr]
+        
         optimizer = torch.optim.AdamW(groups, lr=self.pretrained_layers_lr, weight_decay=0.01)
         
         scheduler = torch.optim.lr_scheduler.LinearLR(optimizer, total_iters=self.warmup_steps)

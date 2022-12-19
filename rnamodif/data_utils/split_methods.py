@@ -2,6 +2,17 @@ from rnamodif.data_utils.datamap import experiment_files
 from pathlib import Path
 import random
 
+def get_valid_portions(splits):
+    new_splits = []
+    for split in splits:
+        new_split = {}
+        for k,v in split.items():
+            if 'valid' in k or 'exp' in k:
+                new_split[k]=v
+        new_splits.append(new_split)
+    return new_splits
+                
+
 def get_kfold_splits(pos_exps, neg_exps, total_k, current_k, shuffle=True, limit=None, verbose=False):
     splits = []
     split_fn = kfold_split_single(total_k, current_k, shuffle, limit, verbose)
