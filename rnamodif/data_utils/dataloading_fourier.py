@@ -14,7 +14,7 @@ import numpy as np
 from rnamodif.data_utils.workers import worker_init_simple_fn, worker_init_fn, worker_init_fn_multisplit
 from rnamodif.data_utils.generators import alternating_gen, uniform_gen
 
-class nanopore_datamodule(pl.LightningDataModule):
+class nanopore_datamodule_fourier(pl.LightningDataModule):
     def __init__(self, splits, verbose=0, workers=32, batch_size=256, valid_limit=None, window=1000, read_blacklist=None, normalization='rodan', trim_primer=False):
         #TODO read blacklist -> rename to positives read blacklist (pos only so far)
         
@@ -224,7 +224,20 @@ def process_read(read, window, normalization, trim_primer):
         return []
         
     #TODO remove reshape
-    return s[pos:pos+window].reshape((window, 1))
+    return (get_fourier_magnitude(s[pos:pos+window])/window).reshape((window, 1))
 
+
+
+
+def get_fourier_magnitude(signal):
+    # Compute the discrete Fourier transform of the nanopore signal
+    fourier_transform = np.fft.fft(signal)
+    # Shift the zero-frequency component to the center of the spectrum
+    fourier_transform = np.fft.fftshift(fourier_transform)
+    # Compute the magnitude of the Fourier transform
+    # fourier_magnitude = np.abs(fourier_transform)
+    # return fourier_magnitude.astype(np.float32)
+
+    return fourier_transform.astype(np.float32)
 
 

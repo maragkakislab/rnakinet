@@ -62,12 +62,40 @@ def get_valid_dataset_unlimited(splits, window=1000, verbose=1, read_blacklist=[
         def __iter__(self):
             pos_gens = []
             for exp,files in self.positive_files:
-                pos_gens.append(process_files_fully(files, exp, label=1, window=self.window, normalization=normalization, trim_primer=trim_primer))
+                pos_gens.append(process_files_fully(files, exp, label=1, window=self.window, normalization=self.normalization, trim_primer=self.trim_primer))
             neg_gens = []
             for exp,files in self.negative_files:
-                neg_gens.append(process_files_fully(files, exp, label=0, window=self.window, normalization=normalization, trim_primer=trim_primer))
+                neg_gens.append(process_files_fully(files, exp, label=0, window=self.window, normalization=self.normalization, trim_primer=self.trim_primer))
             return sequential_gen(pos_gens+neg_gens)
     
     return FullDataset(pos_files, neg_files, window=window, normalization=normalization, trim_primer=trim_primer)
 
         
+def get_test_dataset(files, window=1000, normalization='rodan', trim_primer=False):
+    def process_files_fully(files, window, normalization, trim_primer):
+        print('LIMITING NUM OF FILES TO 1!!!!!!!!!!')
+        for fast5 in files[:5]: #LIMITED
+            with get_fast5_file(fast5, mode='r') as f5:
+                for i, read in enumerate(list(f5.get_reads())[:10]): #LIMITED
+                    x = process_read(read, window=None, normalization=normalization, trim_primer=trim_primer) #getting the full read and slicing later
+                    for start in range(0, len(x), window)[:-1]: #Cutoff the last incomplete signal
+                        stop = start+window
+                        identifier = {'file':str(fast5),
+                                      'readid':read.read_id,
+                                      'read_index_in_file':i,
+                                      'start':start,
+                                      'stop':stop,
+                                     }
+                        yield x[start:stop].reshape(-1,1).swapaxes(0,1), identifier
+    
+    class FullDataset(IterableDataset):
+        def __init__(self, files, window, normalization, trim_primer):
+            self.files = files
+            self.window = window
+            self.normalization=normalization
+            self.trim_primer=trim_primer
+
+        def __iter__(self):
+            return process_files_fully(self.files, window=self.window, normalization=self.normalization, trim_primer=self.trim_primer)
+    
+    return FullDataset(files, window=window, normalization=normalization, trim_primer=trim_primer)
