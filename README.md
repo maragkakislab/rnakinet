@@ -1,5 +1,6 @@
 # RNAModif
 ## How to run m6a modification detection
+
 ### Install the package
 
 Run the following commands to prepare for running the script
@@ -36,3 +37,8 @@ v1 is recommended, but feel free to experiment with v2
 ```sh
 python3 rnamodif/evaluation/run.py --batchsize 128 --workers 10 --model v2 --datadir ........ --outfile .....
 ```
+
+### Limitations
+Currently the method only predicts modifications for the whole read, not specific positions.
+
+Currently the method requires a lot of GPU memory (15-20GB). If its not feasible to run on your GPUs, let me know and i will adjust the architecture.
