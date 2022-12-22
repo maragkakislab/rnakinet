@@ -5,9 +5,18 @@ import torchmetrics
 import pytorch_lightning as pl
 from torch.nn import functional as F
 from types import SimpleNamespace
-from rnamodif.architectures.bonito_pretrained import RNNPooler
-from bonito_pulled.bonito.nn import Permute
 import numpy as np
+
+class Permute(torch.nn.Module):
+    def __init__(self, dims):
+        super().__init__()
+        self.dims = dims
+
+    def forward(self, x):
+        return x.permute(*self.dims)
+
+    def to_dict(self, include_weights=False):
+        return {'dims': self.dims}
 
 class RodanPretrainedMIL(pl.LightningModule):
     def __init__(self, pretrained_lr=5e-4, my_layers_lr=2e-3, warmup_steps = 10000):

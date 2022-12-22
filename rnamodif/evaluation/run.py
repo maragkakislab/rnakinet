@@ -1,3 +1,6 @@
+import sys
+sys.path.append('./RODAN')
+
 from rnamodif.data_utils.dataloading import get_test_dataset
 from rnamodif.evaluation.evaluation import run_test
 from rnamodif.architectures.rodan_pretrained_MIL import RodanPretrainedMIL

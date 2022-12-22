@@ -1,6 +1,4 @@
 from pathlib import Path
-from Fast5Fetch.fast5fetch.fast5data import get_all_fast5s
-from Fast5Fetch.fast5fetch.fast5data import xy_generator_many, skew_generators
 from torch.utils.data import Dataset, IterableDataset
 import numpy as np
 import time
