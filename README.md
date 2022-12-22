@@ -1,5 +1,5 @@
 # RNAModif
-## How to run m6a modification detetcion
+## How to run m6a modification detection
 ### Install the package
 
 Run the following commands to prepare for running the script
@@ -26,10 +26,13 @@ Example
 python3 rnamodif/evaluation/run.py --datadir ../datastorage/experiment/fast5filesfolder/ --outfile results.csv
 ```
 
+The resulting csv contains row for each READ_ID, and prediction if this read is m6a modified.
+
 OPTIONAL
+
 You can also tweak the batch size and number of workers processing the data.
-There are two models available v1 an v2. You can specifiy them with the model parameter.
+There are two models available v1 and v2. You can specifiy them with the model parameter.
 v1 is recommended, but feel free to experiment with v2
 ```sh
-python3 rnamodif/evaluation/run.py --batchsize 128 --workers 10 --model v2 --datadir........
+python3 rnamodif/evaluation/run.py --batchsize 128 --workers 10 --model v2 --datadir ........ --outfile .....
 ```
