@@ -26,7 +26,7 @@ Example
 python3 rnamodif/evaluation/run.py --datadir ../datastorage/experiment/fast5filesfolder/ --outfile results.csv
 ```
 
-The resulting csv contains row for each READ_ID, and prediction if this read is m6a modified.
+The resulting csv contains row for each READ_ID, and prediction for whether this read is m6a modified or not.
 
 OPTIONAL
 
