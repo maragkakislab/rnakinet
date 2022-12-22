@@ -10,7 +10,6 @@ from pathlib import Path
 import pandas as pd
 import argparse
 
-#TODO try to run in venv
 def predictions_to_read_predictions(predictions):
     agg_preds = []
     read_ids = []
@@ -41,7 +40,7 @@ def main():
     
     directory = Path(args.datadir)
     result_file_name = args.outfile
-    files = list(directory.rglob('*.fast5'))[-5:] #TODO remove limit
+    files = list(directory.rglob('*.fast5'))
     assert(len(files) > 0)
     
     window = 4096
