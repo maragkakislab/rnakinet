@@ -2,7 +2,7 @@ import pytorch_lightning as pl
 from torch.utils.data import DataLoader
 from rnamodif.data_utils.dataloading import get_valid_dataset_unlimited
 from rnamodif.data_utils.split_methods import get_fullvalid_split
-from rnamodif.data_utils.workers import worker_init_fn_multisplit
+from rnamodif.data_utils.workers import worker_init_fn_multisplit, worker_init_simple_fn
 
 def model_dataset_eval(model, dataset, workers):
     if workers>1:
@@ -35,4 +35,13 @@ def run_eval(config):
     model = get_trained_model(config['arch'], config['checkpoint'])
     
     return model_dataset_eval(model, dset, config['workers'])
+
+def run_test(dataset, checkpoint, workers, architecture, batch_size=32):
+    test_loader = DataLoader(dataset, batch_size=batch_size, num_workers=workers, pin_memory=True, worker_init_fn = worker_init_simple_fn) 
+    # test_loader = DataLoader(dataset, batch_size=batch_size)
+    # print('USING 1 WORKER')
     
+    model = architecture().load_from_checkpoint(checkpoint)
+    trainer = pl.Trainer(accelerator='gpu')
+    predictions = trainer.predict(model, test_loader)
+    return predictions

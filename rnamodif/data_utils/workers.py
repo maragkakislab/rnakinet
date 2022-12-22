@@ -68,6 +68,7 @@ def worker_init_simple_fn(worker_id):
     current_worker = worker_id
     files_per_worker = len(dataset.files)//total_workers
     
+    #TODO inefficient split, can result in workers = 16 , split = 1,1,1,1...15
     if(current_worker == total_workers -1): #Last worker
         # print('LAST WORKER')
         dataset.files = dataset.files[files_per_worker*current_worker:]

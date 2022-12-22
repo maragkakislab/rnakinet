@@ -71,15 +71,16 @@ def get_valid_dataset_unlimited(splits, window=1000, verbose=1, read_blacklist=[
     return FullDataset(pos_files, neg_files, window=window, normalization=normalization, trim_primer=trim_primer)
 
         
-def get_test_dataset(files, window=1000, normalization='rodan', trim_primer=False):
+def get_test_dataset(files, window=1000, normalization='rodan', trim_primer=False, stride=1000):
     def process_files_fully(files, window, normalization, trim_primer):
-        print('LIMITING NUM OF FILES TO 1!!!!!!!!!!')
-        for fast5 in files[:5]: #LIMITED
+        for fast5 in files: 
             with get_fast5_file(fast5, mode='r') as f5:
-                for i, read in enumerate(list(f5.get_reads())[:10]): #LIMITED
-                    x = process_read(read, window=None, normalization=normalization, trim_primer=trim_primer) #getting the full read and slicing later
-                    for start in range(0, len(x), window)[:-1]: #Cutoff the last incomplete signal
+                for i, read in enumerate(f5.get_reads()): 
+                    x = process_read(read, window=None, normalization=normalization, trim_primer=trim_primer) 
+                    for start in range(0, len(x), stride):
                         stop = start+window
+                        if(stop >= len(x)):
+                            continue
                         identifier = {'file':str(fast5),
                                       'readid':read.read_id,
                                       'read_index_in_file':i,
