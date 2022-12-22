@@ -5,6 +5,7 @@ import numpy as np
 import sys
 from pathlib import Path
 import pandas as pd
+import argparse
 
 #TODO try to run in venv
 def predictions_to_read_predictions(predictions):
@@ -22,19 +23,30 @@ def predictions_to_read_predictions(predictions):
     return results
 
 def main():
-    #TODO batch size, workers, model type
-    directory = Path(sys.argv[1])
-    result_file_name = sys.argv[2]
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--datadir")
+    parser.add_argument("--workers", default=1)
+    parser.add_argument("--batchsize", default=32)
+    parser.add_argument("--model", default='v1') 
+    parser.add_argument("--outfile")
+    
+    models_dict = {'v1':'rnamodif/checkpoints_pl/m6a_nih_33_deploy/epoch=0-step=443500.ckpt',
+                   'v2':'rnamodif/checkpoints_pl/m6a_nih_mix_deploy/epoch=0-step=557500.ckpt'}
+    max_thresholds = {'v1':0.85,'v2':0.85} #Derived from ROC curves
+    
+    args = parser.parse_args()
+    
+    directory = Path(args.datadir)
+    result_file_name = args.outfile
     files = list(directory.rglob('*.fast5'))[-5:] #TODO remove limit
     assert(len(files) > 0)
     
     window = 4096
     stride = 2048
-    #TODO relative path
-    workers = min([8, len(files)])
-    print('WORKERS', workers)
-    max_threshold = 0.8
-    checkpoint = 'rnamodif/checkpoints_pl/m6a_nih_33_deploy/epoch=0-step=443500.ckpt' 
+    max_threshold = max_thresholds[args.model]
+
+    workers = min([args.workers, len(files)])
+    checkpoint = models_dict[args.model]
     test_dset = get_test_dataset(files, window=window, normalization='rodan', trim_primer=False, stride=stride)
     predictions = run_test(test_dset,checkpoint=checkpoint, workers=workers, architecture=RodanPretrainedMIL)
     read_predictions = predictions_to_read_predictions(predictions)
@@ -49,7 +61,7 @@ def main():
         res['is m6a modified'].append(v)
     
     results_df = pd.DataFrame.from_dict(res)
-    results_df.to_csv(result_file_name,index=False) #TODO unique name (folder)
+    results_df.to_csv(result_file_name,index=False)
     
 if __name__=='__main__':
     main()
