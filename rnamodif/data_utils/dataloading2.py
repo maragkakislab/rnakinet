@@ -1,5 +1,4 @@
 import pytorch_lightning as pl
-from rnamodif.data_utils.datamap import experiment_files
 from rnamodif.data_utils.split_methods import get_kfold_split_func, get_default_split
 from rnamodif.data_utils.trimming import primer_trim
 import random
@@ -13,6 +12,7 @@ import torch
 import numpy as np
 from rnamodif.data_utils.workers import worker_init_simple_fn, worker_init_fn, worker_init_fn_multisplit
 from rnamodif.data_utils.generators import alternating_gen, uniform_gen
+from rnamodif.data_utils.read_utils import process_read
 
 class nanopore_datamodule(pl.LightningDataModule):
     def __init__(self, splits, verbose=0, workers=32, batch_size=256, valid_limit=None, window=1000, read_blacklist=None, normalization='rodan', trim_primer=False):
@@ -186,45 +186,3 @@ def process_files(files, exp, label, window, verbose, shuffle, normalization, tr
                         continue
                     #TODO put to tensors?
                     yield x.reshape(-1,1).swapaxes(0,1), np.array([y], dtype=np.float32), exp
-                    
-def med_mad(x, factor=1.4826):
-    med = np.median(x)
-    mad = np.median(np.absolute(x - med)) * factor
-    return med, mad
-
-def rodan_normalize(signal):
-    med, mad = med_mad(signal)
-    signal = (signal - med) / mad
-    return signal
-
-norm_dict = {
-    'zscore':stats.zscore,
-    'rodan':rodan_normalize
-}
-def process_read(read, window, normalization, trim_primer):
-    s = read.get_raw_data(scale=True)
-    s = norm_dict[normalization](s)
-    
-    skip = 0
-    if(trim_primer):
-        skip = primer_trim(signal=s[:26000]) #TODO remove 26000 limit?
-    
-    if(not window):
-        return s[skip:]
-    
-    last_start_index = len(s)-window
-    if(last_start_index < skip):
-        # if sequence is not long enough, last #window signals is taken, ignoring the skip index
-        skip = last_start_index
-
-    #Using torch rand becasue of multiple workers
-    pos = torch.randint(skip, last_start_index+1, (1,))
-    
-    if(len(s) < window):
-        return []
-        
-    #TODO remove reshape
-    return s[pos:pos+window].reshape((window, 1))
-
-
-
