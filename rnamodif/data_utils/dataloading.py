@@ -9,7 +9,6 @@ import multiprocessing as mp
 from pathlib import Path
 from ont_fast5_api.fast5_interface import get_fast5_file
 from scipy import stats
-from rnamodif.data_utils.datamap import experiment_files
 import torch
 import math
 from rnamodif.data_utils.trimming import primer_trim
