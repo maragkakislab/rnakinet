@@ -13,6 +13,9 @@ git clone https://github.com/biodlab/RODAN.git
 pip install -e .
 pip install -r RODAN/requirements.txt
 pip install -r requirements.txt
+git lfs install
+git lfs fetch
+git lfs pull
 ```
 
 Then run the following command from the RNAModif/ folder
