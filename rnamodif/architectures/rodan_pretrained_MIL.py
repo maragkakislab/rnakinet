@@ -21,8 +21,10 @@ class Permute(torch.nn.Module):
 class RodanPretrainedMIL(pl.LightningModule):
     def __init__(self, pretrained_lr=5e-4, my_layers_lr=2e-3, warmup_steps = 10000):
         super().__init__()
+        rodan_path = './RODAN/rna.torch'
+        # rodan_path = '/home/jovyan/RNAModif/RODAN/rna.torch'
 
-        torchdict = torch.load('/home/jovyan/RNAModif/RODAN/rna.torch', map_location="cpu")
+        torchdict = torch.load(rodan_path, map_location="cpu")
         origconfig = torchdict["config"]
         d = origconfig
         n = SimpleNamespace(**d)
@@ -30,8 +32,8 @@ class RodanPretrainedMIL(pl.LightningModule):
             'debug':False, #True prints out more info
             'arch':None,
         }
-        self.trainable_rodan, device = load_model('/home/jovyan/RNAModif/RODAN/rna.torch', config=n, args=SimpleNamespace(**args))
-        self.original_rodan, _ = load_model('/home/jovyan/RNAModif/RODAN/rna.torch', config=n, args=SimpleNamespace(**args))
+        self.trainable_rodan, device = load_model(rodan_path, config=n, args=SimpleNamespace(**args))
+        self.original_rodan, _ = load_model(rodan_path, config=n, args=SimpleNamespace(**args))
         
         # for par in list(self.trainable_rodan.parameters())[:-2]:
             # par.requires_grad = False

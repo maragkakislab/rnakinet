@@ -9,13 +9,11 @@ import multiprocessing as mp
 from pathlib import Path
 from ont_fast5_api.fast5_interface import get_fast5_file
 from scipy import stats
-from rnamodif.data_utils.datamap import experiment_files
 import torch
 import math
 from rnamodif.data_utils.trimming import primer_trim
-from rnamodif.data_utils.dataloading2 import process_read
+from rnamodif.data_utils.read_utils import process_read
 from rnamodif.data_utils.generators import alternating_gen, uniform_gen, sequential_gen
-
 
 def get_valid_dataset_unlimited(splits, window=1000, verbose=1, read_blacklist=[], normalization='rodan', trim_primer=False):
     def process_files_fully(files, exp, label, window, normalization, trim_primer):

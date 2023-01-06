@@ -1,7 +1,6 @@
 import pytorch_lightning as pl
 from torch.utils.data import DataLoader
 from rnamodif.data_utils.dataloading import get_valid_dataset_unlimited
-from rnamodif.data_utils.split_methods import get_fullvalid_split
 from rnamodif.data_utils.workers import worker_init_fn_multisplit, worker_init_simple_fn
 
 def model_dataset_eval(model, dataset, workers):

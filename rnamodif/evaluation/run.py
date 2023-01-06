@@ -41,6 +41,8 @@ def main():
     directory = Path(args.datadir)
     result_file_name = args.outfile
     files = list(directory.rglob('*.fast5'))
+    if(len(files) == 0 and directory.suffix == '.fast5'):
+        files = [directory]
     assert(len(files) > 0)
     
     window = 4096
