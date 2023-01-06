@@ -36,12 +36,13 @@ def run_eval(config):
     
     return model_dataset_eval(model, dset, config['workers'])
 
-def run_test(dataset, checkpoint, workers, architecture, batch_size=32):
+def run_test(dataset, checkpoint, workers, architecture, batch_size=32, profiler=None):
     test_loader = DataLoader(dataset, batch_size=batch_size, num_workers=workers, pin_memory=True, worker_init_fn = worker_init_simple_fn) 
     # test_loader = DataLoader(dataset, batch_size=batch_size)
-    # print('USING 1 WORKER')
     
     model = architecture().load_from_checkpoint(checkpoint)
-    trainer = pl.Trainer(accelerator='gpu')
+    # trainer = pl.Trainer(accelerator='gpu', profiler=profiler)
+    trainer = pl.Trainer(accelerator='gpu', profiler=profiler, precision=16)
+    
     predictions = trainer.predict(model, test_loader)
     return predictions

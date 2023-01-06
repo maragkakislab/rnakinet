@@ -44,10 +44,11 @@ def main():
     assert(len(files) > 0)
     
     window = 4096
-    stride = 2048
+    stride = 3584
     max_threshold = max_thresholds[args.model]
 
-    workers = min([args.workers, len(files)])
+    workers = min([int(args.workers), len(files)])
+    print(f'using {workers} workers')
     checkpoint = models_dict[args.model]
     test_dset = get_test_dataset(files, window=window, normalization='rodan', trim_primer=False, stride=stride)
     predictions = run_test(test_dset,checkpoint=checkpoint, workers=workers, architecture=RodanPretrainedMIL)

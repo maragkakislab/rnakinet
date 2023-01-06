@@ -206,6 +206,8 @@ def process_read(read, window, normalization, trim_primer):
     s = norm_dict[normalization](s)
     
     skip = 0
+    
+    
     if(trim_primer):
         skip = primer_trim(signal=s[:26000]) #TODO remove 26000 limit?
     
