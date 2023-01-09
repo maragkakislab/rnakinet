@@ -8,11 +8,12 @@ import numpy as np
 from matplotlib import pyplot as plt
 from sklearn import metrics
 from matplotlib import pyplot as plt
+import random
 
 def get_valid_files(exp, label):
     return kfold_split_single(total_k=5, current_k=0)(exp, label=label)[f'valid_{label}_files']
 
-def get_dsets_preds(checkpoint, arch, exp_label_dict, window=4096, stride = 2048, batch_size=64, workers=4, per_worker_read_limit=None, profiler=None, trim_primer=False):
+def get_dsets_preds(checkpoint, arch, exp_label_dict, window=4096, stride = 2048, batch_size=64, workers=4, per_worker_read_limit=None, profiler=None, trim_primer=False, shuffle=False):
     exp_label = exp_label_dict
     workers=workers
     architecture=arch
@@ -25,7 +26,10 @@ def get_dsets_preds(checkpoint, arch, exp_label_dict, window=4096, stride = 2048
     dsets_preds = []
     label_to_num = {'pos':1, 'neg':0}
     for exp,label in exp_label.items():
-        test_dset = get_test_dataset(get_valid_files(exp, label), window=window, normalization='rodan', trim_primer=trim_primer, stride=stride, read_limit=read_limit)
+        valid_files=get_valid_files(exp, label)
+        if(shuffle):
+            random.shuffle(valid_files)
+        test_dset = get_test_dataset(valid_files, window=window, normalization='rodan', trim_primer=trim_primer, stride=stride, read_limit=read_limit)
         predictions = run_test(test_dset,checkpoint=checkpoint, workers=workers, architecture=architecture, batch_size=batch_size, profiler=profiler)
         dsets_preds.append((predictions, label_to_num[label], exp))
 
@@ -88,6 +92,8 @@ def test_thresholds(dsets_preds, max_threshold, mean_threshold=0):
     ma_t = max_threshold #0.75 
     means = []
     maxes = []
+    poss = []
+    negs = []
     for preds, label, dset in dsets_preds:
         # print('_______')
         print(dset)
@@ -95,12 +101,17 @@ def test_thresholds(dsets_preds, max_threshold, mean_threshold=0):
         mean_based, max_based = get_metrics(res, label=label, mean_threshold=me_t, max_threshold=ma_t)
         means.append(mean_based)
         maxes.append(max_based)
+        if(label == 1):
+            poss.append(max_based)
+        if(label == 0):
+            negs.append(max_based)
     if(mean_threshold!=0):
         print('MEAN BASED ACC', np.mean(means))
     print('MAX BASED ACC', np.mean(maxes))
+    print('POS ACC', np.mean(poss))
+    print('NEG ACC', np.mean(negs))
     print('-------------')
-    
-    
+
 
 def get_decision_points(dsets_preds, max_threshold, title=''):
     correct_decisions = []
@@ -183,9 +194,9 @@ def plot_roc(dsets_preds, pooling='max', title=''):
     plt.legend(loc='center left', bbox_to_anchor=(1,0.5), prop={'size':10})
 
 def plot_covid_roc(dsets_preds, title, pooling='max'):
-    plot_roc(filter_dset_preds(dsets_preds, ['_0_covid','5_covid']), pooling='max', title=title)
-    plot_roc(filter_dset_preds(dsets_preds, ['_0_covid','10_covid']), pooling='max', title=title)
-    plot_roc(filter_dset_preds(dsets_preds, ['_0_covid','33_covid']), pooling='max', title=title)
+    plot_roc(filter_dset_preds(dsets_preds, ['_0_covid','5_covid']), pooling=pooling, title=title)
+    plot_roc(filter_dset_preds(dsets_preds, ['_0_covid','10_covid']), pooling=pooling, title=title)
+    plot_roc(filter_dset_preds(dsets_preds, ['_0_covid','33_covid']), pooling=pooling, title=title)
     plt.show()
 
 def plot_roc_curves(dsets_preds, title, pooling='max'):

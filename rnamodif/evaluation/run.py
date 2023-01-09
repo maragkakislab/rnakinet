@@ -29,12 +29,13 @@ def main():
     parser.add_argument("--datadir")
     parser.add_argument("--workers", default=1)
     parser.add_argument("--batchsize", default=32)
-    parser.add_argument("--model", default='v1') 
+    parser.add_argument("--model", default='v3') 
     parser.add_argument("--outfile")
     
     models_dict = {'v1':'rnamodif/checkpoints_pl/m6a_nih_33_deploy/epoch=0-step=443500.ckpt',
-                   'v2':'rnamodif/checkpoints_pl/m6a_nih_mix_deploy/epoch=0-step=557500.ckpt'}
-    max_thresholds = {'v1':0.85,'v2':0.85} #Derived from ROC curves
+                   'v2':'rnamodif/checkpoints_pl/m6a_nih_mix_deploy/epoch=0-step=557500.ckpt',
+                   'v3':'rnamodif/checkpoints_pl/m6a_all_mix_deploy/last.ckpt'}
+    max_thresholds = {'v1':0.85,'v2':0.85, 'v3':0.95} #Derived from ROC curves
     
     args = parser.parse_args()
     
