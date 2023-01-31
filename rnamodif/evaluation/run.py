@@ -37,15 +37,17 @@ def main():
     models_dict = {'m6a_v1':'rnamodif/checkpoints_pl/m6a_nih_33_deploy/epoch=0-step=443500.ckpt',
                    'm6a_v2':'rnamodif/checkpoints_pl/m6a_nih_mix_deploy/epoch=0-step=557500.ckpt',
                    'm6a_v3':'rnamodif/checkpoints_pl/m6a_all_mix_deploy/last.ckpt',
-                   '5eu_v1':'rnamodif/checkpoints_pl/5eu_nih_light_conv/last.ckpt',}
+                   '5eu_v1':'rnamodif/checkpoints_pl/5eu_nih_light_conv/last.ckpt',
+                   's4u_v1':'rnamodif/checkpoints_pl/s4u_0v33_big/last.ckpt'}
     model_arch_dict = {
         'v1':RodanPretrainedMIL,
         'v2':RodanPretrainedMIL,
         'v3':RodanPretrainedMIL,
         '5eu_v1':RodanSimple,
+        's4u_v1':RodanPretrainedMIL,
     }
     
-    max_thresholds = {'v1':0.85,'v2':0.85, 'v3':0.95, '5eu_v1':0.9} #Derived from ROC curves
+    max_thresholds = {'v1':0.85,'v2':0.85, 'v3':0.95, '5eu_v1':0.9, 's4u_v1':0.9} #Derived from ROC curves
     
     args = parser.parse_args()
     
