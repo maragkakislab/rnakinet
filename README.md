@@ -13,35 +13,29 @@ git clone https://github.com/biodlab/RODAN.git
 pip install -e .
 pip install -r RODAN/requirements.txt
 pip install -r requirements.txt
-git lfs install
-git lfs fetch
-git lfs pull
 ```
 
 Then run the following command from the RNAModif/ folder
 ```sh
-python3 rnamodif/evaluation/run.py --datadir <path> --outfile <file>
+python3 rnamodif/evaluation/run.py --datadir <path> --outfile <file> --model <model>
 ```
 the --datadir argument is a folder containing your fast5 files (can be nested)
 the --outfile is a csv file where you want to output the results
+the --model argument is a choice of a trained model. Options are: m6a_v3 (for m6a), 5eu_v1 (for 5eu), s4u_v1 (for s4u)
 
 Example
 ```sh
-python3 rnamodif/evaluation/run.py --datadir ../datastorage/experiment/fast5filesfolder/ --outfile results.csv
+python3 rnamodif/evaluation/run.py --datadir ../datastorage/experiment/fast5filesfolder/ --outfile results.csv --model s4u_v1
 ```
 
-The resulting csv contains row for each READ_ID, and prediction for whether this read is m6a modified or not.
+The resulting csv contains row for each READ_ID, and prediction for whether this read is modified or not.
 
 OPTIONAL
 
 You can also tweak the batch size and number of workers processing the data.
-There are two models available v1 and v2. You can specifiy them with the model parameter.
-v1 is recommended, but feel free to experiment with v2
 ```sh
-python3 rnamodif/evaluation/run.py --batchsize 128 --workers 10 --model v2 --datadir ........ --outfile .....
+python3 rnamodif/evaluation/run.py --batchsize 128 --workers 10 --model .... --datadir ........ --outfile .....
 ```
 
 ### Limitations
 Currently the method only predicts modifications for the whole read, not specific positions.
-
-Currently the method requires a lot of GPU memory (15-20GB). If its not feasible to run on your GPUs, let me know and i will adjust the architecture.
