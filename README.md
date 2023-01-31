@@ -20,7 +20,9 @@ Then run the following command from the RNAModif/ folder
 python3 rnamodif/evaluation/run.py --datadir <path> --outfile <file> --model <model>
 ```
 the --datadir argument is a folder containing your fast5 files (can be nested)
+
 the --outfile is a csv file where you want to output the results
+
 the --model argument is a choice of a trained model. Options are: m6a_v3 (for m6a), 5eu_v1 (for 5eu), s4u_v1 (for s4u)
 
 Example
