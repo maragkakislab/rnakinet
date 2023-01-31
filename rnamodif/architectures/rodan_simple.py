@@ -32,7 +32,6 @@ class RodanSimple(pl.LightningModule):
         
         
     def forward(self, x):
-        
         x = self.trainable_rodan(x)
         x = self.seq_model(x)
         x, indicies = torch.max(x, axis=-1)
