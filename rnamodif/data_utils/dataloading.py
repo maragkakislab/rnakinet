@@ -65,40 +65,36 @@ def get_valid_dataset_unlimited(splits, window=1000, verbose=1, read_blacklist=[
     
     return FullDataset(pos_files, neg_files, window=window, normalization=normalization, trim_primer=trim_primer)
 
-        
-def get_test_dataset(files, window=1000, normalization='rodan', trim_primer=False, stride=1000, read_limit=None):
-    def process_files_fully(files, window, normalization, trim_primer):
-        for fast5 in files: 
-            with get_fast5_file(fast5, mode='r') as f5:
-                for i, read in enumerate(f5.get_reads()):
-                    x = process_read(read, window=None, normalization=normalization, trim_primer=trim_primer) 
-                    # print('processing read', len(x), read.read_id)
-                    for start in range(0, len(x), stride):
-                        # print('start', start)
-                        stop = start+window
-                        if(stop >= len(x)):
-                            # print('stopping')
-                            continue
-                        identifier = {'file':str(fast5),
-                                      'readid':read.read_id,
-                                      'read_index_in_file':i,
-                                      'start':start,
-                                      'stop':stop,
-                                     }
-                        yield x[start:stop].reshape(-1,1).swapaxes(0,1), identifier
-    
-    class FullDataset(IterableDataset):
-        def __init__(self, files, window, normalization, trim_primer, read_limit):
+
+class FullTestDataset(IterableDataset):
+        def __init__(self, files, window, normalization, trim_primer, read_limit, stride):
             self.files = files
             self.window = window
             self.normalization=normalization
             self.trim_primer=trim_primer
             self.read_limit = read_limit
+            self.stride = stride
+            
+        def process_files_fully(self, files, window, normalization, trim_primer):
+            for fast5 in files: 
+                with get_fast5_file(fast5, mode='r') as f5:
+                    for i, read in enumerate(f5.get_reads()):
+                        x = process_read(read, window=None, normalization=normalization, trim_primer=trim_primer) 
+                        for start in range(0, len(x), self.stride):
+                            stop = start+window
+                            if(stop >= len(x)):
+                                continue
+                            identifier = {'file':str(fast5),
+                                          'readid':read.read_id,
+                                          'read_index_in_file':i,
+                                          'start':start,
+                                          'stop':stop,
+                                         }
+                            yield x[start:stop].reshape(-1,1).swapaxes(0,1), identifier    
 
         def __iter__(self):
-            if(read_limit):
-                # print('limiting')
-                iterator = process_files_fully(self.files, window=self.window, normalization=self.normalization, trim_primer=self.trim_primer)
+            if(self.read_limit):
+                iterator = self.process_files_fully(self.files, window=self.window, normalization=self.normalization, trim_primer=self.trim_primer)
                 def limited_iterator():
                     reads_processed = 0
                     last_read = None
@@ -107,15 +103,13 @@ def get_test_dataset(files, window=1000, normalization='rodan', trim_primer=Fals
                         current_read = identifier['readid']
                         if(last_read and last_read!=current_read):
                             reads_processed+=1
-                            # print('new read')
                             if(reads_processed >= read_limit):
                                 break
-                        # else:
-                            # print('same_read')
                         last_read=current_read
                         yield((signal, identifier))
                 return limited_iterator()
                         
-            return process_files_fully(self.files, window=self.window, normalization=self.normalization, trim_primer=self.trim_primer)
-    
-    return FullDataset(files, window=window, normalization=normalization, trim_primer=trim_primer, read_limit=read_limit)
+            return self.process_files_fully(self.files, window=self.window, normalization=self.normalization, trim_primer=self.trim_primer)
+        
+def get_test_dataset(files, window=1000, normalization='rodan', trim_primer=False, stride=1000, read_limit=None):
+    return FullTestDataset(files, window=window, normalization=normalization, trim_primer=trim_primer, read_limit=read_limit, stride=stride)
