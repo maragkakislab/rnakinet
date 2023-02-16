@@ -2,6 +2,7 @@ import pytorch_lightning as pl
 from torch.utils.data import DataLoader
 from rnamodif.data_utils.dataloading import get_valid_dataset_unlimited
 from rnamodif.data_utils.workers import worker_init_fn_multisplit, worker_init_simple_fn
+from pytorch_lightning.strategies import SingleDeviceStrategy
 
 def model_dataset_eval(model, dataset, workers):
     if workers>1:
@@ -35,13 +36,13 @@ def run_eval(config):
     
     return model_dataset_eval(model, dset, config['workers'])
 
-def run_test(dataset, checkpoint, workers, architecture, batch_size=32, profiler=None):
+def run_test(dataset, checkpoint, workers, architecture, arch_params={}, batch_size=32, profiler=None):
     test_loader = DataLoader(dataset, batch_size=batch_size, num_workers=workers, pin_memory=True, worker_init_fn = worker_init_simple_fn) 
     # test_loader = DataLoader(dataset, batch_size=batch_size)
     
-    model = architecture().load_from_checkpoint(checkpoint)
+    model = architecture(**arch_params).load_from_checkpoint(checkpoint)
     # trainer = pl.Trainer(accelerator='gpu', profiler=profiler)
-    trainer = pl.Trainer(accelerator='gpu', profiler=profiler, precision=16)
+    trainer = pl.Trainer(accelerator='gpu', profiler=profiler, precision=16, strategy=SingleDeviceStrategy(device='cuda:0'))
     
     predictions = trainer.predict(model, test_loader, return_predictions=True)
     return predictions
