@@ -43,5 +43,5 @@ def run_test(dataset, checkpoint, workers, architecture, batch_size=32, profiler
     # trainer = pl.Trainer(accelerator='gpu', profiler=profiler)
     trainer = pl.Trainer(accelerator='gpu', profiler=profiler, precision=16)
     
-    predictions = trainer.predict(model, test_loader)
+    predictions = trainer.predict(model, test_loader, return_predictions=True)
     return predictions
