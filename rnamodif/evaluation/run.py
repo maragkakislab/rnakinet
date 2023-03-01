@@ -11,19 +11,20 @@ import sys
 from pathlib import Path
 import pandas as pd
 import argparse
+from tqdm import tqdm
 
 def predictions_to_read_predictions(predictions):
-    agg_preds = []
-    read_ids = []
-    for preds, ids in predictions:
-        agg_preds.append(preds.numpy())
-        read_ids.append(ids['readid'])
-    read_ids = np.concatenate(read_ids)
-    agg_preds = np.concatenate(agg_preds)
     results = {}
-    for un_read_id in np.unique(read_ids):
-        indicies = np.where(read_ids == un_read_id)
-        results[un_read_id] = agg_preds[indicies]
+    for preds, ids in tqdm(predictions):
+        for i in range(len(preds)):
+            read_id = ids['readid'][i]
+            pred = preds[i]
+            if(not read_id in results.keys()):
+                results[read_id] = [pred.numpy()]
+            else:
+                results[read_id].append(pred.numpy())
+    for k,v in tqdm(results.items()):
+        results[k] = np.array(v)
     return results
 
 def main():
@@ -70,11 +71,11 @@ def main():
     read_predictions = predictions_to_read_predictions(predictions)
 
     read_label_dict = {}
-    for k,v in read_predictions.items():
+    for k,v in tqdm(read_predictions.items()):
         read_label_dict[k] = np.max(v) > max_threshold
 
     res = {'read id':[], 'is read modified':[]}
-    for k,v in read_label_dict.items():
+    for k,v in tqdm(read_label_dict.items()):
         res['read id'].append(k)
         res['is read modified'].append(v)
     
