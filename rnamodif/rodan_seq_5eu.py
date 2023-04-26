@@ -4,15 +4,13 @@ import torchmetrics
 import pytorch_lightning as pl
 from torch.nn import functional as F
 from types import SimpleNamespace
-from rnamodif.architectures.bonito_pretrained import RNNPooler
-from bonito_pulled.bonito.nn import Permute
 import numpy as np
 import re
 from numpy.linalg import inv
 from sklearn.metrics import roc_auc_score
 
 class RodanPretrainedSeqcaller5eu(pl.LightningModule):
-    def __init__(self, lr=1e-3, warmup_steps=1000, wd=0.01, freeze=False, fr_layers=0, gru_layers=1, gru_dropout=0):
+    def __init__(self, lr=1e-3, warmup_steps=1000, wd=0.01, freeze=False, fr_layers=0, gru_layers=1, gru_dropout=0, gru_hidden=128):
         super().__init__()
         torchdict = torch.load('/home/jovyan/RNAModif/RODAN/rna.torch', map_location="cpu")
         origconfig = torchdict["config"]
@@ -46,19 +44,18 @@ class RodanPretrainedSeqcaller5eu(pl.LightningModule):
             def forward(self, x):
                 output = x[0]
                 h_n = x[1]
-                max_pooled = torch.max(output, dim=1)
-                mean_pooled = torch.mean(output, dim=1
-                
-                
-                return x[1].permute(1,0,2).flatten(start_dim=1)
+                max_pooled, _ = torch.max(output, dim=1)
+                mean_pooled = torch.mean(output, dim=1)
+                last_states = h_n.permute(1,0,2).flatten(start_dim=1)
+                concat = torch.cat([max_pooled, mean_pooled, last_states], dim=1)
+                #batch_size * (hidden_size*2(bidirectional)*3(pools))
+                return concat
             
         self.head = torch.nn.Sequential(
             Permute(),
-            torch.nn.GRU(input_size=768, hidden_size=128, num_layers=gru_layers, batch_first=True, bidirectional=True, dropout=gru_dropout),
-            GRUflatten(), #TODO pool average and max also? 
-            #TODO activate??
-            
-            torch.nn.Linear(gru_layers*256, 30),
+            torch.nn.GRU(input_size=768, hidden_size=gru_hidden, num_layers=gru_layers, batch_first=True, bidirectional=True, dropout=gru_dropout),
+            GRUflatten(), 
+            torch.nn.Linear(gru_layers*(2*3*gru_hidden), 30),
             torch.nn.ReLU(),
             torch.nn.Linear(30, 1),
             
