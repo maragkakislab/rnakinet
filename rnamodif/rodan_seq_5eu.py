@@ -10,7 +10,7 @@ from numpy.linalg import inv
 from sklearn.metrics import roc_auc_score
 
 class RodanPretrainedSeqcaller5eu(pl.LightningModule):
-    def __init__(self, lr=1e-3, warmup_steps=1000, wd=0.01, freeze=False, fr_layers=0, gru_layers=1, gru_dropout=0, gru_hidden=128):
+    def __init__(self, lr=1e-3, warmup_steps=1000, wd=0.01, freeze=False, fr_layers=0, gru_layers=1, gru_dropout=0, gru_hidden=32): #Gru hidden 128 default
         super().__init__()
         torchdict = torch.load('/home/jovyan/RNAModif/RODAN/rna.torch', map_location="cpu")
         origconfig = torchdict["config"]

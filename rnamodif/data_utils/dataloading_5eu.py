@@ -149,3 +149,33 @@ class FullDataset(Dataset):
         return self.items[idx]
             
     
+class ExhaustiveDataset(IterableDataset):
+        def __init__(self, files, window, stride):
+            self.files = files
+            self.window = window
+            self.stride = stride
+            
+        def process_files_fully(self, files, window):
+            for fast5 in files: 
+                try:
+                    with get_fast5_file(fast5, mode='r') as f5:
+                        for i, read in enumerate(f5.get_reads()):
+                            x = process_read(read, window=None) 
+                            #TODO trim start of the read?
+                            for start in range(0, len(x), self.stride):
+                                stop = start+window
+                                if(stop >= len(x)):
+                                    continue
+                                identifier = {'file':str(fast5),
+                                              'readid':read.read_id,
+                                              'read_index_in_file':i,
+                                              'start':start,
+                                              'stop':stop,
+                                             }
+                                yield x[start:stop].reshape(-1,1).swapaxes(0,1), identifier  
+                except OSError as error:
+                    print(error)
+                    continue
+
+        def __iter__(self):
+            return self.process_files_fully(self.files, self.window)
