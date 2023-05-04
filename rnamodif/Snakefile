@@ -1,0 +1,30 @@
+from pathlib import Path
+
+EXPERIMENT_NAME_TO_PATH = {}
+ARS_DATA_PATHS = list(Path('/home/jovyan/local_store/arsenite/raw').iterdir())
+for p in ARS_DATA_PATHS:
+    EXPERIMENT_NAME_TO_PATH[p.stem] = p
+    
+NANOID_DATA_PATHS = [exp_dir for exp_dir in list(Path('/home/jovyan/preprocessing_RNAModif/splits/').iterdir()) if (not exp_dir.name.startswith('.') and 'alternative' not in str(exp_dir))]
+for p in NANOID_DATA_PATHS:
+    EXPERIMENT_NAME_TO_PATH[p.stem] = p/'test'
+
+rule all:
+    input: 
+        expand("inference/{experiment_name}/reads.pickle",experiment_name=[p.stem for p in ARS_DATA_PATHS]),
+
+rule run_inference:
+    input: 
+        experiment_path = lambda wildcards: EXPERIMENT_NAME_TO_PATH[wildcards.experiment_name],
+    output:
+        #TODO model name? pooling type?
+        'inference/{experiment_name}/windows.pickle',
+        'inference/{experiment_name}/reads.pickle',
+    params:
+        model_path = '/home/jovyan/RNAModif/rnamodif/checkpoints_pl/5eu_2022_unfrozen_gru32_lowLR/last-Copy1.ckpt'
+    threads: workflow.cores
+    resources: gpus=1
+    shell:
+        """
+        python3 inference.py --path {input.experiment_path} --checkpoint {params.model_path} --window_output {output[0]} --read_output {output[1]} --max_workers {threads}
+        """

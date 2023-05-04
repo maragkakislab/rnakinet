@@ -18,6 +18,10 @@ name_to_path = {
     'nano_neg_2':Path('/home/jovyan/preprocessing_RNAModif/splits/20180403_1102_K562_5EU_0_unlabeled_II_run'),
     'nano_neg_3':Path('/home/jovyan/preprocessing_RNAModif/splits/20180403_1208_K562_5EU_0_unlabeled_III_run'),
 }
+
+#TODO name to label?
+#TODO register function? (path, name, label)
+
 name_to_files = {}
 for name,path in name_to_path.items():
     train_files = list((path/'train').rglob('*fast5'))
