@@ -12,7 +12,7 @@ for p in NANOID_DATA_PATHS:
 
 rule all:
     input: 
-        expand("inference_weighted/{experiment_name}/reads.pickle",experiment_name=[p.stem for p in ARS_DATA_PATHS if (('_Ars_0060' in p.stem)or('ctrl' in p.stem)) ]),
+        expand("predictions/{experiment_name}/reads.pickle",experiment_name=[p.stem for p in ARS_DATA_PATHS if (('_Ars_0060' in p.stem)or('ctrl' in p.stem)) ]),
 
 rule run_inference:
     input: 
