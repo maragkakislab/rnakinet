@@ -1,0 +1,176 @@
+from pathlib import Path
+
+HUMAN_REF_VERSION = 'Homo_sapiens.GRCh38.dna_sm.primary_assembly'
+
+BASECALLER_NAME = 'ont-guppy'
+BASECALLER_VERSION = f'{BASECALLER_NAME}_6.4.8_linux64'
+
+NANOID_DATA_PATHS = [exp_dir for exp_dir in list(Path('/home/jovyan/local_store/nanoid/').iterdir()) if (not exp_dir.name.startswith('.') and 'alternative' not in str(exp_dir))]
+NIA_DATA_PATHS = [
+    Path('/home/jovyan/local_store/store/seq/ont/experiments/20220520_hsa_dRNA_HeLa_DMSO_1'),
+    Path('/home/jovyan/local_store/store/seq/ont/experiments/20220303_hsa_dRNA_HeLa_5EU_polyA_REL5_2'),
+    Path('/home/jovyan/local_store/store/seq/ont/experiments/20201016_hsa_dRNASeq_HeLa_dmso_polyA_REL5_short_1'),
+    Path('/home/jovyan/local_store/store/seq/ont/experiments/20201016_hsa_dRNASeq_HeLa_5EU_polyA_REL5_short_1'),
+]
+
+EXPERIMENT_NAME_TO_PATH = {}
+for p in NANOID_DATA_PATHS+NIA_DATA_PATHS:
+    EXPERIMENT_NAME_TO_PATH[p.stem] = p
+EXPERIMENT_NAME_TO_KIT = {}
+for p in NANOID_DATA_PATHS:
+    EXPERIMENT_NAME_TO_KIT[p.stem] = 'SQK-RNA001'
+for p in NIA_DATA_PATHS:
+    EXPERIMENT_NAME_TO_KIT[p.stem] = 'SQK-RNA002'
+
+
+ARS_DATA_PATHS = list(Path('/home/jovyan/local_store/arsenite/raw').iterdir())
+for p in ARS_DATA_PATHS:
+    EXPERIMENT_NAME_TO_PATH[p.stem] = p
+    EXPERIMENT_NAME_TO_KIT[p.stem] = 'SQK-RNA001'
+    
+
+rule all:
+    input: 
+        expand("alignment/{experiment_name}/flagstat.txt",experiment_name=[p.stem for p in ARS_DATA_PATHS]),
+
+rule get_reference:
+    output: f"{HUMAN_REF_VERSION}.fa"
+    shell:
+        f"""
+        wget https://ftp.ensembl.org/pub/release-109/fasta/homo_sapiens/dna/{HUMAN_REF_VERSION}.fa.gz
+        gzip -d {HUMAN_REF_VERSION}.fa.gz
+        """
+    
+rule get_basecaller:
+    output: f"{BASECALLER_NAME}"
+    shell:
+        f"""
+        wget https://cdn.oxfordnanoportal.com/software/analysis/{BASECALLER_VERSION}.tar.gz
+        tar -xf {BASECALLER_VERSION}.tar.gz
+        """
+        
+rule basecalling:
+    input: 
+        experiment_path = lambda wildcards: EXPERIMENT_NAME_TO_PATH[wildcards.experiment_name],
+        basecaller_location = f"{BASECALLER_NAME}",
+    output:
+        'basecalling/{experiment_name}/DONE.txt'
+    params:
+        kit = lambda wildcards: EXPERIMENT_NAME_TO_KIT[wildcards.experiment_name],
+    threads: workflow.cores
+    resources: gpus=1
+    shell:
+        """
+        {input.basecaller_location}/bin/guppy_basecaller \
+            -x "auto" \
+            --flowcell FLO-MIN106 \
+            --kit {params.kit} \
+            --records_per_fastq 0 \
+            --trim_strategy none \
+            --save_path basecalling/{wildcards.experiment_name}/guppy/ \
+            --recursive \
+            --gpu_runners_per_device 1 \
+            --num_callers {threads} \
+            --chunks_per_runner 512 \
+            --compress_fastq \
+            --calib_detect \
+            --input_path {input.experiment_path} \
+            
+        echo {input.experiment_path} > {output}
+        """
+
+#TODO cleanup unused fastq files
+# TODO extract dependencies to conda yaml files for individual rules
+# conda install -c conda-forge pigz 
+rule merge_fastq_files:
+    input:
+        'basecalling/{experiment_name}/DONE.txt'
+    output:
+        "basecalling/{experiment_name}/guppy/reads.fastq.gz"
+    shell:
+        """
+        zcat basecalling/{wildcards.experiment_name}/guppy/pass/fastq_runid*.fastq.gz | pigz > {output}
+        """
+        
+#conda install -c bioconda samtools
+# conda install -c bioconda minimap2
+rule align_to_genome:
+    input:
+        # basecalls = "basecalling/{experiment_name}/guppy/reads.fastq.gz", #TODO accept both? -> programatically f.e. dict
+        basecalls = lambda wildcards: EXPERIMENT_NAME_TO_PATH[wildcards.experiment_name]/"guppy/reads.fastq.gz",
+        reference_path = HUMAN_REF_VERSION+'.fa'
+    output:
+        "alignment/{experiment_name}/reads-align.genome.sorted.bam",
+        "alignment/{experiment_name}/reads-align.genome.sorted.bam.bai"
+    threads: workflow.cores
+    shell:
+        """
+		minimap2 \
+			-x splice \
+			-a \
+			-t {threads} \
+			-u b \
+			-p 1 \
+			--secondary=no \
+			{input.reference_path} \
+			{input.basecalls} \
+			| samtools view -b - \
+			| samtools sort --threads {threads} \
+			> {output[0]}  
+		samtools index {output[0]}
+		"""   
+
+rule run_flagstat:
+    input:
+        "alignment/{experiment_name}/reads-align.genome.sorted.bam"
+    output:
+        "alignment/{experiment_name}/flagstat.txt"
+    shell:
+        "samtools flagstat {input} > {output}"
+        
+# conda install -c bioconda pysam
+# conda install python=3.10 #downgrading from 3.11 for pysam to be satisfied
+rule split_on_chromosome:
+    input:
+        bam_path="alignment/{experiment_name}/reads-align.genome.sorted.bam",
+    output:
+        "splits/{experiment_name}/chromosome_to_reads.pkl",
+        "splits/{experiment_name}/train_readids.pkl",
+        "splits/{experiment_name}/test_readids.pkl",
+        "splits/{experiment_name}/train_readids.txt",
+        "splits/{experiment_name}/test_readids.txt",
+    script:
+        "scripts/splitting.py"
+        
+#Use fast5_subset of ont_fast5_api
+# pip install ont-fast5-api
+rule create_split_fast5s:
+    '''
+    Creates new multiread fast5 files for given readids, so they can be loaded faster during training/inference
+    '''
+    input:
+        train_ids = "splits/{experiment_name}/train_readids.txt",
+        test_ids = "splits/{experiment_name}/test_readids.txt",
+        experiment_path = lambda wildcards: EXPERIMENT_NAME_TO_PATH[wildcards.experiment_name],
+    output:
+        "splits/{experiment_name}/FAST5_SPLIT_DONE.txt"
+    threads: workflow.cores
+    shell:
+        """
+        fast5_subset \
+            --input {input.experiment_path} \
+            --recursive \
+            --save_path splits/{wildcards.experiment_name}/train/ \
+            --threads {threads} \
+            --read_id_list {input.train_ids}
+        
+        fast5_subset \
+            --input {input.experiment_path} \
+            --recursive \
+            --save_path splits/{wildcards.experiment_name}/test/ \
+            --threads {threads} \
+            --read_id_list {input.test_ids}
+            
+        touch {output}
+        """
+        

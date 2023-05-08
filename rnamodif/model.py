@@ -34,7 +34,8 @@ class RodanPretrained(pl.LightningModule):
             frozen_layers=0,
             gru_layers=1,
             gru_dropout=0,
-            gru_hidden=32):
+            gru_hidden=32,
+            weighted_loss=False):
 
         super().__init__()
 
@@ -49,7 +50,10 @@ class RodanPretrained(pl.LightningModule):
 
         # Architecture composition
         self.trainable_rodan, device = load_model(
-            '/home/jovyan/RNAModif/RODAN/rna.torch', config=SimpleNamespace(**origconfig), args=SimpleNamespace(**args))
+            '/home/jovyan/RNAModif/RODAN/rna.torch', 
+            config=SimpleNamespace(**origconfig), 
+            args=SimpleNamespace(**args)
+        )
         self.head = torch.nn.Sequential(
             Permute(),
             torch.nn.GRU(input_size=768, hidden_size=gru_hidden, num_layers=gru_layers,
@@ -71,7 +75,11 @@ class RodanPretrained(pl.LightningModule):
         self.warmup_steps = warmup_steps
 
         self.acc = torchmetrics.classification.Accuracy(task="binary")
-        self.ce = torch.nn.BCEWithLogitsLoss()
+        if(weighted_loss):
+            print('using weighted loss')
+            self.ce = torch.nn.BCEWithLogitsLoss(pos_weight=torch.tensor([0.2]).to(self.device))
+        else:
+            self.ce = torch.nn.BCEWithLogitsLoss()
 
     def forward(self, x):
         feature_vector = self.trainable_rodan.convlayers(x)
@@ -79,10 +87,18 @@ class RodanPretrained(pl.LightningModule):
         return out
 
     def configure_optimizers(self):
-        optimizer = torch.optim.AdamW(params=[{'params': self.trainable_rodan.parameters()}, {
-                                      'params': self.head.parameters()}], lr=self.lr, weight_decay=self.wd)
+        optimizer = torch.optim.AdamW(
+            params=[
+                {'params': self.trainable_rodan.parameters()},
+                {'params': self.head.parameters()}
+            ], 
+            lr=self.lr, 
+            weight_decay=self.wd
+        )
         scheduler = torch.optim.lr_scheduler.LinearLR(
-            optimizer, total_iters=self.warmup_steps)
+            optimizer, 
+            total_iters=self.warmup_steps
+        )
         return [optimizer], [scheduler]
 
     def training_step(self, train_batch, batch_idx, dataloader_idx=None):
@@ -97,7 +113,7 @@ class RodanPretrained(pl.LightningModule):
         x, y, identifier = val_batch
         exp = identifier['exp']
         loss, preds = self.compute_loss(x, y, exp, 'valid', return_preds=True)
-        self.log('valid_loss', loss, on_epoch=True)  # ADDED on_epoch=True
+        self.log('valid_loss', loss, on_epoch=True)
         return {'preds': preds, 'identifier': identifier}
 
     def predict_step(self, batch, batch_idx):

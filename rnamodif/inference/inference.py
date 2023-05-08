@@ -7,7 +7,7 @@ from collections import defaultdict
 import numpy as np
 
 from rnamodif.data_utils.dataloading_5eu import CompleteReadsInferenceDataset
-from rnamodif.rodan_seq_5eu import RodanPretrained
+from rnamodif.model import RodanPretrained
 from rnamodif.data_utils.workers import worker_init_fn_inference
 
 
@@ -44,7 +44,7 @@ def main(args):
     stride = args.window - args.overlap
     dset = CompleteReadsInferenceDataset(files=files, window=args.window, stride=stride)
 
-    model = RodanPretrained().load_from_checkpoint(args.checkpoint)
+    model = RodanPretrained().load_from_checkpoint(args.checkpoint, weighted_loss=args.weighted)
 
     workers = min([args.max_workers, len(dset.files)])
     dataloader = DataLoader(dset, batch_size=args.batch_size, num_workers=workers, pin_memory=True, worker_init_fn=worker_init_fn_inference)
@@ -71,6 +71,9 @@ if __name__ == "__main__":
     parser.add_argument('--window', type=int, default=4096, help='Window size for data processing (default: 4096).')
     parser.add_argument('--overlap', type=int, default=1024, help='Overlap of neighbouring windows (default: 1024).')
     parser.add_argument('--pooling', type=str, default='mean', help='Type of pooling to use to combine window predictions to read predictions (default: mean).')
+    #TODO redo to config?
+    parser.add_argument('--weighted', type=bool, default=False, help='')
+    
     
     
     args = parser.parse_args()

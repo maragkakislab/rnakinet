@@ -74,8 +74,9 @@ class TrainingDatamodule(pl.LightningDataModule):
             )
 
     def train_dataloader(self):
+        print('NOT USING WORKER INIT')
         train_loader = DataLoader(self.train_dataset, batch_size=self.batch_size,
-                                  num_workers=self.workers, pin_memory=True, worker_init_fn=worker_init_fn)
+                                  num_workers=self.workers, pin_memory=True)#, worker_init_fn=worker_init_fn)
         return train_loader
 
     def val_dataloader(self):
@@ -101,7 +102,9 @@ class InfiniteSampleDataset(IterableDataset):
             # TODO consider removing try-except and checking file integrity beforehand
             try:
                 with get_fast5_file(fast5, mode='r') as f5:
-                    for read in f5.get_reads():
+                    reads = list(f5.get_reads())
+                    for _ in range(len(reads)):
+                        read = random.choice(reads)
                         x = process_read(read, window)
                         y = np.array(label)
                         # Skip if the read is too short
