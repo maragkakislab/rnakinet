@@ -1,0 +1,22 @@
+from pathlib import Path
+
+configfile: "config.yml"
+
+include: "rules/basecalling.smk"
+include: "rules/alignment.smk"
+
+rule all:
+    input:
+        # expand("outputs/basecalling/{target}/guppy/reads.fastq.gz", target=config['TARGET'])
+        expand("outputs/alignment/{target}/flagstat.txt", target=config['TARGET'])
+        
+        # "ont-guppy/bin/guppy_basecaller"
+        
+        
+# expand("alignment/{experiment_name}/flagstat.txt",experiment_name=[p.stem for p in ARS_DATA_PATHS]),
+
+        
+        
+
+
+# snakemake --cores 1 --rerun-incomplete --use-conda

@@ -1,0 +1,72 @@
+BASECALLER_VERSION : 'ont-guppy_6.4.8_linux64'
+HUMAN_REF_VERSION : 'Homo_sapiens.GRCh38.dna_sm.primary_assembly'
+
+CLASSIFICATION_DATASETS : {
+    'nia_2022_neg':'local_store/store/seq/ont/experiments/20220520_hsa_dRNA_HeLa_DMSO_1',
+    'nia_2022_pos':'local_store/store/seq/ont/experiments/20220303_hsa_dRNA_HeLa_5EU_polyA_REL5_2',
+    
+    'nia_2020_neg':'local_store/store/seq/ont/experiments/20201016_hsa_dRNASeq_HeLa_dmso_polyA_REL5_short_1',
+    'nia_2020_pos':'local_store/store/seq/ont/experiments/20201016_hsa_dRNASeq_HeLa_5EU_polyA_REL5_short_1',
+
+    'nanoid_neg_1':'local_store/nanoid/20180327_1102_K562_5EU_0_unlabeled_run',
+    'nanoid_neg_2':'local_store/nanoid/20180403_1102_K562_5EU_0_unlabeled_II_run',
+    'nanoid_neg_3':'local_store/nanoid/20180403_1208_K562_5EU_0_unlabeled_III_run',
+    'nanoid_pos_1':'local_store/nanoid/20180514_1054_K562_5EU_1440_labeled_run',
+    'nanoid_pos_2':'local_store/nanoid/20180514_1541_K562_5EU_1440_labeled_II_run',
+    'nanoid_pos_3':'local_store/nanoid/20180516_1108_K562_5EU_1440_labeled_III_run',
+    
+    'nia_neuron_hek':'local_store/arsenite/raw/20201001_hsa_dRNA_Hek293T_NoArs_5P_1',
+    'nia_neuron_ctrl':'local_store/arsenite/raw/20201022_hsa_dRNA_Neuron_ctrl_5P_1',
+    'nia_neuron_tdp':'local_store/arsenite/raw/20201022_hsa_dRNA_Neuron_TDP_5P_1',
+}
+
+
+KITS : {
+    'nia_2022_neg':'SQK-RNA002',
+    'nia_2022_pos':'SQK-RNA002',
+    'nia_2020_neg':'SQK-RNA002',
+    'nia_2020_pos':'SQK-RNA002',
+    
+    'nanoid_neg_1':'SQK-RNA001',
+    'nanoid_neg_2':'SQK-RNA001',
+    'nanoid_neg_3':'SQK-RNA001',
+    
+    'nanoid_pos_1':'SQK-RNA001',
+    'nanoid_pos_2':'SQK-RNA001',
+    'nanoid_pos_3':'SQK-RNA001',
+    #Include kits for different experiments
+    #TODO add flowcells also? (neuron data have different flowcell)
+}
+
+# Use for specifying basecalls explicitly, for example if you dont want to run HAC basecalling or you have basecalls already
+EXPLICIT_BASECALL_PATHS: {
+    '20201001_hsa_dRNA_Hek293T_NoArs_5P_1': 'local_store/arsenite/raw/20201001_hsa_dRNA_Hek293T_NoArs_5P_1/guppy/reads.fastq.gz',
+    '20201022_hsa_dRNA_Neuron_ctrl_5P_1': 'local_store/arsenite/raw/20201022_hsa_dRNA_Neuron_ctrl_5P_1/guppy/reads.fastq.gz',
+    '20201022_hsa_dRNA_Neuron_TDP_5P_1': 'local_store/arsenite/raw/20201022_hsa_dRNA_Neuron_TDP_5P_1/guppy/reads.fastq.gz',
+}
+
+MODELS: {
+    'narrow_weighted':{
+        'path':'checkpoints_pl/5eu_2022_gru32_weighted02/last-Copy1.ckpt',
+        'window': 4096,
+        'weighted': True,
+     },
+    'narrow_standard':{
+        'path':'checkpoints_pl/5eu_2022_unfrozen_gru32_lowLR/last-Copy1.ckpt',
+        'window': 4096,
+        'weighted': False,
+    },
+    'wide_standard':{
+        'path':'checkpoints_pl/2022_wide/last-Copy1.ckpt',
+        'window': 40960,
+        'weighted': False,
+    },
+    'wide_weighted':{
+        'path':'checkpoints_pl/2022_wide_weighted02/last-Copy1.ckpt',
+        'window': 40960,
+        'weighted': True,
+    }
+}
+
+
+TARGET : ['20201001_hsa_dRNA_Hek293T_NoArs_5P_1','20201022_hsa_dRNA_Neuron_ctrl_5P_1', '20201022_hsa_dRNA_Neuron_TDP_5P_1']
