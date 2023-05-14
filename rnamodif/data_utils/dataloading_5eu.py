@@ -109,7 +109,7 @@ class InfiniteSampleDataset(IterableDataset):
                         y = np.array(label)
                         # Skip if the read is too short
                         if (len(x) == 0):
-                            print('skipping')
+                            # print('skipping')
                             continue
 
                         yield x.reshape(-1, 1).swapaxes(0, 1), np.array([y], dtype=np.float32), exp
@@ -130,6 +130,9 @@ class InfiniteSampleDataset(IterableDataset):
     def __iter__(self):
         return self.get_stream()
 
+    
+
+    
 
 class CompleteReadsValidDataset(Dataset):
     """
@@ -168,7 +171,7 @@ class CompleteReadsValidDataset(Dataset):
 
     def process_files_fully(self, files, exp, label, window, stride, shuffle):
         for fast5 in files:
-            if (shuffle):
+            if (shuffle): #TODO shuffle is misplaced, should be above for loop!
                 random.shuffle(files)
             with get_fast5_file(fast5, mode='r') as f5:
                 for i, read in enumerate(f5.get_reads()):
@@ -231,3 +234,4 @@ class CompleteReadsInferenceDataset(IterableDataset):
 
     def __iter__(self):
         return self.process_files_fully(self.files, self.window)
+

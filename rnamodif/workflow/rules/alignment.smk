@@ -24,7 +24,7 @@ rule align_to_genome:
         bai = "outputs/alignment/{experiment_name}/reads-align.genome.sorted.bam.bai"
     conda:
         "../envs/alignment.yaml"
-    threads: 64
+    threads: 32
     shell:
         """
 		minimap2 \

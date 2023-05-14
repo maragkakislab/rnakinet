@@ -1,0 +1,8 @@
+#TODO include rnamodif package
+channels:
+    # - bioconda
+    - conda-forge
+dependencies:
+    - pytorch==1.12.1
+    - pytorch-lightning==1.7.0
+    - numpy==1.22.0

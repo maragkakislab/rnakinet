@@ -1,6 +1,5 @@
+#Basecalling information
 BASECALLER_VERSION : 'ont-guppy_6.4.8_linux64'
-HUMAN_REF_VERSION : 'Homo_sapiens.GRCh38.dna_sm.primary_assembly'
-
 CLASSIFICATION_DATASETS : {
     'nia_2022_neg':'local_store/store/seq/ont/experiments/20220520_hsa_dRNA_HeLa_DMSO_1',
     'nia_2022_pos':'local_store/store/seq/ont/experiments/20220303_hsa_dRNA_HeLa_5EU_polyA_REL5_2',
@@ -38,6 +37,9 @@ KITS : {
     #TODO add flowcells also? (neuron data have different flowcell)
 }
 
+# Mapping information
+HUMAN_REF_VERSION : 'Homo_sapiens.GRCh38.dna_sm.primary_assembly'
+
 # Use for specifying basecalls explicitly, for example if you dont want to run HAC basecalling or you have basecalls already
 EXPLICIT_BASECALL_PATHS: {
     '20201001_hsa_dRNA_Hek293T_NoArs_5P_1': 'local_store/arsenite/raw/20201001_hsa_dRNA_Hek293T_NoArs_5P_1/guppy/reads.fastq.gz',
@@ -45,6 +47,26 @@ EXPLICIT_BASECALL_PATHS: {
     '20201022_hsa_dRNA_Neuron_TDP_5P_1': 'local_store/arsenite/raw/20201022_hsa_dRNA_Neuron_TDP_5P_1/guppy/reads.fastq.gz',
 }
 
+# Splitting information
+default_train_chrs: [2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,'X','MT']
+default_test_chrs: [1]
+default_validation_chrs: []
+
+EXPLICIT_SPLITS: {
+    '20220520_hsa_dRNA_HeLa_DMSO_1': {
+        'train': [2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,21,22,'X','MT'],
+        'test': [1],
+        'validation': [20],
+    },
+    '20220303_hsa_dRNA_HeLa_5EU_polyA_REL5_2': {
+        'train': [2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,21,22,'X','MT'],
+        'test': [1],
+        'validation': [20],
+    },
+}
+
+
+# Inference information
 MODELS: {
     'narrow_weighted':{
         'path':'checkpoints_pl/5eu_2022_gru32_weighted02/last-Copy1.ckpt',
@@ -68,5 +90,13 @@ MODELS: {
     }
 }
 
+LIMITED_INFERENCE_FILE_LIMIT: 1
+INFERENCE_BATCH_SIZE: 32
 
-TARGET : ['20201001_hsa_dRNA_Hek293T_NoArs_5P_1','20201022_hsa_dRNA_Neuron_ctrl_5P_1', '20201022_hsa_dRNA_Neuron_TDP_5P_1']
+# Specifying experiments
+# TARGET : ['20201001_hsa_dRNA_Hek293T_NoArs_5P_1','20201022_hsa_dRNA_Neuron_ctrl_5P_1', '20201022_hsa_dRNA_Neuron_TDP_5P_1']
+# TARGET: ['20220520_hsa_dRNA_HeLa_DMSO_1', '20220303_hsa_dRNA_HeLa_5EU_polyA_REL5_2']
+TARGET : ['20201001_hsa_dRNA_Hek293T_NoArs_5P_1']
+
+# models to run inference for
+INFERENCE_MODELS : ['narrow_standard']

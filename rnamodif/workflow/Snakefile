@@ -4,17 +4,19 @@ configfile: "config.yml"
 
 include: "rules/basecalling.smk"
 include: "rules/alignment.smk"
+include: "rules/data_split.smk"
+include: "rules/inference.smk"
+
 
 rule all:
     input:
-        # expand("outputs/basecalling/{target}/guppy/reads.fastq.gz", target=config['TARGET'])
-        expand("outputs/alignment/{target}/flagstat.txt", target=config['TARGET'])
+        # expand("outputs/splits/{target}/FAST5_{split}_SPLIT_DONE.txt", target=config['TARGET'], split=['train', 'validation','test'])
+        expand(
+            "outputs/predictions_limited/{model}/{target}/mean_pooling.pickle", 
+            target=config['TARGET'], 
+            model=config['INFERENCE_MODELS']
+        )
         
-        # "ont-guppy/bin/guppy_basecaller"
-        
-        
-# expand("alignment/{experiment_name}/flagstat.txt",experiment_name=[p.stem for p in ARS_DATA_PATHS]),
-
         
         
 

@@ -18,6 +18,10 @@ name_to_path = {
     'nano_neg_1':base_path/'20180327_1102_K562_5EU_0_unlabeled_run',
     'nano_neg_2':base_path/'20180403_1102_K562_5EU_0_unlabeled_II_run',
     'nano_neg_3':base_path/'20180403_1208_K562_5EU_0_unlabeled_III_run',
+    
+    'nia_neuron_hek':Path('/home/jovyan/RNAModif/rnamodif/workflow/outputs/splits/20201001_hsa_dRNA_Hek293T_NoArs_5P_1'),
+    'nia_neuron_ctrl':Path('/home/jovyan/RNAModif/rnamodif/workflow/outputs/splits/20201022_hsa_dRNA_Neuron_ctrl_5P_1'),
+    'nia_neuron_tdp':Path('/home/jovyan/RNAModif/rnamodif/workflow/outputs/splits/20201022_hsa_dRNA_Neuron_TDP_5P_1'),
 }
 
 #TODO name to label?
