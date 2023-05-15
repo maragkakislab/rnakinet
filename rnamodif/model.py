@@ -80,6 +80,9 @@ class RodanPretrained(pl.LightningModule):
             self.ce = torch.nn.BCEWithLogitsLoss(pos_weight=torch.tensor([0.2]).to(self.device))
         else:
             self.ce = torch.nn.BCEWithLogitsLoss()
+            
+            
+
 
     def forward(self, x):
         feature_vector = self.trainable_rodan.convlayers(x)
@@ -107,6 +110,7 @@ class RodanPretrained(pl.LightningModule):
         self.log('train_loss', loss, on_epoch=True)
         sch = self.lr_schedulers()
         sch.step()
+            
         return loss
 
     def validation_step(self, val_batch, batch_idx, dataloader_idx=None):

@@ -1,5 +1,4 @@
 HUMAN_REF_VERSION = config['HUMAN_REF_VERSION']
-DATASET_NAME_TO_PATH = {Path(path).stem:path for path in config['CLASSIFICATION_DATASETS'].values()}
 EXPLICIT_BASECALL_PATHS = config['EXPLICIT_BASECALL_PATHS']
 
 def get_basecalls_path(dataset_name):

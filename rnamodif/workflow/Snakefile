@@ -10,15 +10,6 @@ include: "rules/inference.smk"
 
 rule all:
     input:
-        # expand("outputs/splits/{target}/FAST5_{split}_SPLIT_DONE.txt", target=config['TARGET'], split=['train', 'validation','test'])
-        expand(
-            "outputs/predictions_limited/{model}/{target}/mean_pooling.pickle", 
-            target=config['TARGET'], 
-            model=config['INFERENCE_MODELS']
-        )
-        
-        
-        
-
+        expand('outputs/predictions_limited/{model_name}/{experiment_name}/mean_pooling.pickle', experiment_name=config['EXPERIMENTS_TO_PROCESS'], model_name=config['MODELS_TO_PROCESS'])
 
 # snakemake --cores 1 --rerun-incomplete --use-conda

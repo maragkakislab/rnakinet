@@ -1,5 +1,3 @@
-DATASET_NAME_TO_PATH = {Path(path).stem:path for path in config['CLASSIFICATION_DATASETS'].values()}
-
 def get_splits(dataset_name):
     if dataset_name in config['EXPLICIT_SPLITS'].keys():
         return config['EXPLICIT_SPLITS'][dataset_name]
@@ -40,7 +38,7 @@ rule create_split_fast5s:
     '''
     input:
         ids = "outputs/splits/{experiment_name}/{split}_readids.txt", #The split needs to be non-empty txt file
-        experiment_path = lambda wildcards: DATASET_NAME_TO_PATH[wildcards.experiment_name],
+        experiment_path = lambda wildcards: config['EXPERIMENT_NAME_TO_PATH'][wildcards.experiment_name],
     output:
         "outputs/splits/{experiment_name}/FAST5_{split}_SPLIT_DONE.txt"
     conda:
