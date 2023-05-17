@@ -6,10 +6,27 @@ include: "rules/basecalling.smk"
 include: "rules/alignment.smk"
 include: "rules/data_split.smk"
 include: "rules/inference.smk"
+include: "rules/visualizations.smk"
 
-
+    
 rule all:
     input:
-        expand('outputs/predictions_limited/{model_name}/{experiment_name}/mean_pooling.pickle', experiment_name=config['EXPERIMENTS_TO_PROCESS'], model_name=config['MODELS_TO_PROCESS'])
+        expand("outputs/visual/{prediction_type}/{model_name}/{plot_name}_{pooling}_pooling_auroc.pdf",
+                prediction_type=config['PREDICTION_TYPE'],
+                model_name=config['MODELS_TO_PROCESS'],
+                plot_name=config['PLOT_NAME'],
+                pooling=config['POOLING'],
+        )
+#         expand("outputs/visual/{prediction_type}/{model_name}/{plot_name}_{pooling}_pooling_violin.pdf",
+#                 prediction_type=config['PREDICTION_TYPE'],
+#                 model_name=config['MODELS_TO_PROCESS'],
+#                 plot_name=config['PLOT_NAME'],
+#                 pooling=config['POOLING'],
+                
+#               )
+        # expand('outputs/predictions_limited/{model_name}/{experiment_name}/mean_pooling.pickle', experiment_name=ars_exps, model_name=config['MODELS_TO_PROCESS'])
+# ars_exps = [k for k in config['EXPERIMENT_NAME_TO_PATH'].keys() if '5P' in k]
+
+
 
 # snakemake --cores 1 --rerun-incomplete --use-conda

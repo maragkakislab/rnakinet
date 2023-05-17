@@ -128,16 +128,55 @@ MODELS: {
         'window': null, #model with unlimited window
         'weighted': False,
     },
+    'unlimited_standard_2022neuronctrl':{
+        'path':'checkpoints_pl/2022_uncut_neg2022+neuronctrl/epoch=0-step=1625-Copy1.ckpt',
+        'window': null,
+        'weighted': False,
+    },
+    'unlimited_allneg_maxpool':{
+        'path':'checkpoints_pl/2022_uncut_allneg_maxpool/epoch=0-step=1875-Copy1.ckpt',
+        'window': null,
+        'weighted': False,
+    },
 }
 
 LIMITED_INFERENCE_FILE_LIMIT: 5
 INFERENCE_BATCH_SIZE: 1
 
-# models to run inference for
-MODELS_TO_PROCESS : ['unlimited_standard_allneg']
+#Visuals
+
+#Violins
+PLOT_NAME : 'arstotal'
+PREDICTION_TYPE : 'predictions_limited'
+POOLING : 'mean'
+
+#Aurocs
+AUROC_NEG_POS_PAIRS: [
+    # ['20220520_hsa_dRNA_HeLa_DMSO_1','20220303_hsa_dRNA_HeLa_5EU_polyA_REL5_2'],
+    # ['20201016_hsa_dRNASeq_HeLa_dmso_polyA_REL5_short_1','20201016_hsa_dRNASeq_HeLa_5EU_polyA_REL5_short_1'],
+    # ['20180327_1102_K562_5EU_0_unlabeled_run','20180514_1054_K562_5EU_1440_labeled_run'],
+    ['20210111_hsa_dRNA_HeLa_5EU_1hr_ctrl_0000m_5P_1','20201215_hsa_dRNA_HeLa_5EU_2hr_NoArs_0060m_5P_1'],
+    ['20210208_hsa_dRNA_HeLa_5EU_1hr_ctrl_0000m_5P_3','20210202_hsa_dRNA_HeLa_5EU_2hr_NoArs_0060m_5P_2'],
+]
+
+# models to run the commands for
+MODELS_TO_PROCESS : ['unlimited_allneg_maxpool']
 
 EXPERIMENTS_TO_PROCESS : [
     '20210111_hsa_dRNA_HeLa_5EU_1hr_ctrl_0000m_5P_1', 
     '20210208_hsa_dRNA_HeLa_5EU_1hr_ctrl_0000m_5P_2',
     '20210208_hsa_dRNA_HeLa_5EU_1hr_ctrl_0000m_5P_3',
+    '20210128_hsa_dRNA_HeLa_5EU_2hr_NoArs_0030m_5P_1', 
+    '20210128_hsa_dRNA_HeLa_5EU_2hr_NoArs_0030m_5P_2',
+    '20201215_hsa_dRNA_HeLa_5EU_2hr_NoArs_0060m_5P_1', 
+    '20210202_hsa_dRNA_HeLa_5EU_2hr_NoArs_0060m_5P_2', 
+    '20210519_hsa_dRNA_HeLa_5EU_2hr_NoArs_0060m_5P_3',
+    '20210111_hsa_dRNA_HeLa_5EU_2hr_NoArs_0090m_5P_1', 
+    '20210202_hsa_dRNA_HeLa_5EU_2hr_NoArs_0090m_5P_2', 
+    '20210519_hsa_dRNA_HeLa_5EU_2hr_NoArs_0090m_5P_3',
+    '20201220_hsa_dRNA_HeLa_5EU_2hr_NoArs_0120m_5P_1', 
+    '20210205_hsa_dRNA_HeLa_5EU_2hr_NoArs_0120m_5P_2',
+    '20210114_hsa_dRNA_HeLa_5EU_2hr_NoArs_0180m_5P_1', 
+    '20210205_hsa_dRNA_HeLa_5EU_2hr_NoArs_0180m_5P_2',
+    '20201220_hsa_dRNA_HeLa_5EU_2hr_NoArs_0300m_5P_1',
 ]
