@@ -10,6 +10,7 @@ from rnamodif.data_utils.dataloading_5eu import CompleteReadsInferenceDataset
 from rnamodif.data_utils.dataloading_uncut import UnlimitedReadsInferenceDataset
 from rnamodif.model import RodanPretrained
 from rnamodif.model_uncut import RodanPretrainedUnlimited
+from rnamodif.model_mine import MyModel
 from rnamodif.data_utils.workers import worker_init_fn_inference
         
 def main(args):
@@ -23,10 +24,16 @@ def main(args):
     if(not args.window):
         dset = UnlimitedReadsInferenceDataset(files=files)
         #TODO len_limit default value not enough for some reads? Throw away/increase?
-        model = RodanPretrainedUnlimited().load_from_checkpoint(args.checkpoint, weighted_loss=args.weighted)
+        #TODO PARAMETRIZE! 
+        if('CUSTOM' in args.output):
+            model = MyModel().load_from_checkpoint(args.checkpoint)
+        else:
+            model = RodanPretrainedUnlimited().load_from_checkpoint(args.checkpoint, weighted_loss=args.weighted)
         pin_memory=False
     else:
         dset = CompleteReadsInferenceDataset(files=files, window=args.window, stride=args.window - args.overlap)
+        
+        
         model = RodanPretrained().load_from_checkpoint(args.checkpoint, weighted_loss=args.weighted)
         pin_memory=True
 

@@ -27,7 +27,7 @@ rule basecalling:
             --kit {params.kit} \
             --records_per_fastq 0 \
             --trim_strategy none \
-            --save_path basecalling/{wildcards.experiment_name}/guppy/ \
+            --save_path outputs/basecalling/{wildcards.experiment_name}/guppy/ \
             --recursive \
             --gpu_runners_per_device 1 \
             --num_callers {threads} \
