@@ -72,36 +72,47 @@ def plot_accuracies(positive_dict, negative_dict):
     ax.legend(loc='center left', bbox_to_anchor=(1,0.5), prop={'size':10})
 
 
-def plot_chr_accuracies(pos_bam, neg_bam, pos_pred, neg_pred):
-    pos_predictions = read_predictions(pos_pred)
-    neg_predictions = read_predictions(neg_pred)
+def plot_chr_accuracies(pos_bams, neg_bams, pos_preds, neg_preds):
+    pos_chromosome_dict_merged = {}
+    pos_prediction_dict_merged = {}
+    
+    for pos_bam, pos_pred in zip(pos_bams, pos_preds):
+        pos_predictions = read_predictions(pos_pred)
+        pos_chromosome_dict = get_chromosome_dictionary(pos_bam, pos_predictions)
+        pos_chromosome_dict_merged.update(pos_chromosome_dict)
+        pos_prediction_dict_merged.update(pos_predictions)
+        
+    neg_chromosome_dict_merged = {}
+    neg_prediction_dict_merged = {}
+    for neg_bam, neg_pred in zip(neg_bams, neg_preds):
+        neg_predictions = read_predictions(neg_pred)
+        neg_chromosome_dict = get_chromosome_dictionary(neg_bam, neg_predictions)
+        neg_chromosome_dict_merged.update(neg_chromosome_dict)
+        neg_prediction_dict_merged.update(neg_predictions)
 
-    pos_chromosome_dict = get_chromosome_dictionary(pos_bam, pos_predictions)
-    neg_chromosome_dict = get_chromosome_dictionary(neg_bam, neg_predictions)
-
-    pos_stats = calculate_chromosome_stats(pos_chromosome_dict, pos_predictions, 1)
-    neg_stats = calculate_chromosome_stats(neg_chromosome_dict, neg_predictions, 0)
+    pos_stats = calculate_chromosome_stats(pos_chromosome_dict_merged, pos_prediction_dict_merged, 1)
+    neg_stats = calculate_chromosome_stats(neg_chromosome_dict_merged, neg_prediction_dict_merged, 0)
                                                     
     plot_accuracies(pos_stats, neg_stats)
 
 
 def main(args):
-    pos_bam = args.positives_bam
-    neg_bam = args.negatives_bam
-    pos_pred = args.positives_predictions
-    neg_pred = args.negatives_predictions
+    pos_bams = args.positives_bams
+    neg_bams = args.negatives_bams
+    pos_preds = args.positives_predictions
+    neg_preds = args.negatives_predictions
     output_file = args.output
     
-    plot_chr_accuracies(pos_bam, neg_bam, pos_pred, neg_pred)
+    plot_chr_accuracies(pos_bams, neg_bams, pos_preds, neg_preds)
     plt.savefig(output_file, bbox_inches='tight')
     
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Run prediction on FAST5 files and save results in a pickle file.')
-    parser.add_argument('--positives_bam', type=str, required=True, help='Bam file for positive reads')
-    parser.add_argument('--negatives_bam', type=str, required=True, help='Bam file for negative reads')
-    parser.add_argument('--positives_predictions', type=str, required=True, help='Prediction file for positive reads')
-    parser.add_argument('--negatives_predictions', type=str, required=True, help='Prediction file for negative reads')
+    parser.add_argument('--positives_bams', nargs='+', type=str, required=True, help='Bam files for positive reads')
+    parser.add_argument('--negatives_bams', nargs='+', type=str, required=True, help='Bam files for negative reads')
+    parser.add_argument('--positives_predictions', nargs='+', type=str, required=True, help='Prediction files for positive reads')
+    parser.add_argument('--negatives_predictions', nargs='+', type=str, required=True, help='Prediction files for negative reads')
     parser.add_argument('--output', type=str, required=True, help='Path to the output plot file.')
     args = parser.parse_args()
     main(args)

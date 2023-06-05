@@ -1,45 +1,23 @@
-rule create_violin_plots:
+rule create_distribution_plot:
     input:
         files = lambda wildcards: expand(
             'outputs/{prediction_type}/{model_name}/{experiment_name}/{pooling}_pooling.pickle', 
-            experiment_name=config['EXPERIMENTS_TO_PROCESS'],
+            experiment_name=timesteps[wildcards.plot_name],
             model_name=wildcards.model_name,
             pooling=wildcards.pooling,
             prediction_type=wildcards.prediction_type,
         ),
     output:
-        'outputs/visual/{prediction_type}/{model_name}/{plot_name}_{pooling}_pooling_violin.pdf'
+        'outputs/visual/{prediction_type}/{model_name}/{plot_name}_{pooling}_pooling_{plot_type}.pdf'
+    wildcard_constraints:
+        plot_type='(boxplot|violin)'
     conda:
         '../envs/visual.yaml'
     params:
-        exp_names = config['EXPERIMENTS_TO_PROCESS']
+        exp_names = lambda wildcards: timesteps[wildcards.plot_name]
     shell:
         """
-        python3 scripts/violin.py \
-            --files {input.files} \
-            --output {output} \
-            --model-name {wildcards.model_name} \
-            --exp-names {params.exp_names} \
-        """
-        
-rule create_boxplots:
-    input:
-        files = lambda wildcards: expand(
-            'outputs/{prediction_type}/{model_name}/{experiment_name}/{pooling}_pooling.pickle', 
-            experiment_name=config['EXPERIMENTS_TO_PROCESS'],
-            model_name=wildcards.model_name,
-            pooling=wildcards.pooling,
-            prediction_type=wildcards.prediction_type,
-        ),
-    output:
-        'outputs/visual/{prediction_type}/{model_name}/{plot_name}_{pooling}_pooling_boxplot.pdf'
-    conda:
-        '../envs/visual.yaml'
-    params:
-        exp_names = config['EXPERIMENTS_TO_PROCESS']
-    shell:
-        """
-        python3 scripts/boxplot.py \
+        python3 scripts/{wildcards.plot_type}.py \
             --files {input.files} \
             --output {output} \
             --model-name {wildcards.model_name} \
@@ -50,27 +28,28 @@ rule create_classification_plot:
     input:
         neg_files = lambda wildcards: expand(
             'outputs/{prediction_type}/{model_name}/{experiment_name}/{pooling}_pooling.pickle', 
-            experiment_name=[neg_exp for neg_exp, pos_exp in config['PLOT_NEG_POS_PAIRS']],
+            experiment_name=[v['negatives'] for v in clf_tuples[wildcards.plot_name].values()],
             model_name=wildcards.model_name,
             pooling=wildcards.pooling,
             prediction_type=wildcards.prediction_type,
         ),
         pos_files = lambda wildcards: expand(
             'outputs/{prediction_type}/{model_name}/{experiment_name}/{pooling}_pooling.pickle', 
-            experiment_name=[pos_exp for neg_exp, pos_exp in config['PLOT_NEG_POS_PAIRS']],
+            # experiment_name=[pos_exp for neg_exp, pos_exp in config['PLOT_NEG_POS_PAIRS']],
+            experiment_name=[v['positives'] for v in clf_tuples[wildcards.plot_name].values()],
             model_name=wildcards.model_name,
             pooling=wildcards.pooling,
             prediction_type=wildcards.prediction_type,
         ),
-        
     output:
-        'outputs/visual/{prediction_type}/{model_name}/{plot_name}_{pooling}_pooling_{plot_type}_multi.pdf'
+        'outputs/visual/{prediction_type}/{model_name}/{plot_name}_{pooling}_pooling_{plot_type}.pdf'
+    wildcard_constraints:
+        plot_type='(auroc|thresholds|pr_curve)'
     conda:
         '../envs/visual.yaml'
     params:
-        neg_experiments = [neg_exp for neg_exp, pos_exp in config['PLOT_NEG_POS_PAIRS']],
-        pos_experiments = [pos_exp for neg_exp, pos_exp in config['PLOT_NEG_POS_PAIRS']],
-                                
+        neg_experiments = lambda wildcards: [v['negatives'] for v in clf_tuples[wildcards.plot_name].values()],
+        pos_experiments = lambda wildcards: [v['positives'] for v in clf_tuples[wildcards.plot_name].values()],
     shell:
         """
         python3 scripts/{wildcards.plot_type}.py \
@@ -85,22 +64,22 @@ rule create_classification_plot:
         
 rule create_chromosome_plots:
     input:
-        neg_file = lambda wildcards: expand(
+        neg_files = lambda wildcards: expand(
             'outputs/{prediction_type}/{model_name}/{experiment_name}/{pooling}_pooling.pickle', 
-            experiment_name=config['CHR_PLOT_NEG_POS_PAIR'][0],
+            experiment_name=comparisons[wildcards.plot_name]['negatives'],
             model_name=wildcards.model_name,
             pooling=wildcards.pooling,
             prediction_type=wildcards.prediction_type,
         ),
-        pos_file = lambda wildcards: expand(
+        pos_files = lambda wildcards: expand(
             'outputs/{prediction_type}/{model_name}/{experiment_name}/{pooling}_pooling.pickle', 
-            experiment_name=config['CHR_PLOT_NEG_POS_PAIR'][1],
+            experiment_name=comparisons[wildcards.plot_name]['positives'],
             model_name=wildcards.model_name,
             pooling=wildcards.pooling,
             prediction_type=wildcards.prediction_type,
         ),
-        neg_bam = expand('outputs/alignment/{experiment_name}/reads-align.genome.sorted.bam', experiment_name=config['CHR_PLOT_NEG_POS_PAIR'][0]),
-        pos_bam = expand('outputs/alignment/{experiment_name}/reads-align.genome.sorted.bam', experiment_name=config['CHR_PLOT_NEG_POS_PAIR'][1]),
+        neg_bams = lambda wildcards: expand('outputs/alignment/{experiment_name}/reads-align.genome.sorted.bam', experiment_name=comparisons[wildcards.plot_name]['negatives']),
+        pos_bams = lambda wildcards: expand('outputs/alignment/{experiment_name}/reads-align.genome.sorted.bam', experiment_name=comparisons[wildcards.plot_name]['positives']),
     output:
         'outputs/visual/{prediction_type}/{model_name}/{plot_name}_{pooling}_pooling_chr_acc.pdf'
     conda:
@@ -108,10 +87,10 @@ rule create_chromosome_plots:
     shell:
         """
         python3 scripts/chr_acc.py \
-            --positives_bam {input.pos_bam} \
-            --negatives_bam {input.neg_bam} \
-            --positives_predictions {input.pos_file} \
-            --negatives_predictions {input.neg_file} \
+            --positives_bams {input.pos_bams} \
+            --negatives_bams {input.neg_bams} \
+            --positives_predictions {input.pos_files} \
+            --negatives_predictions {input.neg_files} \
             --output {output} \
         """
         
@@ -129,3 +108,61 @@ rule create_volcano_plot:
             --save-path {output} \
             --column {wildcards.column} \
         """
+
+rule create_decay_plot:
+    input:
+        gene_predictions = 'outputs/{prediction_type}/{model_name}/{experiment_name}/{pooling}_pooling_gene_level_predictions.tsv',
+        gene_halflifes = 'tani_halflives.txt'
+    output:
+        'outputs/visual/{prediction_type}/{model_name}/{experiment_name}/{pooling}_pooling_decay_plot.pdf'
+    conda:
+        "../envs/visual.yaml"
+    shell:
+        """
+        python3 scripts/decay_plot.py \
+            --gene-predictions {input.gene_predictions} \
+            --gene-halflifes {input.gene_halflifes} \
+            --output {output} \
+        """
+        
+
+rule create_all_plots:
+    input:
+        # "outputs/visual/diff_exp/{time}/{column}.pdf"
+        expand('outputs/visual/{prediction_type}/{model_name}/{plot_name}_{pooling}_pooling_chr_acc.pdf',
+            prediction_type=prediction_type, 
+            model_name = model_name, 
+            pooling=pooling,
+            plot_name=comparisons.keys(),
+        ),
+        expand('outputs/visual/{prediction_type}/{model_name}/{plot_name}_{pooling}_pooling_{plot_type}.pdf',
+            prediction_type=prediction_type, 
+            model_name = model_name, 
+            pooling=pooling,
+            plot_name=clf_tuples.keys(), 
+            plot_type=['auroc', 'thresholds','pr_curve'],
+        ),
+        expand('outputs/visual/{prediction_type}/{model_name}/{plot_name}_{pooling}_pooling_{plot_type}.pdf',
+            prediction_type=prediction_type,
+            model_name=model_name,
+            pooling=pooling,
+            plot_name=timesteps.keys(),
+            plot_type=['boxplot', 'violin'],    
+        ),
+        expand('outputs/visual/{prediction_type}/{model_name}/{experiment_name}/{pooling}_pooling_{plot_type}.pdf',
+            prediction_type=prediction_type,
+            model_name=model_name,
+            pooling=pooling,
+            experiment_name=individual_exps,
+            plot_type=['decay_plot'],    
+        ),
+    output:
+        'outputs/visual/{prediction_type}/{model_name}/{pooling}_ALL_DONE.txt'
+    shell:
+        """
+        touch {output}
+        """
+        
+        
+        
+        

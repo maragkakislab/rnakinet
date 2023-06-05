@@ -8,6 +8,7 @@ rule transcript_counts:
     conda:
         "../envs/transcript_counts.yaml"
     shell:
+        #TODO transcript-gene.tab export to input
         """
         python3 scripts/sam-per-ref-count.py \
             --ifile {input} \
@@ -28,7 +29,7 @@ rule transcript_counts:
         
 rule aggregate_counts:
     input:
-        all=lambda wildcards: expand("outputs/alignment/{experiment_name}/reads.sorted.counts.txt", experiment_name=config['TIMEPOINTS'][wildcards.time])
+        all=lambda wildcards: expand("outputs/alignment/{experiment_name}/reads.sorted.counts.txt", experiment_name=timesteps[wildcards.time])
     output:
         "outputs/diff_exp/{time}/reads.sorted.counts.aggregate.txt"
     conda:
@@ -45,6 +46,7 @@ rule aggregate_counts:
             > {output}
         """
     
+#TODO parametrize condition prefixes, replicate suffixes in DESeq2_prep.py script
 rule generate_files_for_deseq2:
     input:
         "outputs/diff_exp/{time}/reads.sorted.counts.aggregate.txt"
@@ -77,3 +79,42 @@ rule diff_expression:
             {input.metadata} \
             {output} \
         """
+        
+        
+MODELS = config['MODELS']
+rule generate_gene_prediction_stats:
+    input:
+        transcriptome_bam='outputs/alignment/{experiment_name}/reads-align.transcriptome.sorted.bam',
+        transcript_to_gene_table='transcript-gene.tab',
+        predictions='outputs/{prediction_type}/{model_name}/{experiment_name}/{pooling}_pooling.pickle',
+    output:
+        'outputs/{prediction_type}/{model_name}/{experiment_name}/{pooling}_pooling_gene_level_predictions.tsv'
+    conda:
+        "../envs/gene_aggregation.yaml"
+    params:
+        threshold=lambda wildcards: MODELS[wildcards.model_name]['threshold'],
+    shell:
+        """
+        python3 scripts/gene_to_preds.py \
+            --transcriptome-bam {input.transcriptome_bam} \
+            --transcript-to-gene-table {input.transcript_to_gene_table}\
+            --predictions {input.predictions} \
+            --threshold {params.threshold} \
+            --output {output}\
+        """
+        
+# #TODO
+#GOAL FOR DIFF_EXP validation
+# Gene - pred_replicate_1_ctrl - p_r_2 - p_r_3 - pred_replicate_1_cond - p_r_2 - p_r_3
+# Gene - (avg_pred_ctrl - avg_pred_cond)
+# Link to DESEQ_output - join tables - correlation
+# USE METADATA TO DECIDE HOW TO AVERAGE
+# TODO AVERAGE SCORE VS AVERAGE_PERCENTAGE_MODIFIED???
+# rule create_deseq_prediction_stats:
+#     input:
+#         expand('outputs/{prediction_type}/{model_name}/{experiment_name}/{pooling}_pooling_gene_level_predictions.tsv',
+#               experiment_name=TODO)
+#     output:
+#         'outputs/{prediction_type}/{model_name}/{time}/{pooling}_pooling_deseq_pred_stats.tsv'
+    
+        

@@ -48,6 +48,7 @@ rule run_pooling:
     # conda: TODO
     params:
         pooling = lambda wildcards: wildcards.pooling
+    threads: 1
     shell:
         """
         python3 scripts/pooling.py \

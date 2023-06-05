@@ -1,10 +1,14 @@
+from pathlib import Path
 HUMAN_REF_VERSION = config['HUMAN_REF_VERSION']
 HUMAN_TRANSCRIPTOME_VERSION = config['HUMAN_TRANSCRIPTOME_VERSION']
-EXPLICIT_BASECALL_PATHS = config['EXPLICIT_BASECALL_PATHS']
+# EXPLICIT_BASECALL_PATHS = config['EXPLICIT_BASECALL_PATHS']
+EXPERIMENT_NAME_TO_PATH = config['EXPERIMENT_NAME_TO_PATH']
 
 def get_basecalls_path(dataset_name):
-    if(dataset_name in EXPLICIT_BASECALL_PATHS.keys()):
-        return EXPLICIT_BASECALL_PATHS[dataset_name]
+    basecalls_lookup_location = EXPERIMENT_NAME_TO_PATH[dataset_name]+'/guppy/reads.fastq.gz'
+    if(Path(basecalls_lookup_location).exists()):
+        # print(dataset_name, 'found')
+        return basecalls_lookup_location
     return f"outputs/basecalling/{dataset_name}/guppy/reads.fastq.gz"
 
 rule get_reference:
