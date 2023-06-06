@@ -18,8 +18,6 @@ def main(args):
     gene_join = add_predicted_halflifes(gene_join)
     
     x = gene_join['t5'].values
-    #TODO which statistic?
-    # y = gene_join['percentage_modified'].values
     y = gene_join['pred_t5'].values
     
     plt.scatter(x,y, s=0.5) 
@@ -28,8 +26,11 @@ def main(args):
     
 
 def add_predicted_halflifes(df):
-    tl = 2
+    tl = args.tl
     col = 'average_score'
+    #TODO which statistic?
+    # y = gene_join['percentage_modified'].values
+    
     df['pred_t5'] = -tl * np.log(2) / np.log(1-df[col])
     # gene_join['pred_t5'] = -tl * np.log(2) / np.log(1-(1/(1+((1-gene_join[col])/gene_join[col]))))
     df = df.replace([np.inf, -np.inf], np.nan)
@@ -54,6 +55,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Run prediction on FAST5 files and save results in a pickle file.')
     parser.add_argument('--gene-predictions', type=str, required=True)
     parser.add_argument('--gene-halflifes', type=str, required=True)
+    parser.add_argument('--tl', type=float, required=True, help='Time parameter for the decay equation')
+    
     parser.add_argument('--output', type=str, help='Path to the output plot.')
     
     args = parser.parse_args()
