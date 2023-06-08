@@ -4,11 +4,19 @@ import pandas as pd
 from matplotlib import pyplot as plt
 
 def calc_fc(df, col):
-    #TODO avg is not good for FC calculation?
+    # #TODO avg is not good for FC calculation?
+    #TODO add counts to predicted reads and use Deseq2 to compute FC?
+    # df['ctrl_avg'] = df[[f'{col}_ctrl_{i}' for i in range(1,4)]].mean(axis=1)
+    # df['cond_avg'] = df[[f'{col}_cond_{i}' for i in range(1,4)]].mean(axis=1)
+    # df['Pred_FC'] = np.log2(df['cond_avg']/df['ctrl_avg'])
+    # # df['Pred_FC'] = df['NoArs_avg']-df['Ars_avg']
+    
     df['ctrl_avg'] = df[[f'{col}_ctrl_{i}' for i in range(1,4)]].mean(axis=1)
     df['cond_avg'] = df[[f'{col}_cond_{i}' for i in range(1,4)]].mean(axis=1)
-    df['Pred_FC'] = np.log2(df['cond_avg']/df['ctrl_avg'])
-    # df['Pred_FC'] = df['NoArs_avg']-df['Ars_avg']
+    for i in range(1,4):
+        df[f'FC_{i}']=np.log2(df[f'{col}_cond_{i}']/df[f'{col}_ctrl_{i}'])
+    
+    df['Pred_FC'] = df[[f'FC_{i}' for i in range(1,4)]].mean(axis=1)
     return df
 
 def main(args):
@@ -39,9 +47,15 @@ def main(args):
     #OPTIONAL dropping all genes that dont appear in all experiments
     joined_df = joined_df[~joined_df.isna().any(axis=1)]
     
+    #OPTIONAL filtering genes that have low amount of reads
+    #TODO
+
+    #Filtering where Pred_FC is infinite or nan (after log division when some of the ratios are infinite)
+    joined_df = joined_df.replace([np.inf, -np.inf], np.nan)
+    joined_df = joined_df[~joined_df['Pred_FC'].isna()]
+    
     #OPTIONAL dropping genes that have low padj values
     # joined_df = joined_df[joined_df['padj'] < 0.05]
-    
     
     x = joined_df[target_col].values
     y = joined_df['Pred_FC'].values

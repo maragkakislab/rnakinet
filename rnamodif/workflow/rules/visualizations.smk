@@ -2,7 +2,7 @@ rule create_distribution_plot:
     input:
         files = lambda wildcards: expand(
             'outputs/{prediction_type}/{model_name}/{experiment_name}/{pooling}_pooling.pickle', 
-            experiment_name=timesteps[wildcards.plot_name],
+            experiment_name=time_data[wildcards.plot_name]['controls']+time_data[wildcards.plot_name]['conditions'],
             model_name=wildcards.model_name,
             pooling=wildcards.pooling,
             prediction_type=wildcards.prediction_type,
@@ -14,7 +14,7 @@ rule create_distribution_plot:
     conda:
         '../envs/visual.yaml'
     params:
-        exp_names = lambda wildcards: timesteps[wildcards.plot_name]
+        exp_names = lambda wildcards: time_data[wildcards.plot_name]['controls']+time_data[wildcards.plot_name]['conditions']
     shell:
         """
         python3 scripts/{wildcards.plot_type}.py \
@@ -114,6 +114,7 @@ def get_time_from_expname(experiment_name):
     pattern_to_time = {
         '_0060m_':2.0,
         '_0030m_':1.5,
+        '_ctrl_':1.0,
     }
     for k,v in pattern_to_time.items():
         if(k in experiment_name):
@@ -140,46 +141,39 @@ rule create_decay_plot:
             --output {output} \
         """
         
-def get_condition_exps(exps):
-    return [exp for exp in exps if condition_string in exp]
-
-def get_control_exps(exps):
-    return [exp for exp in exps if control_string in exp]
-
 rule create_fc_plot:
     input:
         gene_level_preds_control=lambda wildcards: expand(
             "outputs/{prediction_type}/{model_name}/{experiment_name}/{pooling}_pooling_gene_level_predictions.tsv", 
-            experiment_name=get_control_exps(timesteps[wildcards.time]),
+            experiment_name=time_data[wildcards.time]['controls'],
             prediction_type=wildcards.prediction_type,
             model_name=wildcards.model_name,
             pooling=wildcards.pooling,
         ),
         gene_level_preds_condition=lambda wildcards: expand(
             "outputs/{prediction_type}/{model_name}/{experiment_name}/{pooling}_pooling_gene_level_predictions.tsv", 
-            experiment_name=get_condition_exps(timesteps[wildcards.time]),
+            experiment_name=time_data[wildcards.time]['conditions'],
             prediction_type=wildcards.prediction_type,
             model_name=wildcards.model_name,
             pooling=wildcards.pooling,
         ),
         deseq_output = 'outputs/diff_exp/{time}/DESeq_output.tab',
     output:
-        "outputs/visual/{prediction_type}/{model_name}/{time}/{pooling}_pooling_fc.pdf"
+        "outputs/visual/{prediction_type}/{model_name}/{time}/{pooling}_pooling_fc_{pred_col}.pdf"
     conda:
         "../envs/visual.yaml"
     params:
-        pred_col = 'average_score',
         target_col = 'log2FoldChange',
     shell:
-        #TODO try pred-col 'percentage_modified'
         #TODO try to filter low padj values - inside the script
         #TODO MY_FC calculation - only simple average is weird - see how deseq does it! Get counts and let deseq calculate it?
+        #TODO deseq FC is amount - im doing a ratio - more reads means more FC but not more of ratio! rethink. Adjust by pvalue?
         """
         python3 scripts/fc_plot.py \
             --gene-level-preds-control {input.gene_level_preds_control} \
             --gene-level-preds-condition {input.gene_level_preds_condition} \
             --deseq-output {input.deseq_output} \
-            --pred-col {params.pred_col} \
+            --pred-col {wildcards.pred_col} \
             --target-col {params.target_col} \
             --output {output} \
         """
@@ -188,7 +182,10 @@ rule create_fc_plot:
 
 rule create_all_plots:
     input:
-        # "outputs/visual/diff_exp/{time}/{column}.pdf"
+        expand("outputs/visual/diff_exp/{time}/{column}.pdf",
+            time=time_data.keys(),
+            column=['padj','pvalue'],
+        ),
         expand('outputs/visual/{prediction_type}/{model_name}/{plot_name}_{pooling}_pooling_chr_acc.pdf',
             prediction_type=prediction_type, 
             model_name = model_name, 
@@ -206,7 +203,7 @@ rule create_all_plots:
             prediction_type=prediction_type,
             model_name=model_name,
             pooling=pooling,
-            plot_name=timesteps.keys(),
+            plot_name=time_data.keys(),
             plot_type=['boxplot', 'violin'],    
         ),
         expand('outputs/visual/{prediction_type}/{model_name}/{experiment_name}/{pooling}_pooling_{plot_type}.pdf',
@@ -216,11 +213,12 @@ rule create_all_plots:
             experiment_name=individual_exps,
             plot_type=['decay_plot'],    
         ),
-        expand('outputs/visual/{prediction_type}/{model_name}/{time}/{pooling}_pooling_fc.pdf',
+        expand('outputs/visual/{prediction_type}/{model_name}/{time}/{pooling}_pooling_fc_{pred_col}.pdf',
             prediction_type=prediction_type,
             model_name=model_name,
             pooling=pooling,
-            time=timesteps.keys(),
+            time=time_data.keys(),
+            pred_col=['average_score','percentage_modified'],
         ),
     output:
         'outputs/visual/{prediction_type}/{model_name}/{pooling}_ALL_DONE.txt'

@@ -40,7 +40,7 @@ clf_tuples = {
     # },
 }
 
-timesteps = {
+# timesteps = {
     # 'ars_0m':[
     #     '20210111_hsa_dRNA_HeLa_5EU_1hr_ctrl_0000m_5P_1',
     #     '20210208_hsa_dRNA_HeLa_5EU_1hr_ctrl_0000m_5P_2',
@@ -67,14 +67,6 @@ timesteps = {
     #     '20210208_hsa_dRNA_HeLa_5EU_1hr_ctrl_0000m_5P_3',
     #     '20210519_hsa_dRNA_HeLa_5EU_2hr_NoArs_0060m_5P_3',
     #     '20210519_hsa_dRNA_HeLa_5EU_2hr_NoArs_0090m_5P_3',
-    # ],
-    # 'ars_60mins':[
-    #     '20201215_hsa_dRNA_HeLa_5EU_2hr_NoArs_0060m_5P_1',
-    #     '20210202_hsa_dRNA_HeLa_5EU_2hr_NoArs_0060m_5P_2',
-    #     '20210519_hsa_dRNA_HeLa_5EU_2hr_NoArs_0060m_5P_3',
-    #     '20201215_hsa_dRNA_HeLa_5EU_2hr_Ars_0060m_5P_1',
-    #     '20210202_hsa_dRNA_HeLa_5EU_2hr_Ars_0060m_5P_2',
-    #     '20210519_hsa_dRNA_HeLa_5EU_2hr_Ars_0060m_5P_3',
     # ],
 #     'test_nanoid_rep1':[
 #         '20180514_1054_K562_5EU_1440_labeled_run_TEST',
@@ -106,15 +98,50 @@ timesteps = {
 #         '20180403_1102_K562_5EU_0_unlabeled_II_run_TEST',
 #         '20180403_1208_K562_5EU_0_unlabeled_III_run_TEST',
 #     ],
+# }
+time_data = {
+    # 'ARS_60mins': {
+    #     'controls': [
+    #         '20201215_hsa_dRNA_HeLa_5EU_2hr_NoArs_0060m_5P_1',
+    #         '20210202_hsa_dRNA_HeLa_5EU_2hr_NoArs_0060m_5P_2',
+    #         '20210519_hsa_dRNA_HeLa_5EU_2hr_NoArs_0060m_5P_3',
+    #     ],
+    #     'conditions': [
+    #         '20201215_hsa_dRNA_HeLa_5EU_2hr_Ars_0060m_5P_1',
+    #         '20210202_hsa_dRNA_HeLa_5EU_2hr_Ars_0060m_5P_2',
+    #         '20210519_hsa_dRNA_HeLa_5EU_2hr_Ars_0060m_5P_3',   
+    #     ],
+    # },
+    'ARS_0vs60mins': {
+        'controls': [
+            '20210111_hsa_dRNA_HeLa_5EU_1hr_ctrl_0000m_5P_1',
+            '20210208_hsa_dRNA_HeLa_5EU_1hr_ctrl_0000m_5P_2',
+            '20210208_hsa_dRNA_HeLa_5EU_1hr_ctrl_0000m_5P_3',
+        ],
+        'conditions': [
+            '20201215_hsa_dRNA_HeLa_5EU_2hr_Ars_0060m_5P_1',
+            '20210202_hsa_dRNA_HeLa_5EU_2hr_Ars_0060m_5P_2',
+            '20210519_hsa_dRNA_HeLa_5EU_2hr_Ars_0060m_5P_3',   
+        ],
+    },
 }
 
 individual_exps = [
-        '20201215_hsa_dRNA_HeLa_5EU_2hr_NoArs_0060m_5P_1',
-        '20210202_hsa_dRNA_HeLa_5EU_2hr_NoArs_0060m_5P_2',
-        '20210519_hsa_dRNA_HeLa_5EU_2hr_NoArs_0060m_5P_3',
-        '20201215_hsa_dRNA_HeLa_5EU_2hr_Ars_0060m_5P_1',
-        '20210202_hsa_dRNA_HeLa_5EU_2hr_Ars_0060m_5P_2',
-        '20210519_hsa_dRNA_HeLa_5EU_2hr_Ars_0060m_5P_3',
+#         '20201215_hsa_dRNA_HeLa_5EU_2hr_NoArs_0060m_5P_1',
+#         '20210202_hsa_dRNA_HeLa_5EU_2hr_NoArs_0060m_5P_2',
+#         '20210519_hsa_dRNA_HeLa_5EU_2hr_NoArs_0060m_5P_3',
+    
+#         '20210128_hsa_dRNA_HeLa_5EU_2hr_NoArs_0030m_5P_1',
+#         '20210128_hsa_dRNA_HeLa_5EU_2hr_NoArs_0030m_5P_2',
+    
+    
+        # '20201215_hsa_dRNA_HeLa_5EU_2hr_Ars_0060m_5P_1',
+        # '20210202_hsa_dRNA_HeLa_5EU_2hr_Ars_0060m_5P_2',
+        # '20210519_hsa_dRNA_HeLa_5EU_2hr_Ars_0060m_5P_3',
+    
+        # '20210111_hsa_dRNA_HeLa_5EU_1hr_ctrl_0000m_5P_1',
+        # '20210208_hsa_dRNA_HeLa_5EU_1hr_ctrl_0000m_5P_2',
+        # '20210208_hsa_dRNA_HeLa_5EU_1hr_ctrl_0000m_5P_3',
 ]
 
 # prediction_type = 'predictions_limited'

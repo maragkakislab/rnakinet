@@ -29,7 +29,7 @@ rule transcript_counts:
         
 rule aggregate_counts:
     input:
-        all=lambda wildcards: expand("outputs/alignment/{experiment_name}/reads.sorted.counts.txt", experiment_name=timesteps[wildcards.time])
+        all=lambda wildcards: expand("outputs/alignment/{experiment_name}/reads.sorted.counts.txt", experiment_name=time_data[wildcards.time]['controls']+time_data[wildcards.time]['conditions'])
     output:
         "outputs/diff_exp/{time}/reads.sorted.counts.aggregate.txt"
     conda:
@@ -46,7 +46,6 @@ rule aggregate_counts:
             > {output}
         """
     
-#TODO parametrize condition prefixes, replicate suffixes in DESeq2_prep.py script
 rule generate_files_for_deseq2:
     input:
         "outputs/diff_exp/{time}/reads.sorted.counts.aggregate.txt"
@@ -55,10 +54,15 @@ rule generate_files_for_deseq2:
         metadata_path="outputs/diff_exp/{time}/metadata.txt",
     conda:
         "../envs/pandas_basic.yaml"
+    params:
+        controls=lambda wildcards: time_data[wildcards.time]['controls'],
+        conditions=lambda wildcards: time_data[wildcards.time]['conditions'],
     shell:
         """
         python3 scripts/DESeq2_prep.py \
             --input-path {input} \
+            --controls {params.controls} \
+            --conditions {params.conditions} \
             --output-path {output.counts_table_path} \
             --output-meta {output.metadata_path} \
         """
