@@ -28,6 +28,9 @@ EXPERIMENT_NAME_TO_PATH : {
     '20210128_hsa_dRNA_HeLa_5EU_2hr_NoArs_0030m_5P_2': 'local_store/arsenite/raw/20210128_hsa_dRNA_HeLa_5EU_2hr_NoArs_0030m_5P_2',
     # 'noars_0030_3':,
     
+    '20210128_hsa_dRNA_HeLa_5EU_2hr_Ars_0030m_5P_1': 'local_store/arsenite/raw/20210128_hsa_dRNA_HeLa_5EU_2hr_Ars_0030m_5P_1',
+    '20210128_hsa_dRNA_HeLa_5EU_2hr_Ars_0030m_5P_2': 'local_store/arsenite/raw/20210128_hsa_dRNA_HeLa_5EU_2hr_Ars_0030m_5P_2',
+    
     '20201215_hsa_dRNA_HeLa_5EU_2hr_NoArs_0060m_5P_1': 'local_store/arsenite/raw/20201215_hsa_dRNA_HeLa_5EU_2hr_NoArs_0060m_5P_1',
     '20210202_hsa_dRNA_HeLa_5EU_2hr_NoArs_0060m_5P_2': 'local_store/arsenite/raw/20210202_hsa_dRNA_HeLa_5EU_2hr_NoArs_0060m_5P_2',
     '20210519_hsa_dRNA_HeLa_5EU_2hr_NoArs_0060m_5P_3': 'local_store/arsenite/raw/20210519_hsa_dRNA_HeLa_5EU_2hr_NoArs_0060m_5P_3',
