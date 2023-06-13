@@ -22,16 +22,27 @@ def main(args):
         print('Using only', args.limit, 'files')
         #TODO if number of files is less than args.limit, doesnt make any sense
     
-    arch = arch_map[args.arch]
-    model = arch.load_from_checkpoint(args.checkpoint)
-    #TODO add support for windowed models
-    dset = UnlimitedReadsInferenceDataset(files=files, max_len=args.max_len, min_len=args.min_len, skip=args.skip)
-    
+    if(not args.window):
+        dset = UnlimitedReadsInferenceDataset(files=files)
+        #TODO len_limit default value not enough for some reads? Throw away/increase?
+        #TODO PARAMETRIZE! 
+        if('CUSTOM' in args.output):
+            model = MyModel().load_from_checkpoint(args.checkpoint)
+        else:
+            model = RodanPretrainedUnlimited().load_from_checkpoint(args.checkpoint, weighted_loss=args.weighted)
+        pin_memory=False
+    else:
+        dset = CompleteReadsInferenceDataset(files=files, window=args.window, stride=args.window - args.overlap)
+        
+        
+        model = RodanPretrained().load_from_checkpoint(args.checkpoint, weighted_loss=args.weighted)
+        pin_memory=True
+
     dataloader = DataLoader(
         dset, 
         batch_size=args.batch_size, 
         num_workers=min([args.max_workers, len(dset.files)]), 
-        pin_memory=False, 
+        pin_memory=pin_memory, 
         worker_init_fn=worker_init_fn_inference
     )
 
@@ -54,14 +65,10 @@ if __name__ == "__main__":
     parser.add_argument('--checkpoint', type=str, required=True, help='Path to the model checkpoint file.')
     parser.add_argument('--output', type=str, required=True, help='Path to the output pickle file for window predictions.')
     parser.add_argument('--max_workers', type=int, default=16, help='Maximum number of workers for data loading (default: 16).')
-    # parser.add_argument('--weighted', action='store_true', help='Whether to use weighted loss model')
-    parser.add_argument('--batch-size', type=int, default=256, help='Batch size for data loading (default: 256).')
-    parser.add_argument('--max-len', type=int, help='Maximum length of the signal sequence to process')
-    parser.add_argument('--min-len', type=int, help='Minimum length of the signal sequence to process')
-    parser.add_argument('--skip', type=int, help='How many signal steps to skip at the beginning of each sequence (trimming)')
-    
-    parser.add_argument('--arch', type=str, required=True, help='Type of architecture.')
-    
+    parser.add_argument('--weighted', action='store_true', help='Whether to use weighted loss model')
+    parser.add_argument('--batch_size', type=int, default=256, help='Batch size for data loading (default: 256).')
+    parser.add_argument('--window', type=none_or_int, default=4096, help='Window size for data processing (default: 4096).')
+    parser.add_argument('--overlap', type=int, default=1024, help='Overlap of neighbouring windows (default: 1024).')
     parser.add_argument('--limit', type=int, default=None, help='Whether to use only subset of data, and how many fast5 files (for faster validation)')
     
     args = parser.parse_args()

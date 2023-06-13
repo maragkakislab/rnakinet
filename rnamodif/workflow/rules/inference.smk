@@ -21,23 +21,27 @@ rule run_inference:
     # conda:
         # "../envs/inference.yaml" #TODO fix this - needs rnamodif as package
     params:
-        window = lambda wildcards: config['MODELS'][wildcards.model_name]['window'],
-        weighted = lambda wildcards: get_weighted_flag(config['MODELS'][wildcards.model_name]['weighted']),
-        batch_size = config['INFERENCE_BATCH_SIZE'],
+        batch_size = config['INFERENCE_PARAMETERS']['BATCH_SIZE'],
+        max_len = config['INFERENCE_PARAMETERS']['MAX_LEN'],
+        min_len = config['INFERENCE_PARAMETERS']['MIN_LEN'],
+        skip = config['INFERENCE_PARAMETERS']['SKIP'],
         limit = lambda wildcards: get_limit(wildcards.prediction_type),
+        arch = lambda wildcards: config['MODELS'][wildcards.model_name]['arch'],
     threads: 16
     resources: gpus=1
     shell:
         """
         python3 scripts/inference.py \
+            --arch {params.arch} \
             --path {input.experiment_path} \
             --checkpoint {input.model_path} \
-            --output {output} \
             --max_workers {threads} \
-            --window {params.window} \
-            --batch_size {params.batch_size} \
-            {params.weighted} \
+            --batch-size {params.batch_size} \
             {params.limit} \
+            --max-len {params.max_len} \
+            --min-len {params.min_len} \
+            --skip {params.skip} \
+            --output {output} \
         """
 
 rule run_pooling:
