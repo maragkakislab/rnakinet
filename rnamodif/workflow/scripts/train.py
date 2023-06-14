@@ -1,5 +1,3 @@
-from rnamodif.models.small_cnn import Small_CNN
-from rnamodif.model_uncut import RodanPretrainedUnlimited
 from rnamodif.data_utils.dataloading_uncut import TrainingDatamodule
 import pytorch_lightning as pl
 from pytorch_lightning.loggers import CometLogger
@@ -36,6 +34,8 @@ def parse_args(parser):
     parser.add_argument('--lr', type=float, required=True, help='Learning rate', default=1e-3)
     parser.add_argument('--warmup-steps', type=int, required=True, help='Learning rate warmup steps', default=1000)
     parser.add_argument('--pos-weight', type=float, required=True, help='Positive class weight', default=1.0)
+    parser.add_argument('--wd', type=float, required=True, help='Weight decay', default=0.01)
+    
     
     parser.add_argument('--arch', type=str, required=True, help='Type of architecture to use, options: custom_cnn')
     parser.add_argument('--arch-hyperparams-yaml', type=str, required=True, help='Path to a yaml file containing architecture-specific hyperparameters')
@@ -129,6 +129,7 @@ def get_model_config(args):
         'lr':args.lr,
         'warmup_steps':args.warmup_steps,
         'pos_weight':args.pos_weight,
+        'wd':args.wd,
         **arch_hyperparams,
     }
     return model_params

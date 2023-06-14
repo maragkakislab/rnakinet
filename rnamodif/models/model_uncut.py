@@ -1,3 +1,5 @@
+import RODAN
+
 import torch
 import torchmetrics
 import pytorch_lightning as pl
@@ -34,6 +36,8 @@ class RodanPretrainedUnlimited(pl.LightningModule):
             len_limit=400000,
             weighted_loss=False,
             logging_steps=1,
+            frozen_layers=0,
+            pos_weight=1.0,
     
     ):
 
@@ -78,6 +82,32 @@ class RodanPretrainedUnlimited(pl.LightningModule):
             torch.nn.Linear(768,1)
         )
         
+        # self.head = torch.nn.Sequential(
+        #     Permute(),
+        #     torch.nn.Linear(768,1),
+        #     torch.nn.Flatten(),
+        #     torch.nn.AdaptiveMaxPool1d(1),
+        # )
+        # print('RESETING PARAMS')
+        # def weight_reset(m):
+        #     for layer in m.children():
+        #         if hasattr(layer, 'reset_parameters'):
+        #             layer.reset_parameters()
+                    
+        # self.trainable_rodan.apply(weight_reset)
+        
+        
+        if (frozen_layers > 0):
+            # print('FREEZING', frozen_layers, 'layers')
+            # print('FREEZING ALLLLLL', frozen_layers, 'layers')
+            freeze_rodan(self, freeze_till=frozen_layers, verbose=0)
+            # for param in self.trainable_rodan.parameters():
+                # param.requires_grad = False
+            # for name, layer in self.trainable_rodan.named_modules():
+                # if ('drop' in name):
+                    # layer.p = 0.0
+        
+        
         self.lr = lr
         self.wd = wd
         self.warmup_steps = warmup_steps
@@ -85,13 +115,14 @@ class RodanPretrainedUnlimited(pl.LightningModule):
         self.acc = torchmetrics.classification.Accuracy(task="binary")
         if(weighted_loss):
             print('using weighted loss')
-            self.ce = torch.nn.BCEWithLogitsLoss(pos_weight=torch.tensor([0.2]).to(self.device))
+            self.ce = torch.nn.BCEWithLogitsLoss(pos_weight=torch.tensor([pos_weight]).to(self.device))
         else:
             self.ce = torch.nn.BCEWithLogitsLoss()
             
         self.training_step_counter = 0
         self.cumulative_loss = 0
         self.logging_steps = logging_steps
+        self.cumulative_acc = 0
         
 
     def forward(self, x):
@@ -116,18 +147,23 @@ class RodanPretrainedUnlimited(pl.LightningModule):
 
     def training_step(self, train_batch, batch_idx, dataloader_idx=None):
         x, y, exp = train_batch
-        loss = self.compute_loss(x, y, exp, 'train')
+        loss, preds = self.compute_loss(x, y, exp, 'train', return_preds=True)
         self.log('train_loss', loss, on_epoch=True)
         sch = self.lr_schedulers()
         sch.step()
         
         self.training_step_counter += 1
         self.cumulative_loss += loss.item()
+        self.cumulative_acc +=self.acc(torch.sigmoid(preds), y)
 
         if self.training_step_counter % self.logging_steps == 0:
             avg_loss = self.cumulative_loss / self.logging_steps
+            avg_acc = self.cumulative_acc / self.logging_steps
             self.log('train_loss_cum', avg_loss, on_step=True, on_epoch=False)
+            self.log('train_acc_cum', avg_acc, on_step=True, on_epoch=False)
+            
             self.cumulative_loss = 0
+            self.cumulative_acc = 0
         return loss
 
     def validation_step(self, val_batch, batch_idx, dataloader_idx=None):
@@ -175,7 +211,7 @@ class RodanPretrainedUnlimited(pl.LightningModule):
             exp_to_preds[exp].append(log['preds'][0])
             exp_to_label[exp].append(log['label'][0])
         
-        for tup in [('5eu_2022_chr1_pos', '5eu_2022_chr1_neg', '2022'),('5eu_2020_pos', 'UNM_2020', '2020'),('Nanoid_pos', 'Nanoid_neg', 'Nanoid')]:
+        for tup in self.trainer.datamodule.valid_auroc_tuples:
             try:
                 preds = exp_to_preds[tup[0]]+exp_to_preds[tup[1]]
                 labels = exp_to_label[tup[0]]+exp_to_label[tup[1]]
@@ -295,3 +331,31 @@ class Attention(nn.Module):
         context_vector = torch.sum(x * attention_weights, dim=-2)
 
         return context_vector
+    
+    
+    
+    
+def freeze_rodan(model, freeze_till, verbose=1):
+    # freeze_till max is 21
+    for name, module in model.named_modules():
+        if (name in ['', 'trainable_rodan', 'trainable_rodan.convlayers']):
+            continue
+        pattern = r"conv\d+"
+        match = re.search(pattern, name)
+        if (match):
+            conv_index = int(match.group(0)[4:])
+            if (conv_index > freeze_till):
+                # print('breaking')
+                break
+        if ('drop' in name):
+            # module.eval()
+            module.p = 0.0
+
+        for param in module.parameters():
+            param.requires_grad = False
+
+    if (verbose == 1):
+        for name, module in model.named_modules():
+            if (len(list(module.parameters())) > 0):
+                print(
+                    all([p.requires_grad for p in list(module.parameters())]), name)

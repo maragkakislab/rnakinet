@@ -1,9 +1,10 @@
 import torch
 import numpy as np
 from rnamodif.data_utils.trimming import primer_trim
+from scipy.signal import butter, lfilter
 
 
-def process_read(read, window, skip=0):
+def process_read(read, window, skip=0, preprocess='rodan'):
     """
     Normalizes a single read and selects an area of the signal to return
 
@@ -17,10 +18,19 @@ def process_read(read, window, skip=0):
 
     # Standardizing signal according to RODAN preprocessing
     s = read.get_raw_data(scale=True)
-    med = np.median(s)
-    mad = 1.4826 * np.median(np.absolute(s-med))
-    s = (s - med) / mad
-
+    
+    if(preprocess=='rodan'):
+        med = np.median(s)
+        mad = 1.4826 * np.median(np.absolute(s-med))
+        s = (s - med) / mad
+        
+    if(preprocess=='lowpass'):
+        s = butter_lowpass_filter(s, cutoff=20.0,fs=5000)
+        med = np.median(s)
+        mad = 1.4826 * np.median(np.absolute(s-med))
+        s = (s - med) / mad
+        s = np.asarray(s, dtype=np.float32)
+    
     # Returning the whole signal
     if (not window):
         return s[skip:]
@@ -40,3 +50,20 @@ def process_read(read, window, skip=0):
     # TODO remove reshape?
     # Returning a random chunk of #window size
     return s[pos:pos+window].reshape((window, 1))
+
+
+
+# Function to design a Butterworth low-pass filter
+def butter_lowpass(cutoff, fs, order=5):
+    nyq = 0.5 * fs
+    normal_cutoff = cutoff / nyq
+    b, a = butter(order, normal_cutoff, btype='low', analog=False)
+    return b, a
+
+# Function to apply the filter
+def butter_lowpass_filter(data, cutoff, fs, order=5):
+    b, a = butter_lowpass(cutoff, fs, order=order)
+    y = lfilter(b, a, data)
+    return y
+
+

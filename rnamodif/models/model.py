@@ -6,6 +6,7 @@ import numpy as np
 import re
 from sklearn.metrics import roc_auc_score
 from RODAN.basecall import load_model
+from collections import defaultdict
 
 
 class Permute(torch.nn.Module):
@@ -35,7 +36,8 @@ class RodanPretrained(pl.LightningModule):
             gru_layers=1,
             gru_dropout=0,
             gru_hidden=32,
-            weighted_loss=False):
+            weighted_loss=False,
+            logging_steps=1,):
 
         super().__init__()
 
@@ -81,6 +83,10 @@ class RodanPretrained(pl.LightningModule):
         else:
             self.ce = torch.nn.BCEWithLogitsLoss()
             
+        self.training_step_counter = 0
+        self.cumulative_loss = 0
+        self.logging_steps = logging_steps
+        self.cumulative_acc = 0
             
 
 
@@ -106,10 +112,23 @@ class RodanPretrained(pl.LightningModule):
 
     def training_step(self, train_batch, batch_idx, dataloader_idx=None):
         x, y, exp = train_batch
-        loss = self.compute_loss(x, y, exp, 'train')
+        loss, preds = self.compute_loss(x, y, exp, 'train', return_preds=True)
         self.log('train_loss', loss, on_epoch=True)
         sch = self.lr_schedulers()
         sch.step()
+            
+        self.training_step_counter += 1
+        self.cumulative_loss += loss.item()
+        self.cumulative_acc +=self.acc(torch.sigmoid(preds), y)
+
+        if self.training_step_counter % self.logging_steps == 0:
+            avg_loss = self.cumulative_loss / self.logging_steps
+            avg_acc = self.cumulative_acc / self.logging_steps
+            
+            self.log('train_loss_cum', avg_loss, on_step=True, on_epoch=False)
+            self.log('train_acc_cum', avg_acc, on_step=True, on_epoch=False)
+            self.cumulative_acc = 0
+            self.cumulative_loss = 0
             
         return loss
 
@@ -170,28 +189,37 @@ class RodanPretrained(pl.LightningModule):
         for k, v in read_to_preds.items():
             read_to_preds_meanpool[k] = np.array(v).mean()
             read_to_preds_maxpool[k] = np.array(v).max()
+        
+        for tup in self.trainer.datamodule.valid_auroc_tuples:
+            pos = tup[0]
+            neg = tup[1]
+            name = tup[2]
+            mean = get_auroc_score([pos,neg], read_to_exp, read_to_preds_meanpool, read_to_label)
+            maximum = get_auroc_score([pos,neg], read_to_exp, read_to_preds_maxpool, read_to_label)
+            self.log(f'{name} auroc MEAN', mean)
+            self.log(f'{name} auroc MAX', maximum)
+            
+        
+#         auroc_2022_mean = get_auroc_score(
+#             ['5eu_2022_chr1_pos', '5eu_2022_chr1_neg'], read_to_exp, read_to_preds_meanpool, read_to_label)
+#         auroc_2022_max = get_auroc_score(
+#             ['5eu_2022_chr1_pos', '5eu_2022_chr1_neg'], read_to_exp, read_to_preds_maxpool, read_to_label)
+#         self.log(f'valid 2022 auroc (meanpool)', auroc_2022_mean)
+#         self.log(f'valid 2022 auroc (maxpool)', auroc_2022_max)
 
-        # TODO move hardcoded experiments to parameters
-        auroc_2022_mean = get_auroc_score(
-            ['5eu_2022_chr1_pos', '5eu_2022_chr1_neg'], read_to_exp, read_to_preds_meanpool, read_to_label)
-        auroc_2022_max = get_auroc_score(
-            ['5eu_2022_chr1_pos', '5eu_2022_chr1_neg'], read_to_exp, read_to_preds_maxpool, read_to_label)
-        self.log(f'valid 2022 auroc (meanpool)', auroc_2022_mean)
-        self.log(f'valid 2022 auroc (maxpool)', auroc_2022_max)
+#         auroc_2020_mean = get_auroc_score(
+#             ['5eu_2020_pos', 'UNM_2020'], read_to_exp, read_to_preds_meanpool, read_to_label)
+#         auroc_2020_max = get_auroc_score(
+#             ['5eu_2020_pos', 'UNM_2020'], read_to_exp, read_to_preds_maxpool, read_to_label)
+#         self.log(f'valid 2020 auroc (meanpool)', auroc_2020_mean)
+#         self.log(f'valid 2020 auroc (maxpool)', auroc_2020_max)
 
-        auroc_2020_mean = get_auroc_score(
-            ['5eu_2020_pos', 'UNM_2020'], read_to_exp, read_to_preds_meanpool, read_to_label)
-        auroc_2020_max = get_auroc_score(
-            ['5eu_2020_pos', 'UNM_2020'], read_to_exp, read_to_preds_maxpool, read_to_label)
-        self.log(f'valid 2020 auroc (meanpool)', auroc_2020_mean)
-        self.log(f'valid 2020 auroc (maxpool)', auroc_2020_max)
-
-        auroc_nanoid_mean = get_auroc_score(
-            ['Nanoid_pos', 'Nanoid_neg'], read_to_exp, read_to_preds_meanpool, read_to_label)
-        auroc_nanoid_max = get_auroc_score(
-            ['Nanoid_pos', 'Nanoid_neg'], read_to_exp, read_to_preds_maxpool, read_to_label)
-        self.log(f'valid nanoid auroc (meanpool)', auroc_nanoid_mean)
-        self.log(f'valid nanoid auroc (maxpool)', auroc_nanoid_max)
+#         auroc_nanoid_mean = get_auroc_score(
+#             ['Nanoid_pos', 'Nanoid_neg'], read_to_exp, read_to_preds_meanpool, read_to_label)
+#         auroc_nanoid_max = get_auroc_score(
+#             ['Nanoid_pos', 'Nanoid_neg'], read_to_exp, read_to_preds_maxpool, read_to_label)
+#         self.log(f'valid nanoid auroc (meanpool)', auroc_nanoid_mean)
+#         self.log(f'valid nanoid auroc (maxpool)', auroc_nanoid_max)
 
 
 def get_auroc_score(exps, read_to_exp, read_to_preds, read_to_label):

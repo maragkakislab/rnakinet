@@ -1,6 +1,6 @@
 from pathlib import Path
 
-base_path = Path('/home/jovyan/preprocessing_RNAModif/splits')
+base_path = Path('/home/jovyan/RNAModif/rnamodif/workflow/outputs/splits')
 name_to_path = {
     'nia_2022_pos':base_path/'20220303_hsa_dRNA_HeLa_5EU_polyA_REL5_2',
     'nia_2022_neg':base_path/'20220520_hsa_dRNA_HeLa_DMSO_1',
@@ -19,19 +19,30 @@ name_to_path = {
     'nano_neg_2':base_path/'20180403_1102_K562_5EU_0_unlabeled_II_run',
     'nano_neg_3':base_path/'20180403_1208_K562_5EU_0_unlabeled_III_run',
     
-    'nia_neuron_hek':Path('/home/jovyan/RNAModif/rnamodif/workflow/outputs/splits/20201001_hsa_dRNA_Hek293T_NoArs_5P_1'),
-    'nia_neuron_ctrl':Path('/home/jovyan/RNAModif/rnamodif/workflow/outputs/splits/20201022_hsa_dRNA_Neuron_ctrl_5P_1'),
-    'nia_neuron_tdp':Path('/home/jovyan/RNAModif/rnamodif/workflow/outputs/splits/20201022_hsa_dRNA_Neuron_TDP_5P_1'),
+    'nia_neuron_hek':base_path/'20201001_hsa_dRNA_Hek293T_NoArs_5P_1',
+    'nia_neuron_ctrl':base_path/'20201022_hsa_dRNA_Neuron_ctrl_5P_1',
+    'nia_neuron_tdp':base_path/'20201022_hsa_dRNA_Neuron_TDP_5P_1',
+}
+name_to_path_extras = {
+    'm6A_0': '/home/jovyan/RNAModif/rnamodif/workflow/local_store/store/seq/ont/experiments/m6A_0/fast5',
+    '2-OmeATP_0': '/home/jovyan/RNAModif/rnamodif/workflow/local_store/store/seq/ont/experiments/2-OmeATP_0/fast5',
+    'ac4C_0': '/home/jovyan/RNAModif/rnamodif/workflow/local_store/store/seq/ont/experiments/ac4C_0/fast5',
+    'm5C_0': '/home/jovyan/RNAModif/rnamodif/workflow/local_store/store/seq/ont/experiments/m5C_0/fast5',
+    'remdesivir_0': '/home/jovyan/RNAModif/rnamodif/workflow/local_store/store/seq/ont/experiments/remdesivir_0/fast5',
+    's4U_0': '/home/jovyan/RNAModif/rnamodif/workflow/local_store/store/seq/ont/experiments/s4U_0/fast5',
 }
 
-#TODO name to label?
-#TODO register function? (path, name, label)
 name_to_files = {}
 for name,path in name_to_path.items():
-    train_files = list((path/'train').rglob('*fast5'))
+    train_files = list((path/'train').rglob('*.fast5'))
     test_files = list((path/'test').rglob('*.fast5'))
+    valid_files = list((path/'validation').rglob('*.fast5'))
     
-    name_to_files[name] = {'train':train_files, 'test':test_files}
+    name_to_files[name] = {'train':train_files, 'test':test_files, 'validation':valid_files}
     
     
+for name,path in name_to_path_extras.items():
+    train_files = list(Path(path).rglob('*.fast5'))
+    
+    name_to_files[name] = {'train':train_files}
     

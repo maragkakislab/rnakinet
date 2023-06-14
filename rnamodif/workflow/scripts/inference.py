@@ -8,9 +8,9 @@ import numpy as np
 
 from rnamodif.data_utils.dataloading_5eu import CompleteReadsInferenceDataset
 from rnamodif.data_utils.dataloading_uncut import UnlimitedReadsInferenceDataset
-from rnamodif.model import RodanPretrained
-from rnamodif.model_uncut import RodanPretrainedUnlimited
-from rnamodif.model_mine import MyModel
+from rnamodif.models.model import RodanPretrained
+from rnamodif.models.model_uncut import RodanPretrainedUnlimited
+from rnamodif.models.model_mine import MyModel
 from rnamodif.data_utils.workers import worker_init_fn_inference
 from rnamodif.workflow.scripts.helpers import arch_map
         

@@ -40,65 +40,6 @@ clf_tuples = {
     # },
 }
 
-# timesteps = {
-    # 'ars_0m':[
-    #     '20210111_hsa_dRNA_HeLa_5EU_1hr_ctrl_0000m_5P_1',
-    #     '20210208_hsa_dRNA_HeLa_5EU_1hr_ctrl_0000m_5P_2',
-    #     '20210208_hsa_dRNA_HeLa_5EU_1hr_ctrl_0000m_5P_3',
-    # ],
-    # 'ars_all_rep1':[
-    #     '20210111_hsa_dRNA_HeLa_5EU_1hr_ctrl_0000m_5P_1',
-    #     '20210128_hsa_dRNA_HeLa_5EU_2hr_NoArs_0030m_5P_1',
-    #     '20201215_hsa_dRNA_HeLa_5EU_2hr_NoArs_0060m_5P_1',
-    #     '20210111_hsa_dRNA_HeLa_5EU_2hr_NoArs_0090m_5P_1',
-    #     '20201220_hsa_dRNA_HeLa_5EU_2hr_NoArs_0120m_5P_1',
-    #     '20210114_hsa_dRNA_HeLa_5EU_2hr_NoArs_0180m_5P_1',
-    #     '20201220_hsa_dRNA_HeLa_5EU_2hr_NoArs_0300m_5P_1',
-    # ],
-    # 'ars_all_rep2':[
-    #     '20210208_hsa_dRNA_HeLa_5EU_1hr_ctrl_0000m_5P_2',
-    #     '20210128_hsa_dRNA_HeLa_5EU_2hr_NoArs_0030m_5P_2',
-    #     '20210202_hsa_dRNA_HeLa_5EU_2hr_NoArs_0060m_5P_2',
-    #     '20210202_hsa_dRNA_HeLa_5EU_2hr_NoArs_0090m_5P_2',
-    #     '20210205_hsa_dRNA_HeLa_5EU_2hr_NoArs_0120m_5P_2',
-    #     '20210205_hsa_dRNA_HeLa_5EU_2hr_NoArs_0180m_5P_2',
-    # ],
-    # 'ars_all_rep3':[
-    #     '20210208_hsa_dRNA_HeLa_5EU_1hr_ctrl_0000m_5P_3',
-    #     '20210519_hsa_dRNA_HeLa_5EU_2hr_NoArs_0060m_5P_3',
-    #     '20210519_hsa_dRNA_HeLa_5EU_2hr_NoArs_0090m_5P_3',
-    # ],
-#     'test_nanoid_rep1':[
-#         '20180514_1054_K562_5EU_1440_labeled_run_TEST',
-#         '20180327_1102_K562_5EU_0_unlabeled_run_TEST',
-#     ],
-#     'test_nanoid_rep2':[
-#         '20180514_1541_K562_5EU_1440_labeled_II_run_TEST',
-#         '20180403_1102_K562_5EU_0_unlabeled_II_run_TEST',
-#     ],
-#     'test_nanoid_rep3':[
-#         '20180516_1108_K562_5EU_1440_labeled_III_run_TEST',
-#         '20180403_1208_K562_5EU_0_unlabeled_III_run_TEST',
-#     ],
-#     'test_2022_nia':[
-#         '20220303_hsa_dRNA_HeLa_5EU_polyA_REL5_2_TEST',
-#         '20220520_hsa_dRNA_HeLa_DMSO_1_TEST',
-#     ],
-#     'test_2020_nia':[
-#         '20201016_hsa_dRNASeq_HeLa_5EU_polyA_REL5_short_1_TEST',
-#         '20201016_hsa_dRNASeq_HeLa_dmso_polyA_REL5_short_1_TEST',
-#     ],
-    
-#     'test_nanoid_all':[
-#         '20180514_1054_K562_5EU_1440_labeled_run_TEST',
-#         '20180514_1541_K562_5EU_1440_labeled_II_run_TEST',
-#         '20180516_1108_K562_5EU_1440_labeled_III_run_TEST',
-        
-#         '20180327_1102_K562_5EU_0_unlabeled_run_TEST',
-#         '20180403_1102_K562_5EU_0_unlabeled_II_run_TEST',
-#         '20180403_1208_K562_5EU_0_unlabeled_III_run_TEST',
-#     ],
-# }
 time_data = {
     # 'ARS_60mins': {
     #     'controls': [
@@ -112,18 +53,35 @@ time_data = {
     #         '20210519_hsa_dRNA_HeLa_5EU_2hr_Ars_0060m_5P_3',   
     #     ],
     # },
-    'ARS_0vs60mins': {
-        'controls': [
-            '20210111_hsa_dRNA_HeLa_5EU_1hr_ctrl_0000m_5P_1',
-            '20210208_hsa_dRNA_HeLa_5EU_1hr_ctrl_0000m_5P_2',
-            '20210208_hsa_dRNA_HeLa_5EU_1hr_ctrl_0000m_5P_3',
+    # 'ARS_0vs60mins': {
+    #     'controls': [
+    #         '20210111_hsa_dRNA_HeLa_5EU_1hr_ctrl_0000m_5P_1',
+    #         '20210208_hsa_dRNA_HeLa_5EU_1hr_ctrl_0000m_5P_2',
+    #         '20210208_hsa_dRNA_HeLa_5EU_1hr_ctrl_0000m_5P_3',
+    #     ],
+    #     'conditions': [
+    #         '20201215_hsa_dRNA_HeLa_5EU_2hr_Ars_0060m_5P_1',
+    #         '20210202_hsa_dRNA_HeLa_5EU_2hr_Ars_0060m_5P_2',
+    #         '20210519_hsa_dRNA_HeLa_5EU_2hr_Ars_0060m_5P_3',   
+    #     ],
+    # },
+    'NANOID_shock': {
+        'controls':[
+            '20180226_1208_K562_5EU_60_labeled_run',
+            '20180227_1206_K562_5EU_60_labeled_II_run',
+            '20180228_1655_K562_5EU_60_labeled_III_run',
+            '20181206_1038_K562_5EU_60_labeled_IV_run',
+            '20190719_1232_K562_5EU_60_labeled_V_run',
+            '20190719_1430_K562_5EU_60_labeled_VI_run',
         ],
-        'conditions': [
-            '20201215_hsa_dRNA_HeLa_5EU_2hr_Ars_0060m_5P_1',
-            '20210202_hsa_dRNA_HeLa_5EU_2hr_Ars_0060m_5P_2',
-            '20210519_hsa_dRNA_HeLa_5EU_2hr_Ars_0060m_5P_3',   
+        'conditions':[
+            '20180628_1020_K562_5EU_60_labeled_heat_run',
+            '20180731_1020_K562_5EU_60_labeled_heat_II_run',
+            '20180802_1111_K562_5EU_60_labeled_heat_III_run',
+            '20190725_0809_K562_5EU_60_labeled_heat_IV_run',
+            '20190725_0812_K562_5EU_60_labeled_heat_V_run',
         ],
-    },
+    }
 }
 
 individual_exps = [
@@ -153,15 +111,15 @@ pooling = [
 ]
 model_name = [
     'CUSTOM_allneg_maxpool',
-    # 'CUSTOM_maxpool',
-    # 'narrow_standard',
-    # 'narrow_weighted',
     'unlimited_standard_allneg',
+    'CNN_MAX_extraratio',
 ]
 
 
 api_key = "TEVQbgxxvilM1WdTyqZLJ57ac"
-default_train_positives = ['nia_2022_pos']
+default_train_positives = [
+    'nia_2022_pos'
+]
 all_train_negatives = [
     'nia_2022_neg',
     'nia_2020_neg',
@@ -175,9 +133,72 @@ all_train_negatives = [
     'remdesivir_0',
     's4U_0'
 ]
+intermediate_train_negatives = [
+    'nia_2022_neg',
+    'nia_2020_neg',
+    'nia_neuron_hek',
+    'nia_neuron_ctrl',
+    'nia_neuron_tdp',
+]
+basic_train_negatives = [
+    'nia_2022_neg',
+]
 training_configs = {
     #TODO dont use name_to_files strings, unify paths from snakemake config and use here
-    '2022_allneg_w05': {
+    # '2022_allneg_w05': {
+    #     'training_positives_exps': default_train_positives,
+    #     'training_negatives_exps': all_train_negatives,
+    #     'min_len':5000,
+    #     'max_len':400000,
+    #     'skip':5000,
+    #     'workers':64,
+    #     'sampler':'ratio',
+    #     'lr':1e-3,
+    #     'warmup_steps':1000,
+    #     'pos_weight':0.5,
+    #     'wd':0.01,
+    #     'arch':'custom_cnn',
+    #     'arch_hyperparams':{
+    #         'pooling':'max',
+    #     },
+    #     'grad_acc':64,
+    #     'early_stopping_patience':50, 
+    #     'comet_api_key':api_key,
+    #     'comet_project_name':'RNAModif',
+    #     'logging_step':500, 
+    #     'enable_progress_bar':'no',
+        # 'log_to_file':False,
+    
+    # },
+    # '2022_rodan_allneg': {
+    #     'training_positives_exps':default_train_positives,
+    #     'training_negatives_exps':all_train_negatives,
+    #     'min_len':5000,
+    #     'max_len':400000,
+    #     'skip':5000,
+    #     'workers':64,
+    #     'sampler':'ratio',
+    #     'lr':1e-3,
+    #     'warmup_steps':1000,
+    #     'pos_weight':0.5,
+    #     'wd':0.01,
+    #     'arch':'rodan',
+    #     'arch_hyperparams':{
+    #         'wd':0.01,
+    #         'len_limit':400000,
+    #         'weighted_loss':False,
+    #         'frozen_layers':0,
+    #     },
+    #     'grad_acc':64,
+    #     'early_stopping_patience':50, 
+    #     'comet_api_key':api_key,
+    #     'comet_project_name':'RNAModif',
+    #     'logging_step':500, 
+    #     'enable_progress_bar':'no',
+        # 'log_to_file':False,
+    
+    # },
+    '2022_cnn_rnn': {
         'training_positives_exps': default_train_positives,
         'training_negatives_exps': all_train_negatives,
         'min_len':5000,
@@ -187,22 +208,23 @@ training_configs = {
         'sampler':'ratio',
         'lr':1e-3,
         'warmup_steps':1000,
-        'pos_weight':0.5,
-        'arch':'custom_cnn',
+        'pos_weight':1.0,
+        'wd':0.01,
+        'arch':'cnn_rnn',
         'arch_hyperparams':{
-            'pooling':'max',
+            'cnn_depth':5,
         },
-        'grad_acc':64,
-        'early_stopping_patience':50, 
+        'grad_acc':32,
+        'early_stopping_patience':25, 
         'comet_api_key':api_key,
         'comet_project_name':'RNAModif',
         'logging_step':500, 
         'enable_progress_bar':'no',
+        'log_to_file':True,
     },
-       #TODO add rodan 
-    '2022_rodan_allneg': {
-        'training_positives_exps':default_train_positives,
-        'training_negatives_exps':all_train_negatives,
+    '2022_cnn_max': {
+        'training_positives_exps': default_train_positives,
+        'training_negatives_exps': all_train_negatives,
         'min_len':5000,
         'max_len':400000,
         'skip':5000,
@@ -210,20 +232,43 @@ training_configs = {
         'sampler':'ratio',
         'lr':1e-3,
         'warmup_steps':1000,
-        'pos_weight':0.5,
-        'arch':'rodan',
+        'pos_weight':1.0,
+        'wd':0.01,
+        'arch':'cnn_max',
         'arch_hyperparams':{
-            'wd':0.01,
-            'len_limit':400000,
-            'weighted_loss':False,
-            'frozen_layers':0,
+            'cnn_depth':5,
         },
-        'grad_acc':64,
-        'early_stopping_patience':50, 
+        'grad_acc':32,
+        'early_stopping_patience':25, 
         'comet_api_key':api_key,
         'comet_project_name':'RNAModif',
         'logging_step':500, 
         'enable_progress_bar':'no',
+        'log_to_file':True,
+    },
+    '2022_cnn_att': {
+        'training_positives_exps': default_train_positives,
+        'training_negatives_exps': all_train_negatives,
+        'min_len':5000,
+        'max_len':400000,
+        'skip':5000,
+        'workers':64,
+        'sampler':'ratio',
+        'lr':1e-3,
+        'warmup_steps':1000,
+        'pos_weight':1.0,
+        'wd':0.01,
+        'arch':'cnn_att',
+        'arch_hyperparams':{
+            'cnn_depth':5,
+        },
+        'grad_acc':32,
+        'early_stopping_patience':25, 
+        'comet_api_key':api_key,
+        'comet_project_name':'RNAModif',
+        'logging_step':500, 
+        'enable_progress_bar':'no',
+        'log_to_file':True,
     },
 }
 
@@ -240,25 +285,23 @@ include: "rules/training.smk"
 
 rule all:
     input:
-        'outputs/predictions_limited/CUSTOM_allneg_maxpool/20210202_hsa_dRNA_HeLa_5EU_2hr_Ars_0060m_5P_2/windows.pickle'
-        
-        
-        # 'checkpoints_pl/2022_allneg_w05/DONE.txt',
+        expand('checkpoints_pl/{model}/DONE.txt', model=training_configs.keys())
         
         # expand('outputs/visual/{prediction_type}/{model_name}/{pooling}_ALL_DONE.txt',
         #     prediction_type=prediction_type, 
         #     model_name = model_name, 
         #     pooling=pooling,
         # )
+        # expand('outputs/visual/diff_exp/{time}/{column}.pdf',
+        #        time=time_data.keys(),
+        #        column=['padj','pvalue'],
+        # )
+        # 'outputs/predictions_limited/CUSTOM_allneg_maxpool/20210202_hsa_dRNA_HeLa_5EU_2hr_Ars_0060m_5P_2/windows.pickle'
+        # 'checkpoints_pl/2022_allneg_w05/DONE.txt',
+        
         # expand("outputs/{prediction_type}/{model_name}/{experiment_name}/{pooling}_pooling_gene_level_predictions.tsv",
         #     experiment_name=individual_exps,
         #     prediction_type=prediction_type,
         #     model_name=model_name,
         #     pooling=pooling,
         # )
-        # expand('outputs/visual/diff_exp/{time}/{column}.pdf',
-        #        time=timesteps.keys(),
-        #        column=['padj','pvalue'],
-        # )
-        
-        

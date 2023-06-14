@@ -5,7 +5,7 @@ rule run_training:
         #TODO require files?
     output:
         done_txt = 'checkpoints_pl/{training_experiment_name}/DONE.txt',
-        arch_hyperparams_yaml = temp('checkpoints_pl/{training_experiment_name}/arch_hyperparams.yaml'),
+        arch_hyperparams_yaml = 'checkpoints_pl/{training_experiment_name}/arch_hyperparams.yaml',
     params:
         training_positives_exps = lambda wildcards: training_configs[wildcards.training_experiment_name]['training_positives_exps'],
         training_negatives_exps = lambda wildcards: training_configs[wildcards.training_experiment_name]['training_negatives_exps'],
@@ -17,6 +17,7 @@ rule run_training:
         lr = lambda wildcards: training_configs[wildcards.training_experiment_name]['lr'],
         warmup_steps = lambda wildcards: training_configs[wildcards.training_experiment_name]['warmup_steps'],
         pos_weight = lambda wildcards: training_configs[wildcards.training_experiment_name]['pos_weight'],
+        wd = lambda wildcards: training_configs[wildcards.training_experiment_name]['wd'],
         arch = lambda wildcards: training_configs[wildcards.training_experiment_name]['arch'],
         arch_hyperparams = lambda wildcards: training_configs[wildcards.training_experiment_name]['arch_hyperparams'],
         grad_acc = lambda wildcards: training_configs[wildcards.training_experiment_name]['grad_acc'],
@@ -25,6 +26,7 @@ rule run_training:
         comet_project_name = lambda wildcards: training_configs[wildcards.training_experiment_name]['comet_project_name'],
         logging_step = lambda wildcards: training_configs[wildcards.training_experiment_name]['logging_step'],
         enable_progress_bar = lambda wildcards: training_configs[wildcards.training_experiment_name]['enable_progress_bar'],
+        log_to_file = lambda wildcards: training_configs[wildcards.training_experiment_name]['log_to_file'],
         save_path = lambda wildcards: f'checkpoints_pl/{wildcards.training_experiment_name}',
     threads: 64 #lambda wildcards: training_configs[wildcards.training_experiment_name]['workers']
     resources: 
@@ -35,32 +37,33 @@ rule run_training:
     run:
         with open(output.arch_hyperparams_yaml, 'w') as file:
             yaml.dump(params.arch_hyperparams, file)
-
-        shell(
-            """
-            python3 scripts/train.py \
-                --training-positives-exps {params.training_positives_exps} \
-                --training-negatives-exps {params.training_negatives_exps} \
-                --min-len {params.min_len} \
-                --max-len {params.max_len} \
-                --skip {params.skip} \
-                --workers {params.workers} \
-                --sampler {params.sampler} \
-                --lr {params.lr} \
-                --warmup-steps {params.warmup_steps} \
-                --pos-weight {params.pos_weight} \
-                --arch {params.arch} \
-                --arch-hyperparams-yaml {output.arch_hyperparams_yaml} \
-                --grad-acc {params.grad_acc} \
-                --early-stopping-patience {params.early_stopping_patience} \
-                --experiment-name {wildcards.training_experiment_name} \
-                --comet-api-key {params.comet_api_key} \
-                --comet-project-name {params.comet_project_name} \
-                --logging-step {params.logging_step} \
-                --enable-progress-bar {params.enable_progress_bar} \
-                --save-path checkpoints_pl \
-                &> {log}
-            """
-        )
+        command = """
+        python3 scripts/train.py \
+            --training-positives-exps {params.training_positives_exps} \
+            --training-negatives-exps {params.training_negatives_exps} \
+            --min-len {params.min_len} \
+            --max-len {params.max_len} \
+            --skip {params.skip} \
+            --workers {params.workers} \
+            --sampler {params.sampler} \
+            --lr {params.lr} \
+            --warmup-steps {params.warmup_steps} \
+            --pos-weight {params.pos_weight} \
+            --wd {params.wd} \
+            --arch {params.arch} \
+            --arch-hyperparams-yaml {output.arch_hyperparams_yaml} \
+            --grad-acc {params.grad_acc} \
+            --early-stopping-patience {params.early_stopping_patience} \
+            --experiment-name {wildcards.training_experiment_name} \
+            --comet-api-key {params.comet_api_key} \
+            --comet-project-name {params.comet_project_name} \
+            --logging-step {params.logging_step} \
+            --enable-progress-bar {params.enable_progress_bar} \
+            --save-path checkpoints_pl \
+            """   
+        if(params.log_to_file):
+            command+="&> {log}"
+            
+        shell(command)
         shell('touch {output.done_txt}')
   
