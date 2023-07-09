@@ -24,32 +24,34 @@ rule create_distribution_plot:
             --exp-names {params.exp_names} \
         """
 
+
 rule create_classification_plot:
     input:
         neg_files = lambda wildcards: expand(
             'outputs/{prediction_type}/{model_name}/{experiment_name}/{pooling}_pooling.pickle', 
-            experiment_name=[v['negatives'] for v in clf_tuples[wildcards.plot_name].values()],
+            experiment_name=[exp for group, subdict in comparisons.items() for exp in subdict['negatives']],
             model_name=wildcards.model_name,
             pooling=wildcards.pooling,
             prediction_type=wildcards.prediction_type,
         ),
         pos_files = lambda wildcards: expand(
             'outputs/{prediction_type}/{model_name}/{experiment_name}/{pooling}_pooling.pickle', 
-            # experiment_name=[pos_exp for neg_exp, pos_exp in config['PLOT_NEG_POS_PAIRS']],
-            experiment_name=[v['positives'] for v in clf_tuples[wildcards.plot_name].values()],
+            experiment_name=[exp for group, subdict in comparisons.items() for exp in subdict['positives']],
             model_name=wildcards.model_name,
             pooling=wildcards.pooling,
             prediction_type=wildcards.prediction_type,
         ),
     output:
-        'outputs/visual/{prediction_type}/{model_name}/{plot_name}_{pooling}_pooling_{plot_type}.pdf'
+        'outputs/visual/{prediction_type}/{model_name}/{pooling}_pooling_{plot_type}.pdf'
     wildcard_constraints:
         plot_type='(auroc|thresholds|pr_curve)'
     conda:
         '../envs/visual.yaml'
     params:
-        neg_experiments = lambda wildcards: [v['negatives'] for v in clf_tuples[wildcards.plot_name].values()],
-        pos_experiments = lambda wildcards: [v['positives'] for v in clf_tuples[wildcards.plot_name].values()],
+        neg_experiments = [exp for group, subdict in comparisons.items() for exp in subdict['negatives']],
+        pos_experiments = [exp for group, subdict in comparisons.items() for exp in subdict['positives']],
+        neg_group_names = [group for group, subdict in comparisons.items() for _ in subdict['negatives']],  
+        pos_group_names = [group for group, subdict in comparisons.items() for _ in subdict['positives']],       
     shell:
         """
         python3 scripts/{wildcards.plot_type}.py \
@@ -57,12 +59,14 @@ rule create_classification_plot:
             --negatives-in-order {input.neg_files} \
             --positives-names-in-order {params.pos_experiments} \
             --negatives-names-in-order {params.neg_experiments} \
+            --negatives-groups-in-order {params.neg_group_names} \
+            --positives-groups-in-order {params.pos_group_names} \
             --output {output} \
             --model-name {wildcards.model_name} \
         """
 
         
-rule create_chromosome_plots:
+rule create_chromosome_plot:
     input:
         neg_files = lambda wildcards: expand(
             'outputs/{prediction_type}/{model_name}/{experiment_name}/{pooling}_pooling.pickle', 
@@ -84,6 +88,8 @@ rule create_chromosome_plots:
         'outputs/visual/{prediction_type}/{model_name}/{plot_name}_{pooling}_pooling_chr_acc.pdf'
     conda:
         '../envs/visual.yaml'
+    params:
+        threshold=lambda wildcards: MODELS[wildcards.model_name]['threshold'],
     shell:
         """
         python3 scripts/chr_acc.py \
@@ -91,6 +97,7 @@ rule create_chromosome_plots:
             --negatives_bams {input.neg_bams} \
             --positives_predictions {input.pos_files} \
             --negatives_predictions {input.neg_files} \
+            --threshold {params.threshold} \
             --output {output} \
         """
         
@@ -164,6 +171,7 @@ rule create_fc_plot:
         "../envs/visual.yaml"
     params:
         target_col = 'log2FoldChange',
+        min_reads = 100,
     shell:
         #TODO try to filter low padj values - inside the script
         #TODO MY_FC calculation - only simple average is weird - see how deseq does it! Get counts and let deseq calculate it?
@@ -175,6 +183,7 @@ rule create_fc_plot:
             --deseq-output {input.deseq_output} \
             --pred-col {wildcards.pred_col} \
             --target-col {params.target_col} \
+            --min-reads {params.min_reads} \
             --output {output} \
         """
         
@@ -192,11 +201,11 @@ rule create_all_plots:
             pooling=pooling,
             plot_name=comparisons.keys(),
         ),
-        expand('outputs/visual/{prediction_type}/{model_name}/{plot_name}_{pooling}_pooling_{plot_type}.pdf',
+        expand('outputs/visual/{prediction_type}/{model_name}/{pooling}_pooling_{plot_type}.pdf',
             prediction_type=prediction_type, 
             model_name = model_name, 
             pooling=pooling,
-            plot_name=clf_tuples.keys(), 
+            # plot_name=clf_tuples.keys(), 
             plot_type=['auroc', 'thresholds','pr_curve'],
         ),
         expand('outputs/visual/{prediction_type}/{model_name}/{plot_name}_{pooling}_pooling_{plot_type}.pdf',
