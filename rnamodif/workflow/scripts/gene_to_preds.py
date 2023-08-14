@@ -34,9 +34,12 @@ def main(args):
     gene_groups = read_gene_score.groupby('Gene stable ID')
     
     gene_agg = gene_groups['score'].mean().reset_index()
+    gene_agg = gene_agg.rename(columns={'score':'average_score'})
+    
     gene_agg['percentage_modified'] = gene_groups['predicted_modified'].mean().values
     gene_agg['reads'] = gene_groups.size().values
-    gene_agg = gene_agg.rename(columns={'score':'average_score'})
+    
+    assert len(gene_agg)>0, 'Empty gene level prediction file'
     gene_agg.to_csv(args.output, sep='\t')
     
     

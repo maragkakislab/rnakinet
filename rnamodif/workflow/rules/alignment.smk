@@ -1,7 +1,6 @@
 from pathlib import Path
 HUMAN_REF_VERSION = config['HUMAN_REF_VERSION']
 HUMAN_TRANSCRIPTOME_VERSION = config['HUMAN_TRANSCRIPTOME_VERSION']
-# EXPLICIT_BASECALL_PATHS = config['EXPLICIT_BASECALL_PATHS']
 EXPERIMENT_NAME_TO_PATH = config['EXPERIMENT_NAME_TO_PATH']
 
 def get_basecalls_path(dataset_name):
@@ -10,6 +9,23 @@ def get_basecalls_path(dataset_name):
         # print(dataset_name, 'found')
         return basecalls_lookup_location
     return f"outputs/basecalling/{dataset_name}/guppy/reads.fastq.gz"
+
+
+def get_genome_version(experiment_name):
+    if experiment_name in config['EXPLICIT_REFS'].keys():
+        print('using custom genome')
+        return config['EXPLICIT_REFS'][experiment_name]
+    else:
+        print('using human genome')
+        return HUMAN_REF_VERSION
+    
+def get_transcriptome_version(experiment_name):
+    if experiment_name in config['EXPLICIT_TRANSCRIPTOMES'].keys():
+        print('using custom transcriptome')
+        return config['EXPLICIT_TRANSCRIPTOMES'][experiment_name]
+    else:
+        print('using human transcriptome')
+        return HUMAN_TRANSCRIPTOME_VERSION
 
 rule get_reference:
     output: f"{HUMAN_REF_VERSION}.fa"
@@ -22,7 +38,7 @@ rule get_reference:
 rule align_to_genome:
     input:
         basecalls = lambda wildcards: get_basecalls_path(wildcards.experiment_name),
-        reference_path = HUMAN_REF_VERSION+'.fa'
+        reference_path = lambda wildcards: get_genome_version(wildcards.experiment_name)+'.fa'
     output:
         bam = "outputs/alignment/{experiment_name}/reads-align.genome.sorted.bam",
         bai = "outputs/alignment/{experiment_name}/reads-align.genome.sorted.bam.bai"
@@ -50,7 +66,8 @@ rule align_to_genome:
 rule align_to_transcriptome:
     input:
         basecalls = lambda wildcards: get_basecalls_path(wildcards.experiment_name),
-        transcriptome_path = HUMAN_TRANSCRIPTOME_VERSION+'.fa',
+        transcriptome_path = lambda wildcards: get_transcriptome_version(wildcards.experiment_name)+'.fa'
+        
     output:
         bam = "outputs/alignment/{experiment_name}/reads-align.transcriptome.sorted.bam",
         bai = "outputs/alignment/{experiment_name}/reads-align.transcriptome.sorted.bam.bai",
@@ -76,7 +93,7 @@ rule align_to_transcriptome:
     
     
     
-rule run_flagstat:
+rule run_flagstat_genome:
     input:
         "outputs/alignment/{experiment_name}/reads-align.genome.sorted.bam"
     output:
@@ -86,5 +103,13 @@ rule run_flagstat:
     shell:
         "samtools flagstat {input} > {output}"
         
-        
+rule run_flagstat_transcriptome:
+    input:
+        "outputs/alignment/{experiment_name}/reads-align.transcriptome.sorted.bam"
+    output:
+        "outputs/alignment/{experiment_name}/flagstat_transcriptome.txt"
+    conda:
+        "../envs/alignment.yaml"
+    shell:
+        "samtools flagstat {input} > {output}" 
         

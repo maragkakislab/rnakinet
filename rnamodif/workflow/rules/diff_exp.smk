@@ -1,8 +1,20 @@
 # transcript-gene.tab downloaded and renamed from 
 # http://useast.ensembl.org/biomart/martview/989e4fff050168c3154e5398a6f27dde
+
+#TODO transcript-gene tab parametrize
+def get_transcript_to_gene_tab(experiment_name):
+    transcriptome = get_transcriptome_version(experiment_name)
+    transcriptome_to_file = {
+        'Mus_musculus.GRCm39.cdna.all': 'transcript-gene-mouse.tab',
+        'Homo_sapiens.GRCh38.cdna.all': 'transcript-gene.tab',
+    }
+    print('using', transcriptome_to_file[transcriptome], 'map file')
+    return transcriptome_to_file[transcriptome]
+
 rule transcript_counts:
     input:
-        "outputs/alignment/{experiment_name}/reads-align.transcriptome.sorted.bam"
+        bam_file = "outputs/alignment/{experiment_name}/reads-align.transcriptome.sorted.bam",
+        map_file = lambda wildcards: get_transcript_to_gene_tab(wildcards.experiment_name),
     output:
         "outputs/alignment/{experiment_name}/reads.sorted.counts.txt"
     conda:
@@ -11,7 +23,7 @@ rule transcript_counts:
         #TODO transcript-gene.tab export to input
         """
         python3 scripts/sam-per-ref-count.py \
-            --ifile {input} \
+            --ifile {input.bam_file} \
             --ref-col-name transcript \
             --cnt-col-name count \
             | table-paste-col.py \
@@ -89,7 +101,8 @@ MODELS = config['MODELS']
 rule generate_gene_prediction_stats:
     input:
         transcriptome_bam='outputs/alignment/{experiment_name}/reads-align.transcriptome.sorted.bam',
-        transcript_to_gene_table='transcript-gene.tab',
+        # transcript_to_gene_table='transcript-gene.tab',
+        transcript_to_gene_table = lambda wildcards: get_transcript_to_gene_tab(wildcards.experiment_name),
         predictions='outputs/{prediction_type}/{model_name}/{experiment_name}/{pooling}_pooling.pickle',
     output:
         'outputs/{prediction_type}/{model_name}/{experiment_name}/{pooling}_pooling_gene_level_predictions.tsv'

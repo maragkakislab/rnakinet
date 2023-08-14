@@ -16,6 +16,7 @@ def main(args):
     
     palette = {exp:get_exp_color(exp) for exp in args.exp_names}
     
+    
     plt.figure(figsize=(5, len(args.files)))
     sns.violinplot(
         x=x_axis_name, 
@@ -28,7 +29,7 @@ def main(args):
     )
     red_patch = mpatches.Patch(color='red', label='Control')
     green_patch = mpatches.Patch(color='green', label='5EU')
-    plt.legend(handles=[green_patch, red_patch], loc='upper left')
+    plt.legend(handles=[green_patch, red_patch], loc='upper right')
     plt.savefig(args.output, bbox_inches = 'tight')
 
 def get_exp_color(exp_name):
