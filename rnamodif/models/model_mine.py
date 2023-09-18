@@ -5,7 +5,6 @@ from types import SimpleNamespace
 import numpy as np
 import re
 from sklearn.metrics import roc_auc_score
-from RODAN.basecall import load_model
 from collections import defaultdict
 
 
