@@ -10,21 +10,28 @@ def plot_pr_curve(pos_preds, neg_preds, pos_name, neg_name):
     labels = np.concatenate((np.repeat(1, len(pos_preds)),np.repeat(0, len(neg_preds))))
     precision, recall, thresholds = metrics.precision_recall_curve(labels, predictions)
 
-    plt.plot(recall, precision, marker='.', label=f'{pos_name}\n{neg_name}')
-    plt.xlabel('Recall', fontsize=16)
-    plt.ylabel('Precision', fontsize=16)
-    # plt.title('Precision-Recall Curve')
-    # plt.legend(loc='center left', bbox_to_anchor=(1,0.5), prop={'size':10})
-    plt.legend(loc='lower left', fontsize=12, frameon=False)
+    auroc = metrics.auc(recall, precision)
+    
+    
+    # plt.plot(recall, precision, marker='.', label=f'{pos_name}\n{neg_name}\nAUPRC {auroc:.2f}')
+    plt.plot(recall, precision, label=f'{pos_name}\n{neg_name}\nAUPRC {auroc:.2f}')
+    
+    fontsize=20
+    plt.xlabel('Recall', fontsize=fontsize+6)
+    plt.ylabel('Precision', fontsize=fontsize+6)
+    plt.xticks(fontsize=fontsize)
+    plt.yticks(fontsize=fontsize)
+    sns.set_style('whitegrid')
+    sns.despine()
+    plt.legend(loc='lower left', fontsize=fontsize-4, frameon=False)
     plt.xlim([-0.05, 1])
     plt.ylim([-0.05, 1])
     
         
 def main(args):
-    plt.rcParams['axes.prop_cycle'] = plt.cycler(color=sns.color_palette('colorblind'))
-    fig, ax = plt.subplots(figsize=(5,5))
-    ax.spines['right'].set_visible(False)
-    ax.spines['top'].set_visible(False)
+    # fig, ax = plt.subplots(figsize=(5,5))
+    # ax.spines['right'].set_visible(False)
+    # ax.spines['top'].set_visible(False)
     
     plot_and_save(args, plot_pr_curve)
     

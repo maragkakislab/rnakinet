@@ -68,9 +68,6 @@ class MLP(torch.nn.Module):
         return self.layers(x)
 
     
-    
-    
-    
 class Attention(torch.nn.Module):
     def __init__(self, input_dim, len_limit):
         super(Attention, self).__init__()
@@ -106,28 +103,32 @@ class Attention(torch.nn.Module):
 
         return context_vector
 
-# class ConvNet(torch.nn.Module):
-#     def __init__(self):
-#         super().__init__()
-#         self.layers = torch.nn.Sequential(
-#             torch.nn.Conv1d(in_channels=1, out_channels=8, kernel_size=3),
-#             torch.nn.ReLU(),
-#             torch.nn.MaxPool1d(kernel_size=3),
-#             torch.nn.Conv1d(in_channels=8, out_channels=16, kernel_size=3),
-#             torch.nn.ReLU(),
-#             torch.nn.MaxPool1d(kernel_size=3),
-#             torch.nn.Conv1d(in_channels=16, out_channels=32, kernel_size=3),
-#             torch.nn.ReLU(),
-#             torch.nn.MaxPool1d(kernel_size=3),
-#             torch.nn.Conv1d(in_channels=32, out_channels=64, kernel_size=3),
-#             torch.nn.ReLU(),
-#             torch.nn.MaxPool1d(kernel_size=3),
-#             torch.nn.Conv1d(in_channels=64, out_channels=128, kernel_size=3),
-#             torch.nn.ReLU(),
-#             torch.nn.MaxPool1d(kernel_size=3),
-#         )
+    
+    
+    
+#TODO LEGACY CLASS, REMOVE 
+class ConvNet(torch.nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.layers = torch.nn.Sequential(
+            torch.nn.Conv1d(in_channels=1, out_channels=8, kernel_size=3),
+            torch.nn.ReLU(),
+            torch.nn.MaxPool1d(kernel_size=3),
+            torch.nn.Conv1d(in_channels=8, out_channels=16, kernel_size=3),
+            torch.nn.ReLU(),
+            torch.nn.MaxPool1d(kernel_size=3),
+            torch.nn.Conv1d(in_channels=16, out_channels=32, kernel_size=3),
+            torch.nn.ReLU(),
+            torch.nn.MaxPool1d(kernel_size=3),
+            torch.nn.Conv1d(in_channels=32, out_channels=64, kernel_size=3),
+            torch.nn.ReLU(),
+            torch.nn.MaxPool1d(kernel_size=3),
+            torch.nn.Conv1d(in_channels=64, out_channels=128, kernel_size=3),
+            torch.nn.ReLU(),
+            torch.nn.MaxPool1d(kernel_size=3),
+        )
         
-#     def forward(self, x):
-#         return self.layers(x)
+    def forward(self, x):
+        return self.layers(x)
     
     

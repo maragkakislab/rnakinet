@@ -18,8 +18,8 @@ rule run_inference:
         model_path = lambda wildcards: config['MODELS'][wildcards.model_name]['path'],
     output:
         'outputs/{prediction_type}/{model_name}/{experiment_name}/windows.pickle'
-    # conda:
-        # "../envs/inference.yaml" #TODO fix this - needs rnamodif as package
+    conda:
+        "../envs/inference.yaml" #TODO fix this - needs rnamodif as package
     params:
         batch_size = config['INFERENCE_PARAMETERS']['BATCH_SIZE'],
         max_len = config['INFERENCE_PARAMETERS']['MAX_LEN'],

@@ -68,6 +68,7 @@ EXPERIMENT_NAME_TO_PATH : {
     # 'noars_0300_2':,
     # 'noars_0300_3':,
     '20230706_mmu_dRNA_3T3_5EU_400_1': 'local_store/arsenite/raw/20230706_mmu_dRNA_3T3_5EU_400_1/runs/no_sample/20230706_1704_MN24753_FAR80946_027f7c1e/fast5_pass',
+    '20230816_mmu_dRNA_3T3_5EU_400_2': 'local_store/arsenite/raw/20230816_mmu_dRNA_3T3_5EU_400_2/runs/no_sample/20230816_1618_MN24753_FAX02068_aa5a172a/fast5_pass',
     
     
     
@@ -91,7 +92,7 @@ EXPERIMENT_NAME_TO_PATH : {
 #TODO check if the experiment has kit when theres no explicit basecalls - throws an keyerror
 KITS : {
     '20220520_hsa_dRNA_HeLa_DMSO_1': 'SQK-RNA002',
-    '20220520_hsa_dRNA_HeLa_DMSO_1': 'SQK-RNA002',
+    '20220303_hsa_dRNA_HeLa_5EU_polyA_REL5_2': 'SQK-RNA002',
     '20201016_hsa_dRNASeq_HeLa_dmso_polyA_REL5_short_1': 'SQK-RNA002',
     '20201016_hsa_dRNASeq_HeLa_5EU_polyA_REL5_short_1': 'SQK-RNA002',
     
@@ -132,6 +133,7 @@ KITS : {
     '20201016_hsa_dRNASeq_HeLa_5EU_polyA_REL5_short_1_TEST': 'SQK-RNA002',
     
     '20230706_mmu_dRNA_3T3_5EU_400_1': 'SQK-RNA002',
+    '20230816_mmu_dRNA_3T3_5EU_400_2': 'SQK-RNA002',
     
 }
 
@@ -162,6 +164,7 @@ EXPLICIT_REFS: {
 
 EXPLICIT_TRANSCRIPTOMES: {
     '20230706_mmu_dRNA_3T3_5EU_400_1': 'Mus_musculus.GRCm39.cdna.all',
+    '20230816_mmu_dRNA_3T3_5EU_400_2': 'Mus_musculus.GRCm39.cdna.all',
 }
 
 
@@ -187,11 +190,11 @@ MODELS: {
     #     'window': 40960,
     #     'weighted': True,
     # },
-    'unlimited_standard_allneg':{
-        'path':'checkpoints_pl/2022_uncut_allneg/last-Copy1_8624step.ckpt',
-        'threshold': 0.75,
-        'arch': 'rodan',
-    },
+    # 'unlimited_standard_allneg':{
+    #     'path':'checkpoints_pl/2022_uncut_allneg/last-Copy1_8624step.ckpt',
+    #     'threshold': 0.75,
+    #     'arch': 'rodan',
+    # },
     # 'unlimited_standard_2022neuronctrl':{
     #     'path':'checkpoints_pl/2022_uncut_neg2022+neuronctrl/epoch=0-step=1625-Copy1.ckpt',
     #     'window': null,
@@ -202,21 +205,57 @@ MODELS: {
     #     'window': null,
     #     'weighted': False,
     # },
-    'CUSTOM_allneg_maxpool':{
-        'path':'checkpoints_pl/2022_mine_allneg/last-Copy5.ckpt',
-        'threshold': 0.5,
-        'arch': 'cnn_gru',
+    # 'CUSTOM_allneg_maxpool':{
+    #     'path':'checkpoints_pl/2022_mine_allneg/last-Copy5.ckpt',
+    #     'threshold': 0.5,
+    #     'arch': 'cnn_gru',
+    # },
+    # 'CNN_MAX_extraratio':{
+    #     'path':'checkpoints_pl/2022_mine_extraratio_max/last.ckpt',
+    #     'arch': 'custom_cnn',
+    #     'threshold': 0.5,
+    # },
+    # 'CNN_MAX_hid100':{
+    #     'path': 'checkpoints_pl/2022_cnn_max_hid100/best-step=80500-2022_valid_auroc=0.93.ckpt',
+    #     'arch': 'cnn_max',
+    #     'threshold': 0.3, 
+    # },
+    # 'TEST_model':{
+    #     'path': '../temp_checkpoints_pl/TEST/best-step=86000-2022_valid_auroc=0.92.ckpt',
+    #     'arch': 'cnn_max',
+    #     'threshold': 0.7,  
+    # },
+    # 'CNN_MAX_hid30_min15k_last':{
+    #     'path': 'checkpoints_pl/2022_cnn_max_hid30_min15k/last.ckpt',
+    #     'arch': 'cnn_max',
+    #     'threshold': 0.4,
+    # },
+    # 'CNN_MAX_hid30_min15k_best':{
+    #     'path': 'checkpoints_pl/2022_cnn_max_hid30_min15k/best-step=10000-2022_valid_auroc=0.00.ckpt',
+    #     'arch': 'cnn_max',
+    #     'threshold': 0.4,
+    # },
+    # 'CNN_RNN_basicneg':{
+    #     'path': 'checkpoints_pl/2022_cnn_rnn_hid30_basicneg/best-step=173500-2022_valid_auroc=0-Copy1.00.ckpt',
+    #     'arch': 'cnn_rnn',
+    #     'threshold': 0.5,
+    # },
+    # 'CNN_MAX_hid30_min15k_longtrain_last':{
+    #     'path': 'checkpoints_pl/2022_cnn_max_hid30_min15k_longtrain/last.ckpt',
+    #     'arch': 'cnn_max',
+    #     'threshold': 0.5,
+    # },
+    # 'CNN_RNN_allneg':{
+    #     'path': 'checkpoints_pl/2022_cnn_rnn_hid30_allneg_run2/last-Copy1.ckpt',
+    #     'arch': 'cnn_rnn',
+    #     'threshold': 0.15,
+    # },
+    'CNN_RNN_allneg_weighted':{
+        'path': 'checkpoints_pl/2022_cnn_rnn_hid10_allneg_w05/last-v1.ckpt',
+        'arch': 'cnn_rnn',
+        'threshold': 0.2,
     },
-    'CNN_MAX_extraratio':{
-        'path':'checkpoints_pl/2022_mine_extraratio_max/last.ckpt',
-        'arch': 'custom_cnn',
-        'threshold': 0.5,
-    },
-    'CNN_MAX_hid100':{
-        'path': 'checkpoints_pl/2022_cnn_max_hid100/best-step=80500-2022_valid_auroc=0.93.ckpt',
-        'arch': 'cnn_max',
-        'threshold': 0.3, 
-    }
+    
 }
 
 LIMITED_INFERENCE_FILE_LIMIT: 5

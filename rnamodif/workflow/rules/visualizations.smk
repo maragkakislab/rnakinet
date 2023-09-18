@@ -1,10 +1,11 @@
 def get_halflives(experiment_name):
     transcriptome = get_transcriptome_version(experiment_name)
     transcriptome_to_file = {
-        'Mus_musculus.GRCm39.cdna.all': 'mouse_halflives.txt',
-        'Homo_sapiens.GRCh38.cdna.all': 'tani_halflives.txt',
+        'Mus_musculus.GRCm39.cdna.all': 'halflives_data/experiments/mmu_dRNA_3T3_mion_1/features_v1.csv',
+        #TODO ADD PION mouse data
+        'Homo_sapiens.GRCh38.cdna.all': 'halflives_data/experiments/mmu_dRNA_HeLa_DRB_0h_1/features_v1.csv',
     }
-    print('using', transcriptome_to_file[transcriptome], 'map file')
+    # print('using', transcriptome_to_file[transcriptome], 'map file')
     return transcriptome_to_file[transcriptome]
 
 rule create_distribution_plot:
@@ -135,6 +136,7 @@ def get_time_from_expname(experiment_name):
         '_0030m_':1.5,
         '_ctrl_':1.0,
         '20230706_mmu_dRNA_3T3_5EU_400_1':2.0, 
+        '20230816_mmu_dRNA_3T3_5EU_400_2':2.0,
     }
     for k,v in pattern_to_time.items():
         if(k in experiment_name):
@@ -143,21 +145,69 @@ def get_time_from_expname(experiment_name):
     
 rule create_decay_plot:
     input:
-        gene_predictions = 'outputs/{prediction_type}/{model_name}/{experiment_name}/{pooling}_pooling_gene_level_predictions.tsv',
-        gene_halflifes = lambda wildcards: get_halflives(wildcards.experiment_name),
+        gene_predictions = 'outputs/{prediction_type}/{model_name}/{experiment_name}/{pooling}_pooling_{reference_level}_level_predictions.tsv',
+        gene_halflifes = lambda wildcards: get_halflives(wildcards.experiment_name), #TODO expand to allow multiple
     output:
-        'outputs/visual/{prediction_type}/{model_name}/{experiment_name}/{pooling}_pooling_decay_plot.pdf'
+        'outputs/visual/{prediction_type}/{model_name}/{experiment_name}/{pooling}_pooling_{reference_level}_decay_plot.pdf'
     conda:
         "../envs/visual.yaml"
     params:
-        tl = lambda wildcards: get_time_from_expname(wildcards.experiment_name)
+        tl = lambda wildcards: get_time_from_expname(wildcards.experiment_name),
+        # halflives_gene_column_name = 'gene', #TODO delete, replaced by reference level - gene or transcript
     #TODO add parameter for column (average_score vs percentage_modified[dependent on my threshold])
     shell:
         """
         python3 scripts/decay_plot.py \
             --gene-predictions {input.gene_predictions} \
             --gene-halflifes {input.gene_halflifes} \
+            --gene-halflifes-gene-column {wildcards.reference_level} \
             --tl {params.tl} \
+            --output {output} \
+        """
+        
+rule create_decay_read_limit_plot:
+    input:
+        gene_predictions = 'outputs/{prediction_type}/{model_name}/{experiment_name}/{pooling}_pooling_{reference_level}_level_predictions.tsv',
+        gene_halflifes = lambda wildcards: get_halflives(wildcards.experiment_name), #TODO expand to allow multiple
+    output:
+        'outputs/visual/{prediction_type}/{model_name}/{experiment_name}/{pooling}_pooling_{reference_level}_read_limit_decay_plot.pdf'
+    conda:
+        "../envs/visual.yaml"
+    params:
+        tl = lambda wildcards: get_time_from_expname(wildcards.experiment_name),
+        # halflives_gene_column_name = 'gene', #TODO delete, replaced by reference level - gene or transcript
+    #TODO add parameter for column (average_score vs percentage_modified[dependent on my threshold])
+    shell:
+        """
+        python3 scripts/decay_read_limit_plot.py \
+            --gene-predictions {input.gene_predictions} \
+            --gene-halflifes {input.gene_halflifes} \
+            --gene-halflifes-gene-column {wildcards.reference_level} \
+            --tl {params.tl} \
+            --output {output} \
+        """
+
+#TODO save halflives prediction and just do a correlation plot rule
+self_corr_exp_1 = '20230706_mmu_dRNA_3T3_5EU_400_1'
+self_corr_exp_2 = '20230816_mmu_dRNA_3T3_5EU_400_2'
+tl = 2
+rule create_self_corr_decay_plot:
+    input:
+        gene_predictions_1 = 'outputs/{prediction_type}/{model_name}/'+self_corr_exp_1+'/{pooling}_pooling_{reference_level}_level_predictions.tsv',
+        gene_predictions_2 = 'outputs/{prediction_type}/{model_name}/'+self_corr_exp_2+'/{pooling}_pooling_{reference_level}_level_predictions.tsv',
+    output:
+        'outputs/visual/{prediction_type}/{model_name}/self_corr_{pooling}_pooling_{reference_level}_decay_plot.pdf'
+    conda:
+        "../envs/visual.yaml"
+    params:
+        tl = tl,
+    shell:
+        """
+        python3 scripts/self_corr_decay_plot.py \
+            --gene-predictions-1 {input.gene_predictions_1} \
+            --gene-predictions-2 {input.gene_predictions_2} \
+            --tl {params.tl} \
+            --reference-level {wildcards.reference_level} \
             --output {output} \
         """
         
@@ -227,12 +277,23 @@ rule create_all_plots:
             experiment_group_name=comparisons.keys(),
             plot_type=['boxplot', 'violin'],    
         ),
-        expand('outputs/visual/{prediction_type}/{model_name}/{experiment_name}/{pooling}_pooling_{plot_type}.pdf',
+        expand('outputs/visual/{prediction_type}/{model_name}/{experiment_name}/{pooling}_pooling_{reference_level}_{plot_type}.pdf',
             prediction_type=prediction_type,
             model_name=model_name,
             pooling=pooling,
             experiment_name=individual_exps,
-            plot_type=['decay_plot'],    
+            plot_type=['decay_plot'],
+            reference_level=['gene','transcript'],
+            #TODO add support for multiple (mion pion) files?
+        ),
+        expand('outputs/visual/{prediction_type}/{model_name}/{experiment_name}/{pooling}_pooling_{reference_level}_{plot_type}.pdf',
+            prediction_type=prediction_type,
+            model_name=model_name,
+            pooling=pooling,
+            experiment_name=individual_exps,
+            plot_type=['read_limit_decay_plot'],
+            reference_level=['gene','transcript'],
+            #TODO add support for multiple (mion pion) files?
         ),
         expand('outputs/visual/{prediction_type}/{model_name}/{time}/{pooling}_pooling_fc_{pred_col}.pdf',
             prediction_type=prediction_type,
@@ -241,6 +302,13 @@ rule create_all_plots:
             time=time_data.keys(),
             pred_col=['average_score','percentage_modified'],
         ),
+        expand('outputs/visual/{prediction_type}/{model_name}/self_corr_{pooling}_pooling_{reference_level}_decay_plot.pdf',
+            prediction_type=prediction_type,
+            model_name=model_name,
+            pooling=pooling,
+            reference_level=['gene','transcript'],
+        ),
+        
     output:
         'outputs/visual/{prediction_type}/{model_name}/{pooling}_ALL_DONE.txt'
     shell:

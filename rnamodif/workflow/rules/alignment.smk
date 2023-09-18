@@ -13,18 +13,18 @@ def get_basecalls_path(dataset_name):
 
 def get_genome_version(experiment_name):
     if experiment_name in config['EXPLICIT_REFS'].keys():
-        print('using custom genome')
+        # print('using custom genome')
         return config['EXPLICIT_REFS'][experiment_name]
     else:
-        print('using human genome')
+        # print('using human genome')
         return HUMAN_REF_VERSION
     
 def get_transcriptome_version(experiment_name):
     if experiment_name in config['EXPLICIT_TRANSCRIPTOMES'].keys():
-        print('using custom transcriptome')
+        # print('using custom transcriptome')
         return config['EXPLICIT_TRANSCRIPTOMES'][experiment_name]
     else:
-        print('using human transcriptome')
+        # print('using human transcriptome')
         return HUMAN_TRANSCRIPTOME_VERSION
 
 rule get_reference:

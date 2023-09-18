@@ -4,8 +4,8 @@ from pytorch_lightning.loggers import CometLogger
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 from pathlib import Path
-from rnamodif.data_utils.data_paths import name_to_files
-from rnamodif.workflow.scripts.helpers import arch_map
+from rnamodif.data_utils.data_paths import name_to_files 
+from rnamodif.workflow.scripts.helpers import arch_map #TODO refactor model mapping from strings 
 import argparse
 import yaml
 
@@ -175,7 +175,7 @@ def train_save(datasets, model_params, data_params, training_params, logging_par
         dirpath=f"{logging_params['model_save_path']}/{logging_params['experiment_name']}", 
         save_top_k=1, 
         monitor=training_params['early_stopping_metric'], 
-        filename='best-{step}-{'+training_params['early_stopping_metric']+':.2f}',
+        filename='best-{step}-{'+training_params['early_stopping_metric'].replace(' ','_')+':.2f}',
         mode='max',
         save_last=True, 
         save_weights_only=False

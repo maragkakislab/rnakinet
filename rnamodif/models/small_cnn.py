@@ -6,7 +6,7 @@ import numpy as np
 import re
 from sklearn.metrics import roc_auc_score
 from collections import defaultdict
-from rnamodif.models.modules import ConvNet, RNNEncoder, MLP, Attention, Permute, BigConvNet, ResConvNet
+from rnamodif.models.modules import ConvNet, RNNEncoder, MLP, Attention, Permute
 from sklearn.metrics import average_precision_score
 
 class Small_CNN(pl.LightningModule):
@@ -46,22 +46,22 @@ class Small_CNN(pl.LightningModule):
                 torch.nn.Flatten(),
                 MLP(128, 30),
             )
-        if(pooling=='max2'):
-            self.architecture = torch.nn.Sequential(
-                ResConvNet(num_layers=3),
-                torch.nn.AdaptiveMaxPool1d(1),
-                torch.nn.Flatten(),
-                MLP(128, 30),
-            )
-        if(pooling=='max3'):
-            depth = 6
-            init_channels = 8
-            self.architecture = torch.nn.Sequential(
-                BigConvNet(num_layers=depth, num_channels_initial=init_channels),
-                torch.nn.AdaptiveMaxPool1d(1),
-                torch.nn.Flatten(),
-                MLP(init_channels*(2**(depth-1)), 30),
-            )
+        # if(pooling=='max2'):
+        #     self.architecture = torch.nn.Sequential(
+        #         ResConvNet(num_layers=3),
+        #         torch.nn.AdaptiveMaxPool1d(1),
+        #         torch.nn.Flatten(),
+        #         MLP(128, 30),
+        #     )
+        # if(pooling=='max3'):
+        #     depth = 6
+        #     init_channels = 8
+        #     self.architecture = torch.nn.Sequential(
+        #         BigConvNet(num_layers=depth, num_channels_initial=init_channels),
+        #         torch.nn.AdaptiveMaxPool1d(1),
+        #         torch.nn.Flatten(),
+        #         MLP(init_channels*(2**(depth-1)), 30),
+        #     )
 
         self.acc = torchmetrics.classification.Accuracy(task="binary")
         self.ce = torch.nn.BCEWithLogitsLoss(pos_weight=torch.tensor([pos_weight]).to(self.device))

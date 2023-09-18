@@ -35,10 +35,12 @@ class TrainingDatamodule(pl.LightningDataModule):
             train_neg_files,
             valid_exp_to_files_pos,
             valid_exp_to_files_neg,
+            valid_auroc_tuples,
             batch_size, window,
             per_dset_read_limit,
             shuffle_valid,
-            workers):
+            workers,
+            skip):
 
         super().__init__()
         self.train_pos_files = train_pos_files
@@ -52,6 +54,8 @@ class TrainingDatamodule(pl.LightningDataModule):
         self.per_dset_read_limit = per_dset_read_limit
         self.shuffle_valid = shuffle_valid
         self.workers = workers
+        self.skip = skip
+        self.valid_auroc_tuples = valid_auroc_tuples
 
         self.train_dataset = None
         self.valid_dataset = None
@@ -62,6 +66,7 @@ class TrainingDatamodule(pl.LightningDataModule):
                 pos_files=self.train_pos_files,
                 neg_files=self.train_neg_files,
                 window=self.window,
+                skip = self.skip,
             )
 
             self.valid_dataset = CompleteReadsValidDataset(
@@ -70,7 +75,9 @@ class TrainingDatamodule(pl.LightningDataModule):
                 window=self.window,
                 stride=self.window,
                 per_dset_read_limit=self.per_dset_read_limit,
-                shuffle=self.shuffle_valid
+                shuffle=self.shuffle_valid,
+                skip = self.skip,
+                
             )
 
     def train_dataloader(self):
@@ -89,12 +96,13 @@ class InfiniteSampleDataset(IterableDataset):
     Iterable Dataset that yields random chunks of random reads
     """
 
-    def __init__(self, pos_files, neg_files, window):
+    def __init__(self, pos_files, neg_files, window, skip=0):
         super().__init__()
 
         self.positive_files = pos_files
         self.negative_files = neg_files
         self.window = window
+        self.skip = skip
 
     def process_files(self, files, label, window, exp):
         while True:
@@ -105,7 +113,7 @@ class InfiniteSampleDataset(IterableDataset):
                     reads = list(f5.get_reads())
                     for _ in range(len(reads)):
                         read = random.choice(reads)
-                        x = process_read(read, window)
+                        x = process_read(read, window, skip=self.skip)
                         y = np.array(label)
                         # Skip if the read is too short
                         if (len(x) == 0):
@@ -119,11 +127,17 @@ class InfiniteSampleDataset(IterableDataset):
 
     def get_stream(self):
         # TODO remove exp from training loop
-        pos_gen = self.process_files(
-            files=self.positive_files, label=1, window=self.window, exp='pos')
-        neg_gen = self.process_files(
-            files=self.negative_files, label=0, window=self.window, exp='neg')
-        gen = uniform_gen([pos_gen, neg_gen])
+        pos_gens = []
+        for pos_files_instance in self.positive_files:
+            pos_gens.append(self.process_files(files=pos_files_instance, label=1, window=self.window, exp='pos'))
+        neg_gens = []
+        for neg_files_instance in self.negative_files:
+            neg_gens.append(self.process_files(files=neg_files_instance, label=0, window=self.window, exp='neg'))
+        global_pos_gen = uniform_gen(pos_gens)
+        global_neg_gen = uniform_gen(neg_gens)
+        
+        gen = uniform_gen([global_pos_gen, global_neg_gen])
+
         while True:
             yield next(gen)
 
@@ -140,7 +154,8 @@ class CompleteReadsValidDataset(Dataset):
         and all of their chunks (except the last incomplete one)
     """
 
-    def __init__(self, valid_exp_to_files_pos, valid_exp_to_files_neg, window, stride, per_dset_read_limit, shuffle):
+    def __init__(self, valid_exp_to_files_pos, valid_exp_to_files_neg, window, stride, per_dset_read_limit, shuffle, skip=0):
+        self.skip = skip
         pos_gens = []
         for exp, files in valid_exp_to_files_pos.items():
             pos_gens.append(self.process_files_fully(
@@ -176,7 +191,7 @@ class CompleteReadsValidDataset(Dataset):
             with get_fast5_file(fast5, mode='r') as f5:
                 for i, read in enumerate(f5.get_reads()):
                     # window = None for returning the whole signal
-                    x = process_read(read, window=None)
+                    x = process_read(read, window=None, skip=self.skip)
                     y = np.array(label)
                     # Cutoff the last incomplete signal
                     for start in range(0, len(x), stride)[:-1]:
@@ -205,17 +220,18 @@ class CompleteReadsInferenceDataset(IterableDataset):
         and all of their chunks (except the last incomplete one)
     """
 
-    def __init__(self, files, window, stride):
+    def __init__(self, files, window, stride, skip=0):
         self.files = files
         self.window = window
         self.stride = stride
+        self.skip = skip
 
     def process_files_fully(self, files, window):
         for fast5 in files:
             try:
                 with get_fast5_file(fast5, mode='r') as f5:
                     for i, read in enumerate(f5.get_reads()):
-                        x = process_read(read, window=None)
+                        x = process_read(read, window=None, skip=self.skip)
                         # TODO trim start of the read?
                         for start in range(0, len(x), self.stride):
                             stop = start+window

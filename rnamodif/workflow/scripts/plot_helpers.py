@@ -2,6 +2,11 @@ import numpy as np
 import pickle
 from matplotlib import pyplot as plt
 
+palette = ['#B22222','#4682B4', '#FFC107','#004D40', '#6F8480']
+def setup_palette():
+    plt.gca().set_prop_cycle('color', palette)
+    return palette
+
 def check_for_nans(predictions):
     if(np.isnan(predictions).any()):
         print('Warning: Nan found in predictions, setting to 0')
@@ -18,6 +23,9 @@ def plot_and_save(args, plot_fn):
     pos_groups = args.positives_groups_in_order
     neg_groups = args.negatives_groups_in_order
     output_file = args.output
+    
+    plt.figure(figsize=(5,5))
+    setup_palette()
     
     #TODO remove pos_names, neg_names
     positives_total = []

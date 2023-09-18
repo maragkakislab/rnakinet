@@ -1,6 +1,6 @@
 from pathlib import Path
 from rnamodif.workflow.training_configs import training_configs
-from rnamodif.workflow.evaluation_configs import comparisons, time_data, individual_exps, prediction_type, pooling, model_name
+from rnamodif.workflow.evaluation_configs import comparisons, time_data, individual_exps, prediction_type, pooling, model_name, stat_exps
 
 
 configfile: "config.yml"
@@ -22,12 +22,20 @@ rule all:
         #     pooling=pooling,
         #     experiment_name=individual_exps,
         # ),
-        # expand('checkpoints_pl/{model}/DONE.txt', model=training_configs.keys())
+        # expand('checkpoints_pl/{model}/DONE.txt', model=training_configs.keys()),
         expand('outputs/visual/{prediction_type}/{model_name}/{pooling}_ALL_DONE.txt',
             prediction_type=prediction_type, 
             model_name = model_name, 
             pooling=pooling,
         ),
+        # expand('outputs/visual/predictions_limited/{model_name}/{pooling}_ALL_DONE.txt',
+        #     prediction_type=prediction_type, 
+        #     model_name = model_name, 
+        #     pooling=pooling,
+        # ),
+        # expand("outputs/alignment/{experiment_name}/flagstat.txt",
+        #        experiment_name=stat_exps,
+        # ),
         # expand("outputs/alignment/{experiment_name}/flagstat_transcriptome.txt", experiment_name=individual_exps)
         
         # expand('outputs/visual/diff_exp/{time}/{column}.pdf',

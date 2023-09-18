@@ -6,6 +6,7 @@ from collections import defaultdict
 import numpy as np
 import argparse
 import seaborn as sns
+from plot_helpers import setup_palette
 
 def read_predictions(file):
     with open(file, 'rb') as handle:
@@ -47,43 +48,43 @@ def process_dict(input_dict):
     return df
 
 
-def plot_accuracies(positive_dict, negative_dict):
-    pos_df = process_dict(positive_dict)
-    neg_df = process_dict(negative_dict)
+# def plot_accuracies(positive_dict, negative_dict):
+#     pos_df = process_dict(positive_dict)
+#     neg_df = process_dict(negative_dict)
     
-    # Merging two dataframes based on 'Chromosome'
-    final_df = pd.merge(pos_df, neg_df, on='Chromosome', suffixes=('_positive', '_negative'))
-    final_df = final_df.rename(columns={"Accuracy_positive":'True positive rate','Accuracy_negative':'True negative rate'})
-    final_df['Balanced_accuracy'] = (final_df['True positive rate'] + final_df['True negative rate']) / 2
+#     # Merging two dataframes based on 'Chromosome'
+#     final_df = pd.merge(pos_df, neg_df, on='Chromosome', suffixes=('_positive', '_negative'))
+#     final_df = final_df.rename(columns={"Accuracy_positive":'True positive rate','Accuracy_negative':'True negative rate'})
+#     final_df['Balanced_accuracy'] = (final_df['True positive rate'] + final_df['True negative rate']) / 2
 
-    # Preparing data in 'tidy' format for seaborn
-    tidy_df = pd.melt(final_df, id_vars=['Chromosome', 'Balanced_accuracy'], 
-                      value_vars=['True positive rate', 'True negative rate'], 
-                      var_name='Accuracy_type', value_name='Accuracy')
+#     # Preparing data in 'tidy' format for seaborn
+#     tidy_df = pd.melt(final_df, id_vars=['Chromosome', 'Balanced_accuracy'], 
+#                       value_vars=['True positive rate', 'True negative rate'], 
+#                       var_name='Accuracy_type', value_name='Accuracy')
 
-    # Setting up the figure and axis
-    plt.figure(figsize=(10, 5))
+#     # Setting up the figure and axis
+#     plt.figure(figsize=(10, 5))
+#     setup_palette()
+#     # Colorblind-friendly color palette
+#     # colors = sns.color_palette("colorblind")
 
-    # Colorblind-friendly color palette
-    colors = sns.color_palette("colorblind")
+#     # Seaborn barplot
+#     sns.barplot(x='Chromosome', y='Accuracy', hue='Accuracy_type', data=tidy_df, palette=colors)
 
-    # Seaborn barplot
-    sns.barplot(x='Chromosome', y='Accuracy', hue='Accuracy_type', data=tidy_df, palette=colors)
+#     # Balanced accuracy lines
+#     for i, acc in enumerate(final_df['Balanced_accuracy']):
+#         plt.hlines(acc, i - 0.2, i + 0.2, colors='black', linestyles='-', lw=2, 
+#                    label='Balanced accuracy' if i==0 else None)
 
-    # Balanced accuracy lines
-    for i, acc in enumerate(final_df['Balanced_accuracy']):
-        plt.hlines(acc, i - 0.2, i + 0.2, colors='black', linestyles='-', lw=2, 
-                   label='Balanced accuracy' if i==0 else None)
+#     plt.xlabel('Chromosome', fontsize=16)
+#     plt.ylabel('TPR and TNR', fontsize=16)
 
-    plt.xlabel('Chromosome', fontsize=16)
-    plt.ylabel('TPR and TNR', fontsize=16)
+#     # Hide the top and right spines
+#     sns.despine()
 
-    # Hide the top and right spines
-    sns.despine()
-
-    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), prop={'size': 14})
-    plt.tight_layout()
-    # plt.show()
+#     plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), prop={'size': 14})
+#     plt.tight_layout()
+#     # plt.show()
 
 
 #TODO rename
@@ -136,17 +137,37 @@ def plot_f1_scores(group_to_df):
     # Create an empty DataFrame to store the F1 Scores
     final_df = pd.DataFrame(columns=['Chromosome', 'F1', 'Group'])
     # Iterate through the dictionary and append the data to the final DataFrame
-    for group, df in group_to_df.items():
+    palette = setup_palette()
+    palette_map = {}
+    for i,(group, df) in enumerate(group_to_df.items()):
         temp_df = df[['Chromosome', 'F1']].copy()
         temp_df['Group'] = group
         final_df = final_df.append(temp_df, ignore_index=True)
+        palette_map[group] = palette[i]
+    #TODO parametrize that test chromosome is 1?
+    g0 = final_df[final_df['Chromosome']!='1'].groupby(['Group']).mean()
+    g0['Chromosome'] = 'Other'
+    g1 = final_df[final_df['Chromosome']=='1'].groupby(['Group']).mean()
+    g1['Chromosome'] = 'CHR1'
+    grouped_final_df = pd.concat([g1, g0], axis=0).reset_index()
 
     # Create the plot
-    plt.figure(figsize=(15, 6))
-    sns.barplot(x='Chromosome', y='F1', hue='Group', data=final_df, palette='viridis')
-    plt.xlabel('Chromosome', fontsize=16)
-    plt.ylabel('F1 Score', fontsize=16)
-    plt.legend(fontsize='16', loc='lower left')
+    plt.figure(figsize=(8, 10))
+    
+    # b = sns.barplot(y='Chromosome', x='F1', hue='Group', data=final_df, palette='colorblind')
+    # b = sns.barplot(x='Chromosome', y='F1', hue='Group', data=grouped_final_df)
+    b = sns.barplot(x='Chromosome', y='F1', hue='Group', data=grouped_final_df, palette=palette_map)
+    
+    fontsize = 30
+    b.set_yticklabels(b.get_yticklabels(), size = fontsize)
+    b.set_xticklabels(b.get_xticklabels(), size = fontsize)
+    # b.set_xlim(0, 1)
+    b.set_yticks([0.0,0.2,0.4,0.6,0.8,1.0])
+    b.set_yticklabels(['0.0','0.2','0.4','0.6','0.8','1.0'])
+    
+    plt.xlabel('Chromosome', fontsize=fontsize+6)
+    plt.ylabel('F1 Score', fontsize=fontsize+6)
+    plt.legend(fontsize=fontsize, loc='lower left')
     sns.despine()
     plt.tight_layout()
     

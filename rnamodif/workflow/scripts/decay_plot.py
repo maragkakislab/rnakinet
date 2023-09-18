@@ -4,15 +4,22 @@ import pandas as pd
 import numpy as np
 import seaborn as sns
 from pathlib import Path
+from plot_helpers import setup_palette
 
 
 def main(args):
     gene_preds = pd.read_csv(args.gene_predictions, sep='\t')
     print(gene_preds.head())
-    gene_halflifes = pd.read_csv(args.gene_halflifes, sep='\t')
-    gene_halflifes = clean_halflifes_df(gene_halflifes)
+    gene_halflifes = pd.read_csv(args.gene_halflifes)
+    gene_halflifes = clean_halflifes_df(gene_halflifes, group_col=args.gene_halflifes_gene_column)
+        
+    #TODO refactor away
+    key_map = {
+        'gene': 'Gene stable ID',
+        'transcript': 'Transcript stable ID',
+    }
     
-    gene_join = gene_preds.merge(gene_halflifes, how='left', left_on='Gene stable ID', right_on='Gene.stable.ID')
+    gene_join = gene_preds.merge(gene_halflifes, how='left', left_on=key_map[args.gene_halflifes_gene_column], right_on=args.gene_halflifes_gene_column)
     gene_join = gene_join[gene_join['t5'].notnull()]
     
     # TODO filter bad genes
@@ -27,16 +34,19 @@ def main(args):
     y = gene_join['pred_t5'].values
     
     # Regression plot
+    palette = setup_palette()
     sns.regplot(data=gene_join, x='t5', y='pred_t5', 
-            scatter_kws={'alpha':0.6, 's':25, 'color':'blue'}, 
-            line_kws={"color": "red", "lw": 2},  # Add regression line color and width
-            label=f'r={np.corrcoef(x,y)[0,1]:.2f}',
+            scatter_kws={'alpha':0.6, 's':25, 'color':palette[0]}, 
+            line_kws={"color": palette[1], "lw": 2},  # Add regression line color and width
+            # label=f'r={np.corrcoef(x,y)[0,1]:.2f}',
     )
     
+    fontsize=20
+    plt.xlabel('t5 Eisen',fontsize=fontsize+6)
+    plt.ylabel('t5 predicted',fontsize=fontsize+6)
+    # plt.legend(loc='upper left', fontsize=16, frameon=False)
+    plt.text(1, 5, f'r={np.corrcoef(x,y)[0,1]:.2f}', fontsize=fontsize)
     
-    plt.xlabel('t5 Eisen',fontsize=16)
-    plt.ylabel('t5 predicted',fontsize=16)
-    plt.legend(loc='upper left', fontsize=16, frameon=False)
     
     sns.set_style('whitegrid')
     sns.despine()
@@ -44,20 +54,20 @@ def main(args):
     plt.savefig(args.output, bbox_inches = 'tight')
     
     # Boxplots
-    plt.figure()
-    sns.boxplot(data=gene_join, x='t5_binned', y='pred_t5')
-    plt.xlabel('t5 Eisen',fontsize=16)
-    plt.ylabel('t5 predicted',fontsize=16)
-    plt.legend(loc='upper left', fontsize=16, frameon=False)
+#     plt.figure()
+#     sns.boxplot(data=gene_join, x='t5_binned', y='pred_t5')
+#     plt.xlabel('t5 Eisen',fontsize=16)
+#     plt.ylabel('t5 predicted',fontsize=16)
+#     plt.legend(loc='upper left', fontsize=16, frameon=False)
     
-    # sns.set_style('whitegrid')
-    plt.grid(axis='y', linestyle='-', which='major', color='white', linewidth=0.5) # Remove or set white color for horizontal grid lines
+#     # sns.set_style('whitegrid')
+#     plt.grid(axis='y', linestyle='-', which='major', color='white', linewidth=0.5) # Remove or set white color for horizontal grid lines
     
-    sns.despine()
+#     sns.despine()
     
-    path = Path(args.output)
-    new_path = path.with_stem(path.stem + "_boxplot")
-    plt.savefig(new_path, bbox_inches = 'tight')
+#     path = Path(args.output)
+#     new_path = path.with_stem(path.stem + "_boxplot")
+#     plt.savefig(new_path, bbox_inches = 'tight')
     
     
 
@@ -72,7 +82,7 @@ def add_predicted_halflifes(df):
     # df['pred_t5'] = df[col]
     # df['pred_t5'] = -tl * np.log(2) / np.log(df[col])
     
-    print(df[['t5','pred_t5','percentage_modified','average_score','reads','Gene.stable.ID']].head())
+    # print(df[['t5','pred_t5','percentage_modified','average_score','reads','Gene.stable.ID']].head())
     # df['pred_t5'] = -tl * np.log(2) / np.log(df[col]) #TODO DELETE
     
     # gene_join['pred_t5'] = -tl * np.log(2) / np.log(1-(1/(1+((1-gene_join[col])/gene_join[col]))))
@@ -84,24 +94,40 @@ def add_predicted_halflifes(df):
     return df
     
 
-def clean_halflifes_df(df):
+def clean_halflifes_df(df, group_col):
     #grouping by gene and taking only genes that have non-conflicting t5 values
-    grouped_df = df.groupby('Gene.stable.ID')
-    bool_map_of_nonuniques = (grouped_df['t5'].nunique()!=1)
-    nonunique_genes = bool_map_of_nonuniques[bool_map_of_nonuniques].index
+    #Multiple transcripts per gene, all have the same halflife measured, dropping duplicates
+    clean_df = df.groupby(group_col).first().reset_index()
+    # bool_map_of_nonuniques = (grouped_df['t5'].nunique()!=1)
+    # nonunique_genes = bool_map_of_nonuniques[bool_map_of_nonuniques].index
     
     #dropping genes with various t5 values - TODO just take first?
-    unique_df = df[~df['Gene.stable.ID'].isin(nonunique_genes)]
-    grouped_unique_df = unique_df.groupby('Gene.stable.ID')
-    assert (grouped_unique_df['t5'].nunique()==1).all()
-    clean_df = grouped_unique_df.first().reset_index()
+    # unique_df = df[~df[group_col].isin(nonunique_genes)]
+    # grouped_unique_df = unique_df.groupby(group_col)
+    # assert (grouped_unique_df['t5'].nunique()==1).all()
+    # clean_df = grouped_unique_df.first().reset_index()
+    
+    clean_df = clean_df[clean_df['t5']!='--']
+    clean_df['t5'] = pd.to_numeric(clean_df['t5'])
     return clean_df
+
+# import pandas as pd
+# exps = ['hsa_dRNA_HeLa_DRB_0h_1','mmu_dRNA_3T3_mion_1', 'mmu_dRNA_3T3_PION_1']
+# for exp in exps:
+#     df_path = f'../../Hackathon202305/prep/experiments/{exp}/features_v1.csv'
+#     df = pd.read_csv(df_path)
+#     df = df.rename(columns={'gene':'Gene.stable.ID'})
+#     df = df.groupby('Gene.stable.ID').first() #Multiple transcripts per gene, all have the same halflife measured, dropping duplicates
+#     #check if not aggregated per gene 
+#     print(df.groupby('Gene.stable.ID').size().describe())
+#     print(len(df))
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Run prediction on FAST5 files and save results in a pickle file.')
     parser.add_argument('--gene-predictions', type=str, required=True)
     parser.add_argument('--gene-halflifes', type=str, required=True)
+    parser.add_argument('--gene-halflifes-gene-column', type=str, required=True)
     parser.add_argument('--tl', type=float, required=True, help='Time parameter for the decay equation')
     
     parser.add_argument('--output', type=str, help='Path to the output plot.')

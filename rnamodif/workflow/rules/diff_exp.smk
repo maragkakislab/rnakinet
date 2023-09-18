@@ -8,7 +8,7 @@ def get_transcript_to_gene_tab(experiment_name):
         'Mus_musculus.GRCm39.cdna.all': 'transcript-gene-mouse.tab',
         'Homo_sapiens.GRCh38.cdna.all': 'transcript-gene.tab',
     }
-    print('using', transcriptome_to_file[transcriptome], 'map file')
+    # print('using', transcriptome_to_file[transcriptome], 'map file')
     return transcriptome_to_file[transcriptome]
 
 rule transcript_counts:
@@ -105,7 +105,9 @@ rule generate_gene_prediction_stats:
         transcript_to_gene_table = lambda wildcards: get_transcript_to_gene_tab(wildcards.experiment_name),
         predictions='outputs/{prediction_type}/{model_name}/{experiment_name}/{pooling}_pooling.pickle',
     output:
-        'outputs/{prediction_type}/{model_name}/{experiment_name}/{pooling}_pooling_gene_level_predictions.tsv'
+        gene_out = 'outputs/{prediction_type}/{model_name}/{experiment_name}/{pooling}_pooling_gene_level_predictions.tsv',
+        transcript_out = 'outputs/{prediction_type}/{model_name}/{experiment_name}/{pooling}_pooling_transcript_level_predictions.tsv',
+        
     conda:
         "../envs/gene_aggregation.yaml"
     params:
@@ -117,7 +119,8 @@ rule generate_gene_prediction_stats:
             --transcript-to-gene-table {input.transcript_to_gene_table}\
             --predictions {input.predictions} \
             --threshold {params.threshold} \
-            --output {output}\
+            --output-gene {output.gene_out} \
+            --output-transcript {output.transcript_out} \
         """
         
 # #TODO
