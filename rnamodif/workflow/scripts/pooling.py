@@ -2,6 +2,7 @@ import pickle
 import argparse
 from collections import defaultdict
 import numpy as np
+import pandas as pd
 
 def predictions_to_read_predictions(predictions, pooling):
     id_to_preds = defaultdict(list)
@@ -36,15 +37,18 @@ def main(args):
         preds = pickle.load(file)
         
     read_preds = predictions_to_read_predictions(preds, pooling=args.pooling)
-    with open(args.output, 'wb') as handle:
+    with open(args.out_pickle, 'wb') as handle:
         pickle.dump(read_preds, handle, protocol=pickle.HIGHEST_PROTOCOL)
-    
-    
+
+    with open(args.out_csv, 'wb') as handle:
+        pd.DataFrame(read_preds).to_csv(handle, header=['read_id', '5eu_mod_probability'], index=False)
     
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Run prediction on FAST5 files and save results in a pickle file.')
     parser.add_argument('--window_predictions', type=str, required=True, help='Path to the file containing window predictions.')
-    parser.add_argument('--output', type=str, required=True, help='Path to the output pickle file for pooled predictions.')
+    parser.add_argument('--out_pickle', type=str, required=True, help='Path to the output pickle file for pooled predictions.')
+    parser.add_argument('--out_csv', type=str, required=True, help='Path to the output csv file for pooled predictions.')
+
     parser.add_argument('--pooling', type=str, default='mean', help='Type of pooling to use to combine window predictions to read predictions (default: mean).')
     
     

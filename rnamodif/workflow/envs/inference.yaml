@@ -1,3 +1,4 @@
+name: rnamodif_inference_env
 channels:
     - bioconda
     - conda-forge
@@ -9,6 +10,7 @@ dependencies:
     - ont-fast5-api==4.1.1
     - scipy==1.9.0
     - scikit-learn==1.1.2
+    - pandas==1.4.3
     - pip
     - pip:
-        - -e /home/jovyan/RNAModif #TODO generalize
+        - -e ../../../

@@ -19,7 +19,7 @@ rule run_inference:
     output:
         'outputs/{prediction_type}/{model_name}/{experiment_name}/windows.pickle'
     conda:
-        "../envs/inference.yaml" #TODO fix this - needs rnamodif as package
+        "../envs/inference.yaml"
     params:
         batch_size = config['INFERENCE_PARAMETERS']['BATCH_SIZE'],
         max_len = config['INFERENCE_PARAMETERS']['MAX_LEN'],
@@ -48,16 +48,19 @@ rule run_pooling:
     input:
         window_predictions = 'outputs/{prediction_type}/{model_name}/{experiment_name}/windows.pickle'
     output:
-        'outputs/{prediction_type}/{model_name}/{experiment_name}/{pooling}_pooling.pickle'
-    # conda: TODO
+        out_pickle = 'outputs/{prediction_type}/{model_name}/{experiment_name}/{pooling}_pooling.pickle',
+        out_csv = 'outputs/{prediction_type}/{model_name}/{experiment_name}/{pooling}_pooling.csv'
+    conda:
+        "../envs/inference.yaml"
     params:
-        pooling = lambda wildcards: wildcards.pooling
+        pooling = lambda wildcards: wildcards.pooling,
     threads: 1
     shell:
         """
         python3 scripts/pooling.py \
             --window_predictions {input.window_predictions} \
-            --output {output} \
+            --out_pickle {output.outpickle} \
+            --out_csv {output.out_csv} \
             --pooling {params.pooling} \
         """
   
