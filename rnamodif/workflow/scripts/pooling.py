@@ -41,14 +41,17 @@ def main(args):
         pickle.dump(read_preds, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
     with open(args.out_csv, 'wb') as handle:
-        pd.DataFrame(read_preds).to_csv(handle, header=['read_id', '5eu_mod_probability'], index=False)
+        df = pd.DataFrame.from_dict(read_preds, orient='index').reset_index()
+        df.columns = ['read_id', '5eu_mod_score']
+        df['5eu_modified_prediction'] = df['5eu_mod_score'] > args.threshold
+        df.to_csv(handle, index=False)
     
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Run prediction on FAST5 files and save results in a pickle file.')
     parser.add_argument('--window_predictions', type=str, required=True, help='Path to the file containing window predictions.')
     parser.add_argument('--out_pickle', type=str, required=True, help='Path to the output pickle file for pooled predictions.')
     parser.add_argument('--out_csv', type=str, required=True, help='Path to the output csv file for pooled predictions.')
-
+    parser.add_argument('--threshold', type=float, required=True, help='Threshold for the predictions to be considered positives')
     parser.add_argument('--pooling', type=str, default='mean', help='Type of pooling to use to combine window predictions to read predictions (default: mean).')
     
     

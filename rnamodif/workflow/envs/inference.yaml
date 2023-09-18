@@ -13,4 +13,4 @@ dependencies:
     - pandas==1.4.3
     - pip
     - pip:
-        - -e ../../../
+        - -e ../../../../

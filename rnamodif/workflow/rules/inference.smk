@@ -54,6 +54,7 @@ rule run_pooling:
         "../envs/inference.yaml"
     params:
         pooling = lambda wildcards: wildcards.pooling,
+        threshold=lambda wildcards: MODELS[wildcards.model_name]['threshold'],
     threads: 1
     shell:
         """
@@ -62,5 +63,6 @@ rule run_pooling:
             --out_pickle {output.out_pickle} \
             --out_csv {output.out_csv} \
             --pooling {params.pooling} \
+            --threshold {params.threshold} \
         """
   
