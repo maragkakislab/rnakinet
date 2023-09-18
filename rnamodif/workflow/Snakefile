@@ -14,12 +14,12 @@ include: "rules/diff_exp.smk"
 include: "rules/training.smk"
 
 
-#TODO: REPLACE WITH YOUR FILE PATHS
+# TODO: REPLACE WITH YOUR FILE PATHS
 # KEY - name (can be anything)
-# VALUE - path to fast5 files, searches recursivelly
-name_to_fast5_path = [
+# VALUE - path to fast5 files, can be nested
+name_to_fast5_path = {
     '20230706_1704_MN24753_FAR80946_027f7c1e': 'local_store/arsenite/raw/20230706_mmu_dRNA_3T3_5EU_400_1/runs/no_sample/20230706_1704_MN24753_FAR80946_027f7c1e/fast5_pass',
-]
+}
 
 for name, path in name_to_fast5_path.items():
     config['EXPERIMENT_NAME_TO_PATH'][name] = path
@@ -27,5 +27,6 @@ for name, path in name_to_fast5_path.items():
 rule all:
     input:
         expand("outputs/predictions/CUSTOM_allneg_maxpool/{experiment_name}/max_pooling.csv",
-            experiment_name=name_to_fast5_path.keys(),
-        )
+               experiment_name=name_to_fast5_path.keys(),
+              )
+

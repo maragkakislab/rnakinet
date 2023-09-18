@@ -205,11 +205,11 @@ MODELS: {
     #     'window': null,
     #     'weighted': False,
     # },
-    # 'CUSTOM_allneg_maxpool':{
-    #     'path':'checkpoints_pl/2022_mine_allneg/last-Copy5.ckpt',
-    #     'threshold': 0.5,
-    #     'arch': 'cnn_gru',
-    # },
+    'CUSTOM_allneg_maxpool':{
+        'path':'checkpoints_pl/2022_mine_allneg/last-Copy5.ckpt',
+        'threshold': 0.5,
+        'arch': 'cnn_gru',
+    },
     # 'CNN_MAX_extraratio':{
     #     'path':'checkpoints_pl/2022_mine_extraratio_max/last.ckpt',
     #     'arch': 'custom_cnn',
