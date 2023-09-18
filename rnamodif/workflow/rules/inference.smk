@@ -59,7 +59,7 @@ rule run_pooling:
         """
         python3 scripts/pooling.py \
             --window_predictions {input.window_predictions} \
-            --out_pickle {output.outpickle} \
+            --out_pickle {output.out_pickle} \
             --out_csv {output.out_csv} \
             --pooling {params.pooling} \
         """
