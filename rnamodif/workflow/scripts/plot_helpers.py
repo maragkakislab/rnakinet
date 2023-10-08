@@ -1,6 +1,8 @@
 import numpy as np
 import pickle
 from matplotlib import pyplot as plt
+import seaborn as sns
+from scipy.stats import spearmanr, pearsonr
 
 palette = ['#B22222','#4682B4', '#FFC107','#004D40', '#6F8480']
 def setup_palette():
@@ -15,7 +17,7 @@ def check_for_nans(predictions):
             predictions[nan_idx] = 0.0
             
 
-def plot_and_save(args, plot_fn):
+def plot_and_save(args, plot_fn, callbacks=[]):
     pos_preds = args.positives_in_order
     neg_preds = args.negatives_in_order
     pos_names = args.positives_names_in_order
@@ -24,7 +26,7 @@ def plot_and_save(args, plot_fn):
     neg_groups = args.negatives_groups_in_order
     output_file = args.output
     
-    plt.figure(figsize=(5,5))
+    plt.figure(figsize=(1.5,1.5))
     setup_palette()
     
     #TODO remove pos_names, neg_names
@@ -49,7 +51,39 @@ def plot_and_save(args, plot_fn):
     for group, subdict in group_to_preds.items():
         plot_fn(subdict['positives'], subdict['negatives'],  f'{group}_positives', f'{group}_negatives')
     
+    for callback in callbacks:
+        callback()
+    
     plt.savefig(output_file, bbox_inches='tight')
+    
+def correlation_plot(df, x_column, y_column, x_label, y_label, output):
+    plt.figure(figsize=(1.5,1.5))
+    palette = setup_palette()
+    sns.regplot(data=df, x=x_column, y=y_column, 
+            scatter_kws={'alpha':0.6, 's':7, 'color':palette[0]}, 
+            line_kws={"color": palette[1], "lw": 2},  
+    )
+    
+    x = df[x_column].values
+    y = df[y_column].values
+    
+    fontsize=8
+    plt.xlabel(x_label, fontsize=fontsize)
+    plt.ylabel(y_label, fontsize=fontsize)
+    
+    # corrcoef = np.corrcoef(x,y)[0,1]
+    spearman = spearmanr(x,y).statistic
+    pearson = pearsonr(x,y).statistic
+    
+    plt.text(0.1, 0.95, f'pearson r:{pearson:.2f} spearman r:{spearman:.2f}', fontsize=fontsize-2, transform=plt.gca().transAxes, verticalalignment='top')
+    plt.xticks(fontsize=fontsize-2)
+    plt.yticks(fontsize=fontsize-2)
+    
+    sns.set_style('whitegrid')
+    sns.despine()
+    
+    plt.savefig(output, bbox_inches='tight')     
+    
     
     
 def parse_plotting_args(parser):
@@ -96,5 +130,6 @@ def parse_plotting_args(parser):
         help='Names of the experiment group of negatives.'
     )
     parser.add_argument('--model-name', type=str, required=True, help='Name of the model to plot')
+    parser.add_argument('--chosen_threshold', type=float, required=False, help='Chosen threshold of the model')
     parser.add_argument('--output', type=str, required=True, help='Path to the output plot file.')
     return parser

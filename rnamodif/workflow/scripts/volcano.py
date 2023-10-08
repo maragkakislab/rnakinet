@@ -2,17 +2,29 @@ import argparse
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
+import matplotlib as mpl
+from plot_helpers import setup_palette
+import seaborn as sns
 
 def plot_fig(df, column, save_path):
     FC = df['log2FoldChange']
     padj = df[column]
     log_col = -np.log10(padj)
 
-    plt.scatter(FC, log_col, s=.25)
-    plt.xlabel('log2FC')
-    # plt.ylim(0, 0.5)
-    plt.ylabel(f'-log10({column})')
-    plt.savefig(save_path)
+    
+    fontsize=8
+    mpl.rc('font',family='Arial')
+    plt.figure(figsize=(1.5,1.5))
+    palette = setup_palette()
+    
+    plt.scatter(FC, log_col, s=.25, alpha=0.3)
+    plt.xlabel('log2FC', fontsize=fontsize)
+    plt.ylabel(f'-log10({column})', fontsize=fontsize)
+    plt.xticks(fontsize=fontsize-2)
+    plt.yticks(fontsize=fontsize-2)
+    sns.set_style('whitegrid')
+    sns.despine()
+    plt.savefig(save_path, bbox_inches='tight')
 
 
 def main(args):

@@ -4,12 +4,13 @@ import pandas as pd
 import numpy as np
 import seaborn as sns
 from pathlib import Path
-from plot_helpers import setup_palette
+from plot_helpers import setup_palette, correlation_plot
+
 
 
 def main(args):
     gene_preds = pd.read_csv(args.gene_predictions, sep='\t')
-    print(gene_preds.head())
+    # print(gene_preds.head())
     gene_halflifes = pd.read_csv(args.gene_halflifes)
     gene_halflifes = clean_halflifes_df(gene_halflifes, group_col=args.gene_halflifes_gene_column)
         
@@ -19,57 +20,19 @@ def main(args):
         'transcript': 'Transcript stable ID',
     }
     
+    column = 't5' #t5, hl
     gene_join = gene_preds.merge(gene_halflifes, how='left', left_on=key_map[args.gene_halflifes_gene_column], right_on=args.gene_halflifes_gene_column)
-    gene_join = gene_join[gene_join['t5'].notnull()]
+    gene_join = gene_join[gene_join[column].notnull()]
     
     # TODO filter bad genes
     # TODO parametrize 
     gene_join = gene_join[gene_join['reads'] > 100] #100
-    gene_join = gene_join[gene_join['t5'] < 5] #6 
+    gene_join = gene_join[gene_join[column] < 5] #6 
     
     gene_join = add_predicted_halflifes(gene_join)
-    gene_join['t5_binned'] = pd.cut(gene_join['t5'], bins=[0, 1, 2, 3, 4, 5], labels=['0-1', '1-2', '2-3', '3-4', '4-5'])
+    gene_join['t5_binned'] = pd.cut(gene_join[column], bins=[0, 1, 2, 3, 4, 5], labels=['0-1', '1-2', '2-3', '3-4', '4-5'])
     
-    x = gene_join['t5'].values
-    y = gene_join['pred_t5'].values
-    
-    # Regression plot
-    palette = setup_palette()
-    sns.regplot(data=gene_join, x='t5', y='pred_t5', 
-            scatter_kws={'alpha':0.6, 's':25, 'color':palette[0]}, 
-            line_kws={"color": palette[1], "lw": 2},  # Add regression line color and width
-            # label=f'r={np.corrcoef(x,y)[0,1]:.2f}',
-    )
-    
-    fontsize=20
-    plt.xlabel('t5 Eisen',fontsize=fontsize+6)
-    plt.ylabel('t5 predicted',fontsize=fontsize+6)
-    # plt.legend(loc='upper left', fontsize=16, frameon=False)
-    plt.text(1, 5, f'r={np.corrcoef(x,y)[0,1]:.2f}', fontsize=fontsize)
-    
-    
-    sns.set_style('whitegrid')
-    sns.despine()
-    
-    plt.savefig(args.output, bbox_inches = 'tight')
-    
-    # Boxplots
-#     plt.figure()
-#     sns.boxplot(data=gene_join, x='t5_binned', y='pred_t5')
-#     plt.xlabel('t5 Eisen',fontsize=16)
-#     plt.ylabel('t5 predicted',fontsize=16)
-#     plt.legend(loc='upper left', fontsize=16, frameon=False)
-    
-#     # sns.set_style('whitegrid')
-#     plt.grid(axis='y', linestyle='-', which='major', color='white', linewidth=0.5) # Remove or set white color for horizontal grid lines
-    
-#     sns.despine()
-    
-#     path = Path(args.output)
-#     new_path = path.with_stem(path.stem + "_boxplot")
-#     plt.savefig(new_path, bbox_inches = 'tight')
-    
-    
+    correlation_plot(gene_join, x_column=column,y_column='pred_t5', x_label='t5 measured',y_label='t5 predicted', output=args.output)
 
 def add_predicted_halflifes(df):
     tl = args.tl

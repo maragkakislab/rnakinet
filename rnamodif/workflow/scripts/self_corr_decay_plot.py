@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 import seaborn as sns
 from pathlib import Path
-from plot_helpers import setup_palette
+from plot_helpers import setup_palette, correlation_plot
 
 
 def main(args):
@@ -24,30 +24,7 @@ def main(args):
     
     gene_join = gene_preds_1.merge(gene_preds_2, how='inner', left_on=key_map[args.reference_level], right_on=key_map[args.reference_level])
     
-    x = gene_join['pred_t5_x'].values
-    y = gene_join['pred_t5_y'].values
-    
-    palette = setup_palette()
-    
-    # Regression plot
-    sns.regplot(data=gene_join, x='pred_t5_x', y='pred_t5_y', 
-            scatter_kws={'alpha':0.6, 's':25, 'color':palette[0]}, 
-            line_kws={"color": palette[1], "lw": 2},  # Add regression line color and width
-            # label=f'r={np.corrcoef(x,y)[0,1]:.2f}',
-    )
-    fontsize=20
-    
-    plt.xlabel('t5 predicted (replicate 1)',fontsize=fontsize+6)
-    plt.ylabel('t5 predicted (replicate 2)',fontsize=fontsize+6)
-    # plt.legend(loc='upper left', fontsize=16, frameon=False)
-    plt.text(2, 5, f'r={np.corrcoef(x,y)[0,1]:.2f}', fontsize=fontsize)
-    
-    
-    sns.set_style('whitegrid')
-    sns.despine()
-    
-    plt.savefig(args.output, bbox_inches = 'tight')
-    
+    correlation_plot(gene_join, x_column='pred_t5_x',y_column='pred_t5_y', x_label='t5 predicted (replicate 1)',y_label='t5 predicted (replicate 2)', output=args.output)    
     
 
 def add_predicted_halflifes(df):

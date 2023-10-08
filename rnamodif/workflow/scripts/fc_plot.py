@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
 import seaborn as sns
-from plot_helpers import setup_palette
+from plot_helpers import setup_palette, correlation_plot
 
 def calc_fc(df, col, conditions_count, controls_count):
     df['ctrl_avg'] = df[[f'{col}_ctrl_{i}' for i in range(controls_count)]].mean(axis=1)
@@ -66,47 +66,33 @@ def main(args):
     # joined_df = joined_df[joined_df['padj'] < 0.05]
     # joined_df = joined_df[joined_df['padj'] < 0.15]
     
-    plot_metric = 'Relative modification increase (%)'
-    # plot_metric = 'Pred_log2FoldChange'
-    x = joined_df['log2FoldChange'].values
-    y = joined_df[plot_metric].values
     
-    # x = joined_df['FC'].values
-    # y = joined_df['Pred_FC'].values
+    correlation_plot(joined_df, x_column='log2FoldChange',y_column='Relative modification increase (%)', x_label='Expression fold change (log2)\nHeat shock vs control', y_label='Relative modification increase (%)', output=args.output)
     
-    # x = joined_df[target_col].values
-    # y = joined_df['Pred_FC'].values
+#     plot_metric = 'Relative modification increase (%)'
+#     x = joined_df['log2FoldChange'].values
+#     y = joined_df[plot_metric].values
     
-    # sns.regplot(x,y, scatter_kws={'alpha':0.6})
-    # sns.regplot(data=joined_df, x='log2FoldChange',y='Pred_log2FoldChange', scatter_kws={'alpha':0.6, 's':25,'color':'blue'})
-    palette = setup_palette()
+#     palette = setup_palette()
     
-    sns.regplot(data=joined_df, x='log2FoldChange', y=plot_metric, 
-            scatter_kws={'alpha':0.6, 's':25, 'color':palette[0]}, 
-            line_kws={"color": palette[1], "lw": 2},  # Add regression line color and width
-            label=f'r={np.corrcoef(x,y)[0,1]:.2f}',
-    )
+#     plt.figure(figsize=(1.5,1.5))
+#     sns.regplot(data=joined_df, x='log2FoldChange', y=plot_metric, 
+#             scatter_kws={'alpha':0.6, 's':7, 'color':palette[0]}, 
+#             line_kws={"color": palette[1], "lw": 2},  
+#     )
     
+#     fontsize=8
+#     plt.xlabel('Expression fold change (log2)\nHeat shock vs control', fontsize=fontsize)
+#     plt.ylabel(plot_metric, fontsize=fontsize)
+#     plt.text(0.1, 0.95, f'r={np.corrcoef(x,y)[0,1]:.2f}', fontsize=fontsize-2, transform=plt.gca().transAxes, verticalalignment='top')
     
-    # plt.title(np.corrcoef(x,y)[0,1])
-    # plt.title(f'Correlation: {np.corrcoef(x,y)[0,1]:.2f}, Genes:{len(joined_df)}', fontsize=14)
-    fontsize=16
-    plt.xlabel('Expression fold change (log2)\nHeat shock vs control', fontsize=fontsize)
-    plt.ylabel(plot_metric, fontsize=fontsize)
-    plt.legend(loc='upper left', fontsize=fontsize, frameon=False)
-    # plt.text(-0.05, 25, f'r={np.corrcoef(x,y)[0,1]:.2f}', fontsize=fontsize)
+#     plt.xticks(fontsize=fontsize-2)
+#     plt.yticks(fontsize=fontsize-2)
     
-    plt.xticks(fontsize=fontsize)
-    plt.yticks(fontsize=fontsize)
+#     sns.set_style('whitegrid')
+#     sns.despine()
     
-    
-    # plt.grid(which='minor', alpha=0.2)
-    # plt.grid(which='major', alpha=0.5)
-    
-    sns.set_style('whitegrid')
-    sns.despine()
-    
-    plt.savefig(args.output, bbox_inches='tight')         
+#     plt.savefig(args.output, bbox_inches='tight')         
     
     
 if __name__ == "__main__":

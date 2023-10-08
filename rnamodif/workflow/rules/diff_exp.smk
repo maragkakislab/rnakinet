@@ -112,6 +112,8 @@ rule generate_gene_prediction_stats:
         "../envs/gene_aggregation.yaml"
     params:
         threshold=lambda wildcards: MODELS[wildcards.model_name]['threshold'],
+    wildcard_constraints:
+        prediction_type='(predictions|predictions_limited)'
     shell:
         """
         python3 scripts/gene_to_preds.py \
@@ -122,6 +124,68 @@ rule generate_gene_prediction_stats:
             --output-gene {output.gene_out} \
             --output-transcript {output.transcript_out} \
         """
+        
+rule generate_gene_prediction_stats_joined:
+    input:
+        transcriptome_bam='outputs/alignment/{experiment_name}/reads-align.transcriptome.sorted.bam',
+        # transcript_to_gene_table='transcript-gene.tab',
+        transcript_to_gene_table = lambda wildcards: get_transcript_to_gene_tab(wildcards.experiment_name),
+        predictions='outputs/{prediction_type}/{model_name}/{experiment_name}/{pooling}_pooling_joined.pickle',
+    output:
+        gene_out = 'outputs/{prediction_type}/{model_name}/{experiment_name}/{pooling}_pooling_gene_level_predictions.tsv',
+        transcript_out = 'outputs/{prediction_type}/{model_name}/{experiment_name}/{pooling}_pooling_transcript_level_predictions.tsv',
+        
+    conda:
+        "../envs/gene_aggregation.yaml"
+    params:
+        threshold=lambda wildcards: MODELS[wildcards.model_name]['threshold'],
+    wildcard_constraints:
+        prediction_type='(joined_predictions)'
+    shell:
+        """
+        python3 scripts/gene_to_preds.py \
+            --transcriptome-bam {input.transcriptome_bam} \
+            --transcript-to-gene-table {input.transcript_to_gene_table}\
+            --predictions {input.predictions} \
+            --threshold {params.threshold} \
+            --output-gene {output.gene_out} \
+            --output-transcript {output.transcript_out} \
+        """
+
+merge_bam_experiments = {
+    'ALL_NoArs60':hela_decay_exps
+}     
+rule create_joined_experiment:
+    input:
+        transcriptome_bam_list=lambda wildcards: expand('outputs/alignment/{experiment_name}/reads-align.transcriptome.sorted.bam', experiment_name=merge_bam_experiments[wildcards.group_name]),
+    output:
+        'outputs/alignment/{group_name}/reads-align.transcriptome.sorted.bam'
+    conda:
+        '../envs/samtools.yaml'
+    shell:
+        """
+        samtools merge {output} {input.transcriptome_bam_list}
+        """
+
+rule create_joined_predictions:
+    input:
+        predictions=lambda wildcards: expand('outputs/predictions/{model_name}/{experiment_name}/{pooling}_pooling.pickle', 
+            model_name=wildcards.model_name, 
+            experiment_name=merge_bam_experiments[wildcards.group_name],
+            pooling=wildcards.pooling)
+    output:
+        'outputs/joined_predictions/{model_name}/{group_name}/{pooling}_pooling_joined.pickle',
+    conda:
+        '../envs/pandas_basic.yaml'
+    shell:
+        """
+        python3 scripts/merge_pickles.py \
+            --pickles {input.predictions} \
+            --output {output} \
+        """
+        
+        
+
         
 # #TODO
 #GOAL FOR DIFF_EXP validation

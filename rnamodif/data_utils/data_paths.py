@@ -22,7 +22,16 @@ name_to_path = {
     'nia_neuron_hek':base_path/'20201001_hsa_dRNA_Hek293T_NoArs_5P_1',
     'nia_neuron_ctrl':base_path/'20201022_hsa_dRNA_Neuron_ctrl_5P_1',
     'nia_neuron_tdp':base_path/'20201022_hsa_dRNA_Neuron_TDP_5P_1',
+    
+    'nia_2022_pos_march':base_path/'20220303_hsa_dRNA_HeLa_5EU_polyA_REL5_2',
+    'nia_2022_pos_may':base_path/'20220520_hsa_dRNA_HeLa_5EU_200_1',
+    
+    'nia_2022_neg_march':base_path/'20220303_hsa_dRNA_HeLa_DMSO_polyA_REL5_2',
+    'nia_2022_neg_may':base_path/'20220520_hsa_dRNA_HeLa_DMSO_1',
+    
 }
+
+# Experiments that do not require split
 name_to_path_extras = {
     'm6A_0': '/home/jovyan/RNAModif/rnamodif/workflow/local_store/store/seq/ont/experiments/m6A_0/fast5',
     '2-OmeATP_0': '/home/jovyan/RNAModif/rnamodif/workflow/local_store/store/seq/ont/experiments/2-OmeATP_0/fast5',
@@ -31,6 +40,12 @@ name_to_path_extras = {
     'remdesivir_0': '/home/jovyan/RNAModif/rnamodif/workflow/local_store/store/seq/ont/experiments/remdesivir_0/fast5',
     's4U_0': '/home/jovyan/RNAModif/rnamodif/workflow/local_store/store/seq/ont/experiments/s4U_0/fast5',
 }
+
+name_to_expname = {name: path.stem for name, path in name_to_path.items()}
+# for name, path in name_to_path_extras.items():
+#     name_to_expname[name] = Path(path).parent.stem
+    
+
 
 name_to_files = {}
 for name,path in name_to_path.items():

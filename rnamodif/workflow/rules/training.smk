@@ -1,8 +1,13 @@
 import yaml
+# from rnamodif.data_utils.data_paths import name_to_expname #TODO refactor, dont import from main package here
 
 rule run_training:
+    # Using testing for validation (for logging), not everything needs a split -> logic is in train.py and not here
     # input: 
-        #TODO require files?
+    #     lambda wildcards: expand("outputs/splits/{experiment_name}/FAST5_{split}_SPLIT_DONE.txt",
+    #           experiment_name=[name_to_expname[name] for name in training_configs[wildcards.training_experiment_name]['training_positives_exps']+training_configs[wildcards.training_experiment_name]['training_negatives_exps'] if name in name_to_expname.keys()], #Ignoring name_to_path_extras, which do not require splitting and are explicitly set
+    #           split=['train','validation','test'],
+    #     )
     output:
         done_txt = 'checkpoints_pl/{training_experiment_name}/DONE.txt',
         arch_hyperparams_yaml = 'checkpoints_pl/{training_experiment_name}/arch_hyperparams.yaml',
@@ -28,16 +33,19 @@ rule run_training:
         enable_progress_bar = lambda wildcards: training_configs[wildcards.training_experiment_name]['enable_progress_bar'],
         log_to_file = lambda wildcards: training_configs[wildcards.training_experiment_name]['log_to_file'],
         save_path = lambda wildcards: f'checkpoints_pl/{wildcards.training_experiment_name}',
-    threads: 64 #lambda wildcards: training_configs[wildcards.training_experiment_name]['workers']
+    threads: 32 #lambda wildcards: training_configs[wildcards.training_experiment_name]['workers']
     resources: 
         gpus=1,
         # mem_mb=1024*16,
     log:
         'checkpoints_pl/{training_experiment_name}/stdout.log'
-    run:
-        with open(output.arch_hyperparams_yaml, 'w') as file:
-            yaml.dump(params.arch_hyperparams, file)
-        command = """
+    conda:
+        '../envs/training.yaml'
+    shell:
+        """
+        echo "{params.arch_hyperparams}" > {output.arch_hyperparams_yaml}
+
+        command="
         python3 scripts/train.py \
             --training-positives-exps {params.training_positives_exps} \
             --training-negatives-exps {params.training_negatives_exps} \
@@ -60,10 +68,10 @@ rule run_training:
             --logging-step {params.logging_step} \
             --enable-progress-bar {params.enable_progress_bar} \
             --save-path checkpoints_pl \
-            """   
-        if(params.log_to_file):
-            command+="&> {log}"
-            
-        shell(command)
-        shell('touch {output.done_txt}')
+            "
+
+        $command &>{log}
+
+        touch {output.done_txt}
+        """
   

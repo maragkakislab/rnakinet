@@ -1,7 +1,6 @@
 from pathlib import Path
 from rnamodif.workflow.training_configs import training_configs
-from rnamodif.workflow.evaluation_configs import comparisons, time_data, individual_exps, prediction_type, pooling, model_name, stat_exps
-
+from rnamodif.workflow.evaluation_configs import pos_neg_pairs, comparison_groups, decay_exps, prediction_type, pooling, model_name, time_data, exp_groups, hela_decay_exps
 
 configfile: "config.yml"
 
@@ -17,16 +16,43 @@ include: "rules/training.smk"
 # TODO: REPLACE WITH YOUR FILE PATHS
 # KEY - name (can be anything)
 # VALUE - path to fast5 files, can be nested
-name_to_fast5_path = {
-    '20230706_1704_MN24753_FAR80946_027f7c1e': 'local_store/arsenite/raw/20230706_mmu_dRNA_3T3_5EU_400_1/runs/no_sample/20230706_1704_MN24753_FAR80946_027f7c1e/fast5_pass',
-}
+# name_to_fast5_path = {
+#     '20230706_1704_MN24753_FAR80946_027f7c1e': '/home/jovyan/local_store/arsenite/raw/20230706_mmu_dRNA_3T3_5EU_400_1/runs/no_sample/20230706_1704_MN24753_FAR80946_027f7c1e/fast5_pass',
+# }
 
-for name, path in name_to_fast5_path.items():
-    config['EXPERIMENT_NAME_TO_PATH'][name] = path
+# for name, path in name_to_fast5_path.items():
+#     config['EXPERIMENT_NAME_TO_PATH'][name] = path
+#     print('EXISTS', Path(path).exists())
 
 rule all:
     input:
-        expand("outputs/predictions/CUSTOM_allneg_maxpool/{experiment_name}/max_pooling.csv",
-               experiment_name=name_to_fast5_path.keys(),
-              )
+        # expand('outputs/visual/predictions/CUSTOM_allneg_maxpool/max_ALL_DONE.txt')
+        # expand('outputs/splits/{experiment_name}/FAST5_{split}_SPLIT_DONE.txt',
+               # experiment_name=['20220520_hsa_dRNA_HeLa_5EU_200_1','20220303_hsa_dRNA_HeLa_DMSO_polyA_REL5_2'],
+               # split=['train','test','validation']
+        # ),
+        expand('checkpoints_pl/{model}/DONE.txt', model=training_configs.keys()),
+        # 'outputs/visual/predictions/CUSTOM_allneg_maxpool/decay/max_pooling_transcript_read_limit_decay_plot.pdf',
+        # 'outputs/visual/joined_predictions/CUSTOM_allneg_maxpool/ALL_NoArs60/max_pooling_transcript_decay_plot.pdf'
+        # expand('outputs/visual/datastats/{group}_sizes_stats.csv', group=['nanoid','nanoid_shock','nia','noars60','3t3'])
+        # expand('outputs/visual/{prediction_type}/{model_name}/{pooling}_ALL_DONE.txt',
+        #     prediction_type=prediction_type, 
+        #     model_name = model_name, 
+        #     pooling=pooling,
+        # ),
+        # 'outputs/alignment/ALL_NoArs60/reads-align.transcriptome.sorted.bam'
+        # 'outputs/visual/datastats/nia_lengths_dist.pdf',
+        # 'outputs/visual/datastats/nanoid_lengths_dist.pdf',
+        # expand('outputs/basecalling/{experiment_name}/DONE.txt', experiment_name=individual_exps)
+        # expand("outputs/predictions/CUSTOM_allneg_maxpool/{experiment_name}/max_pooling.csv",
+        #        experiment_name=name_to_fast5_path.keys(),
+        # )
+        # expand('outputs/{prediction_type}/{model_name}/{experiment_name}/speedtest/readlimit_{reads_limit}_threads_{threads}.json',
+        #       prediction_type=prediction_type,
+        #       model_name = model_name,
+        #       experiment_name=['20220520_hsa_dRNA_HeLa_DMSO_1'],
+        #       reads_limit=[10000, 20000, 30000],
+        #       threads=[16, 64],
+        # )
 
+# 

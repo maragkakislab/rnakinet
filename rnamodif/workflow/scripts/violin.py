@@ -7,6 +7,7 @@ import seaborn as sns
 import numpy as np
 import matplotlib.patches as mpatches
 from plot_helpers import setup_palette
+import matplotlib as mpl
 
 def main(args):
     df = pd.DataFrame({exp_name: pd.Series(get_preds_from_file(preds_file)) for exp_name,preds_file in zip(args.exp_names, args.files)})
@@ -17,27 +18,32 @@ def main(args):
     palette_colors = setup_palette()
     palette = {exp:get_exp_color(exp, palette_colors) for exp in args.exp_names}
     
-    fontsize=10
-    plt.figure(figsize=(5, len(args.files)))
+    mpl.rc('font',family='Arial')
+    fontsize=8
+    plt.figure(figsize=(1.5, 0.5*len(args.files)+0.25))
     sns.violinplot(
         x=x_axis_name, 
         y=y_axis_name, 
         data=df, 
         orient='h', 
-        inner='box',
-        scale='width',
+        # inner=None, #can be box and thinned in affinity
+        inner='box', #can be box and thinned in affinity
         palette=palette,
+        linewidth=0.75,
+        scale='area',
     )
-    plt.xlabel(x_axis_name, fontsize=fontsize+6)
-    plt.ylabel(y_axis_name, fontsize=fontsize+6)
+    plt.xlabel(x_axis_name, fontsize=fontsize)
+    plt.ylabel(y_axis_name, fontsize=fontsize)
     
-    plt.yticks(fontsize=fontsize)
-    plt.xticks(fontsize=fontsize)
+    plt.yticks(fontsize=fontsize-2)
+    plt.xticks(fontsize=fontsize-2)
     # plt.xlim(0,1)
     
     red_patch = mpatches.Patch(color=palette_colors[0], label='Control')
     green_patch = mpatches.Patch(color=palette_colors[1], label='5EU')
-    plt.legend(handles=[green_patch, red_patch], loc='upper right', fontsize=fontsize+4)
+    sns.set_style('whitegrid')
+    sns.despine()
+    plt.legend(handles=[green_patch, red_patch], loc='upper center', fontsize=fontsize-2, frameon=False, ncol=2, bbox_to_anchor=(0.5,1.2))
     plt.savefig(args.output, bbox_inches = 'tight')
 
 def get_exp_color(exp_name, palette_colors):

@@ -7,7 +7,7 @@ from sklearn.metrics import roc_auc_score
 from collections import defaultdict
 from sklearn.metrics import average_precision_score
 
-    
+
 class GenericUnlimited(pl.LightningModule):
     def __init__(
             self,
@@ -30,6 +30,7 @@ class GenericUnlimited(pl.LightningModule):
         self.training_step_counter = 0
         self.cumulative_loss = 0
         self.cumulative_acc = 0
+        self.cumulative_label_sum = 0
         self.logging_steps = logging_steps
 
     def forward(self, x):
@@ -56,7 +57,7 @@ class GenericUnlimited(pl.LightningModule):
         probs = self.logits_to_probs(logits)
         
         metrics = self.get_metrics(probs, y, exp)
-        self.log_cumulative_train_metrics(loss, metrics['acc'])
+        self.log_cumulative_train_metrics(loss, metrics['acc'], torch.sum(y).item())
         for metric, value in metrics.items():
             self.log(f'train {metric}', value, on_epoch=True, on_step=False)
 
@@ -101,19 +102,23 @@ class GenericUnlimited(pl.LightningModule):
                 metrics[f'{e} acc'] = self.acc(predictions[exps == e], labels[exps == e])
         return metrics
 
-    def log_cumulative_train_metrics(self, loss, accuracy):
+    def log_cumulative_train_metrics(self, loss, accuracy, label_sum):
         self.training_step_counter += 1
         self.cumulative_loss += loss.item()
         self.cumulative_acc += accuracy
+        self.cumulative_label_sum += label_sum
 
         if self.training_step_counter % self.logging_steps == 0:
             avg_loss = self.cumulative_loss / self.logging_steps
             avg_acc = self.cumulative_acc / self.logging_steps
+            avg_label_sum = self.cumulative_label_sum / self.logging_steps
             
             self.log(f'train_loss_cum', avg_loss, on_step=True, on_epoch=False)
             self.log(f'train_acc_cum', avg_acc, on_step=True, on_epoch=False)
+            self.log(f'train_label_sum_cum', avg_label_sum, on_step=True, on_epoch=False)
             self.cumulative_acc = 0
             self.cumulative_loss = 0
+            self.cumulative_label_sum = 0
             
     def logits_to_probs(self, logits):
         return torch.sigmoid(logits)

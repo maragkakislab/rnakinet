@@ -1,10 +1,11 @@
+import comet_ml
 from rnamodif.data_utils.dataloading_uncut import TrainingDatamodule
 import pytorch_lightning as pl
 from pytorch_lightning.loggers import CometLogger
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 from pathlib import Path
-from rnamodif.data_utils.data_paths import name_to_files 
+from rnamodif.data_utils.data_paths import name_to_files #TODO refactor to not take magic strings in snakemake training
 from rnamodif.workflow.scripts.helpers import arch_map #TODO refactor model mapping from strings 
 import argparse
 import yaml
@@ -72,8 +73,12 @@ def get_datasets_config(args):
         'Nanoid_pos_1':name_to_files['nano_pos_1']['test'], 
         'Nanoid_pos_2':name_to_files['nano_pos_2']['test'], 
         'Nanoid_pos_3':name_to_files['nano_pos_3']['test'], 
-        '5eu_2022_chr1_pos':name_to_files['nia_2022_pos']['test'],
-        '5eu_2022_chr20_pos':name_to_files['nia_2022_pos']['validation'],
+        
+        '5eu_2022_chr1_pos_march':name_to_files['nia_2022_pos_march']['test'],
+        '5eu_2022_chr20_pos_march':name_to_files['nia_2022_pos_march']['validation'],
+        
+        '5eu_2022_chr1_pos_may':name_to_files['nia_2022_pos_may']['test'],
+        '5eu_2022_chr20_pos_may':name_to_files['nia_2022_pos_may']['validation'],
     }
 
     valid_exp_to_files_neg = {
@@ -81,17 +86,25 @@ def get_datasets_config(args):
         'Nanoid_neg_1':name_to_files['nano_neg_1']['test'], 
         'Nanoid_neg_2':name_to_files['nano_neg_2']['test'], 
         'Nanoid_neg_3':name_to_files['nano_neg_3']['test'], 
-        '5eu_2022_chr1_neg':name_to_files['nia_2022_neg']['test'],
-        '5eu_2022_chr20_neg':name_to_files['nia_2022_neg']['validation'],
+        
+        '5eu_2022_chr1_neg_march':name_to_files['nia_2022_neg_march']['test'],
+        '5eu_2022_chr20_neg_march':name_to_files['nia_2022_neg_march']['validation'],
+        
+        '5eu_2022_chr1_neg_may':name_to_files['nia_2022_neg_may']['test'],
+        '5eu_2022_chr20_neg_may':name_to_files['nia_2022_neg_may']['validation'],
+        
     }
 
     valid_auroc_tuples = [
-        ('5eu_2022_chr1_pos', '5eu_2022_chr1_neg', '2022'),
         ('5eu_2020_pos', 'UNM_2020', '2020'),
         ('Nanoid_pos_1', 'Nanoid_neg_1', 'Nanoid_1'),
         ('Nanoid_pos_2', 'Nanoid_neg_2', 'Nanoid_2'),
         ('Nanoid_pos_3', 'Nanoid_neg_3', 'Nanoid_3'),
-        ('5eu_2022_chr20_pos', '5eu_2022_chr20_neg', '2022 valid'),
+        ('5eu_2022_chr1_pos_march', '5eu_2022_chr1_neg_march', '2022 march test'),
+        ('5eu_2022_chr1_pos_may', '5eu_2022_chr1_neg_may', '2022 may test'),
+        ('5eu_2022_chr20_pos_march', '5eu_2022_chr20_neg_march', '2022 march valid'),
+        ('5eu_2022_chr20_pos_may', '5eu_2022_chr20_neg_may', '2022 may valid'),
+        
     ]
     datasets = {
         'train_pos_files':train_pos_files,
@@ -138,7 +151,7 @@ def get_training_config(args):
     training_params = {
         'grad_accumulation':args.grad_acc,
         'accelerator':'gpu',
-        "early_stopping_metric":"2022 valid auroc",
+        "early_stopping_metric":"2022 may valid auroc",
         'early_stopping_patience':args.early_stopping_patience,
 
     }

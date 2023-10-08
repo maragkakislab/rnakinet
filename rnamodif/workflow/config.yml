@@ -1,6 +1,13 @@
 BASECALLER_VERSION : 'ont-guppy_6.4.8_linux64'
 
 EXPERIMENT_NAME_TO_PATH : {
+    #New
+    '20220520_hsa_dRNA_HeLa_5EU_200_1': 'local_store/arsenite/raw/20220520_hsa_dRNA_HeLa_5EU_200_1',
+    '20220303_hsa_dRNA_HeLa_DMSO_polyA_REL5_2': 'local_store/arsenite/raw/20220303_hsa_dRNA_HeLa_DMSO_polyA_REL5_2',
+    '20211203_mmu_dRNA_3T3_mion_1': 'local_store/arsenite/raw/20211203_mmu_dRNA_3T3_mion_1',
+    '20211203_mmu_dRNA_3T3_PION_1': 'local_store/arsenite/raw/20211203_mmu_dRNA_3T3_PION_1',
+    #
+    
     '20220520_hsa_dRNA_HeLa_DMSO_1': 'local_store/store/seq/ont/experiments/20220520_hsa_dRNA_HeLa_DMSO_1',
     '20220303_hsa_dRNA_HeLa_5EU_polyA_REL5_2': 'local_store/store/seq/ont/experiments/20220303_hsa_dRNA_HeLa_5EU_polyA_REL5_2',
     
@@ -81,11 +88,27 @@ EXPERIMENT_NAME_TO_PATH : {
     '20180403_1208_K562_5EU_0_unlabeled_III_run_TEST': 'outputs/splits/20180403_1208_K562_5EU_0_unlabeled_III_run/test',
     '20180516_1108_K562_5EU_1440_labeled_III_run_TEST': 'outputs/splits/20180516_1108_K562_5EU_1440_labeled_III_run/test',
     
-    '20201016_hsa_dRNASeq_HeLa_dmso_polyA_REL5_short_1_TEST': 'outputs/splits/20201016_hsa_dRNASeq_HeLa_dmso_polyA_REL5_short_1/test',
-    '20201016_hsa_dRNASeq_HeLa_5EU_polyA_REL5_short_1_TEST': 'outputs/splits/20201016_hsa_dRNASeq_HeLa_5EU_polyA_REL5_short_1/test',
+    # '20201016_hsa_dRNASeq_HeLa_dmso_polyA_REL5_short_1_TEST': 'outputs/splits/20201016_hsa_dRNASeq_HeLa_dmso_polyA_REL5_short_1/test',
+    # '20201016_hsa_dRNASeq_HeLa_5EU_polyA_REL5_short_1_TEST': 'outputs/splits/20201016_hsa_dRNASeq_HeLa_5EU_polyA_REL5_short_1/test',
     
     '20220520_hsa_dRNA_HeLa_DMSO_1_TEST': 'outputs/splits/20220520_hsa_dRNA_HeLa_DMSO_1/test',
     '20220303_hsa_dRNA_HeLa_5EU_polyA_REL5_2_TEST': 'outputs/splits/20220303_hsa_dRNA_HeLa_5EU_polyA_REL5_2/test',
+    
+    
+    '20180327_1102_K562_5EU_0_unlabeled_run_TRAIN': 'outputs/splits/20180327_1102_K562_5EU_0_unlabeled_run/train',
+    '20180514_1054_K562_5EU_1440_labeled_run_TRAIN': 'outputs/splits/20180514_1054_K562_5EU_1440_labeled_run/train',
+    
+    '20180403_1102_K562_5EU_0_unlabeled_II_run_TRAIN': 'outputs/splits/20180403_1102_K562_5EU_0_unlabeled_II_run/train',
+    '20180514_1541_K562_5EU_1440_labeled_II_run_TRAIN': 'outputs/splits/20180514_1541_K562_5EU_1440_labeled_II_run/train',
+    
+    '20180403_1208_K562_5EU_0_unlabeled_III_run_TRAIN': 'outputs/splits/20180403_1208_K562_5EU_0_unlabeled_III_run/train',
+    '20180516_1108_K562_5EU_1440_labeled_III_run_TRAIN': 'outputs/splits/20180516_1108_K562_5EU_1440_labeled_III_run/train',
+    
+    # '20201016_hsa_dRNASeq_HeLa_dmso_polyA_REL5_short_1_TEST': 'outputs/splits/20201016_hsa_dRNASeq_HeLa_dmso_polyA_REL5_short_1/test',
+    # '20201016_hsa_dRNASeq_HeLa_5EU_polyA_REL5_short_1_TEST': 'outputs/splits/20201016_hsa_dRNASeq_HeLa_5EU_polyA_REL5_short_1/test',
+    
+    '20220520_hsa_dRNA_HeLa_DMSO_1_TRAIN': 'outputs/splits/20220520_hsa_dRNA_HeLa_DMSO_1/train',
+    '20220303_hsa_dRNA_HeLa_5EU_polyA_REL5_2_TRAIN': 'outputs/splits/20220303_hsa_dRNA_HeLa_5EU_polyA_REL5_2/train',
     
 }
 
@@ -135,6 +158,16 @@ KITS : {
     '20230706_mmu_dRNA_3T3_5EU_400_1': 'SQK-RNA002',
     '20230816_mmu_dRNA_3T3_5EU_400_2': 'SQK-RNA002',
     
+    '20220520_hsa_dRNA_HeLa_5EU_200_1': 'SQK-RNA002',
+    '20220303_hsa_dRNA_HeLa_DMSO_polyA_REL5_2': 'SQK-RNA002',
+    
+    '20220520_hsa_dRNA_HeLa_DMSO_1_TRAIN': 'SQK-RNA002',
+    '20220303_hsa_dRNA_HeLa_5EU_polyA_REL5_2_TRAIN': 'SQK-RNA002',
+    
+    '20201215_hsa_dRNA_HeLa_5EU_2hr_NoArs_0060m_5P_1': 'SQK-RNA002',
+    '20210202_hsa_dRNA_HeLa_5EU_2hr_NoArs_0060m_5P_2': 'SQK-RNA002',
+    '20210519_hsa_dRNA_HeLa_5EU_2hr_NoArs_0060m_5P_3': 'SQK-RNA002',
+    
 }
 
 # Mapping information
@@ -157,16 +190,31 @@ EXPLICIT_SPLITS: {
         'test': [1],
         'validation': [20],
     },
+    
+    '20220520_hsa_dRNA_HeLa_5EU_200_1': {
+        'train': [2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,21,22,'X','MT'],
+        'test': [1],
+        'validation': [20],
+    },
+    '20220303_hsa_dRNA_HeLa_DMSO_polyA_REL5_2': {
+        'train': [2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,21,22,'X','MT'],
+        'test': [1],
+        'validation': [20],
+    },
 }
 
 EXPLICIT_REFS: {
+    '20230706_mmu_dRNA_3T3_5EU_400_1': 'Mus_musculus.GRCm39.dna_sm.primary_assembly',
+    '20230816_mmu_dRNA_3T3_5EU_400_2': 'Mus_musculus.GRCm39.dna_sm.primary_assembly',
 }
 
 EXPLICIT_TRANSCRIPTOMES: {
     '20230706_mmu_dRNA_3T3_5EU_400_1': 'Mus_musculus.GRCm39.cdna.all',
     '20230816_mmu_dRNA_3T3_5EU_400_2': 'Mus_musculus.GRCm39.cdna.all',
+    'ALL_NoArs60': 'Homo_sapiens.GRCh38.cdna.all',
 }
 
+USE_EXISTING_BASECALLS_EXPS: []
 
 # Inference information
 MODELS: {
@@ -206,7 +254,7 @@ MODELS: {
     #     'weighted': False,
     # },
     'CUSTOM_allneg_maxpool':{
-        'path':'checkpoints_pl/2022_mine_allneg/last-Copy5.ckpt',
+        'path':'../checkpoints_pl/2022_mine_allneg/last-Copy5.ckpt',
         'threshold': 0.5,
         'arch': 'cnn_gru',
     },
@@ -250,12 +298,16 @@ MODELS: {
     #     'arch': 'cnn_rnn',
     #     'threshold': 0.15,
     # },
-    'CNN_RNN_allneg_weighted':{
-        'path': 'checkpoints_pl/2022_cnn_rnn_hid10_allneg_w05/last-v1.ckpt',
+    # 'CNN_RNN_allneg_weighted':{
+    #     'path': 'checkpoints_pl/2022_cnn_rnn_hid10_allneg_w05/last-v1.ckpt',
+    #     'arch': 'cnn_rnn',
+    #     'threshold': 0.2,
+    # },
+    'CNN_RNN_maydata_weighted':{
+        'path': 'checkpoints_pl/CNNRNN_maydata_v2/best-step=128000.ckpt',
         'arch': 'cnn_rnn',
-        'threshold': 0.2,
+        'threshold': 0.35,
     },
-    
 }
 
 LIMITED_INFERENCE_FILE_LIMIT: 5

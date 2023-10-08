@@ -1,5 +1,6 @@
 import seaborn as sns
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 import numpy as np
 import argparse
 from plot_helpers import plot_and_save, parse_plotting_args
@@ -25,14 +26,14 @@ def plot_auroc(pos_preds, neg_preds, pos_name, neg_name):
     
     plt.plot([0, 1], [0, 1], color='black', linestyle='--')
     
-    fontsize=20
-    plt.ylabel('True Positive Rate', fontsize=fontsize+6)
-    plt.xlabel('False Positive Rate', fontsize=fontsize+6)
+    fontsize=8
+    plt.ylabel('True Positive Rate', fontsize=fontsize)
+    plt.xlabel('False Positive Rate', fontsize=fontsize)
     # plt.title('Receiver Operating Characteristic Curve', fontsize=16)
 
     # increase ticks size
-    plt.xticks(fontsize=fontsize)
-    plt.yticks(fontsize=fontsize)
+    plt.xticks(fontsize=fontsize-2)
+    plt.yticks(fontsize=fontsize-2)
     
     # add a minor grid
     # plt.grid(which='minor', alpha=0.2)
@@ -42,9 +43,10 @@ def plot_auroc(pos_preds, neg_preds, pos_name, neg_name):
     sns.set_style('whitegrid')
     sns.despine()
 
-    plt.legend(loc='lower right', fontsize=fontsize-4, frameon=False)
+    plt.legend(loc='lower right', fontsize=fontsize-2, frameon=False)
 
 def main(args):
+    mpl.rc('font',family='Arial')
     plot_and_save(args, plot_auroc)
 
 if __name__ == "__main__":

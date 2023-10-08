@@ -3,9 +3,11 @@ HUMAN_REF_VERSION = config['HUMAN_REF_VERSION']
 HUMAN_TRANSCRIPTOME_VERSION = config['HUMAN_TRANSCRIPTOME_VERSION']
 EXPERIMENT_NAME_TO_PATH = config['EXPERIMENT_NAME_TO_PATH']
 
+
+#TODO require my own basecalls
 def get_basecalls_path(dataset_name):
     basecalls_lookup_location = EXPERIMENT_NAME_TO_PATH[dataset_name]+'/guppy/reads.fastq.gz'
-    if(Path(basecalls_lookup_location).exists()):
+    if(Path(basecalls_lookup_location).exists() and dataset_name in config['USE_EXISTING_BASECALLS_EXPS']):
         # print(dataset_name, 'found')
         return basecalls_lookup_location
     return f"outputs/basecalling/{dataset_name}/guppy/reads.fastq.gz"
@@ -35,6 +37,7 @@ rule get_reference:
         gzip -d {HUMAN_REF_VERSION}.fa.gz
         """
         
+#TODO require my own basecalls
 rule align_to_genome:
     input:
         basecalls = lambda wildcards: get_basecalls_path(wildcards.experiment_name),

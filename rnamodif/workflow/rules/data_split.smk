@@ -29,8 +29,7 @@ rule split_readids_on_chromosomes:
             --test_chromosomes {params.test_chromosomes} \
             --validation_chromosomes {params.validation_chromosomes} \
         """
-        
-        
+
 
 rule create_split_fast5s:
     '''

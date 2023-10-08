@@ -1,8 +1,9 @@
-name: rnamodif_inference_env
+name: rnamodif_training_env
 channels:
     - bioconda
     - conda-forge
     - pytorch
+    - comet_ml
 dependencies:
     - pytorch=1.12.1=py3.8_cuda11.3_cudnn8.3.2_0
     - pytorch-lightning==1.7.0
@@ -13,6 +14,7 @@ dependencies:
     - scipy==1.9.0
     - scikit-learn==1.1.2
     - pandas==1.4.3
+    - comet_ml==3.33.11
     - pip
     - pip:
         - -e ../../../../

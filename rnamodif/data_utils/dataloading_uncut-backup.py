@@ -106,20 +106,18 @@ class UnlimitedReadsTrainingDataset(IterableDataset):
     def process_files(self, files, label, exp):
         while True:
             fast5 = random.choice(files)
-            # try:
-            with get_fast5_file(fast5, mode='r') as f5:
-                reads = list(f5.get_reads())
-                random.shuffle(reads)
-                for read in reads:
-                    x = process_read(read, window=None, skip=self.skip, preprocess=self.preprocess)
-                    y = np.array(label)
-                    # Skip if the read is too short
-                    if (len(x) > self.max_len or len(x) < self.min_len):
-                        continue
-                    yield x.reshape(-1, 1).swapaxes(0, 1), np.array([y], dtype=np.float32), exp
-            # except OSError as error:
-            #     print(error)
-            #     continue
+            try:
+                with get_fast5_file(fast5, mode='r') as f5:
+                    for read in f5.get_reads():
+                        x = process_read(read, window=None, skip=self.skip, preprocess=self.preprocess)
+                        y = np.array(label)
+                        # Skip if the read is too short
+                        if (len(x) > self.max_len or len(x) < self.min_len):
+                            continue
+                        yield x.reshape(-1, 1).swapaxes(0, 1), np.array([y], dtype=np.float32), exp
+            except OSError as error:
+                print(error)
+                continue
 
     def get_stream(self):
         pos_gens = []

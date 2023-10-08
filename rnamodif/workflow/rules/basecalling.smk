@@ -16,6 +16,7 @@ rule basecalling:
     output:
         'outputs/basecalling/{experiment_name}/DONE.txt'
     params:
+        #TODO raise an error if the kit is not defined
         kit = lambda wildcards: config['KITS'][wildcards.experiment_name],
     threads: 32
     resources: gpus=1
