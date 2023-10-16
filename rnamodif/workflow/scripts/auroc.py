@@ -10,6 +10,7 @@ from sklearn import metrics
 def plot_auroc(pos_preds, neg_preds, pos_name, neg_name):
     predictions = np.concatenate((pos_preds,neg_preds))
     labels = np.concatenate((np.repeat(1, len(pos_preds)),np.repeat(0, len(neg_preds))))
+    
     fpr, tpr, thresholds = metrics.roc_curve(labels, predictions)
 
     cutoff_1 = thresholds[np.argmax(tpr-fpr)]

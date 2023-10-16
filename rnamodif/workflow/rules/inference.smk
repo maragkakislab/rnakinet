@@ -1,34 +1,26 @@
-def get_weighted_flag(is_weighted):
-    return '--weighted' if is_weighted else ''
-
-def get_limit(prediction_type):
-    if(prediction_type == 'predictions_limited'):
-        return f"--limit {config['LIMITED_INFERENCE_FILE_LIMIT']}"
-    if(prediction_type == 'predictions'):
-        #no limit
-        return ''
-    raise Exception('prediction type not supported')
-
 rule run_inference:
     """
     Slices each read into a window and predicts label for these windows
     """
     input: 
-        experiment_path = lambda wildcards: config['EXPERIMENT_NAME_TO_PATH'][wildcards.experiment_name],
-        model_path = lambda wildcards: config['MODELS'][wildcards.model_name]['path'],
+        experiment_path = lambda wildcards: experiments_data[wildcards.experiment_name].get_path(),
+        model_path = lambda wildcards: models_data[wildcards.model_name].get_path(),
     output:
-        'outputs/{prediction_type}/{model_name}/{experiment_name}/windows.pickle'
+        'outputs/{prediction_type}/{model_name}/{experiment_name}/windows.pickle' #TODO redo to something else than pickle
     conda:
         "../envs/inference.yaml"
     params:
-        batch_size = config['INFERENCE_PARAMETERS']['BATCH_SIZE'],
-        max_len = config['INFERENCE_PARAMETERS']['MAX_LEN'],
-        min_len = config['INFERENCE_PARAMETERS']['MIN_LEN'],
-        skip = config['INFERENCE_PARAMETERS']['SKIP'],
-        limit = lambda wildcards: get_limit(wildcards.prediction_type),
-        arch = lambda wildcards: config['MODELS'][wildcards.model_name]['arch'],
-    threads: 16
+        batch_size = lambda wildcards: models_data[wildcards.model_name].get_batch_size(),
+        max_len = lambda wildcards: models_data[wildcards.model_name].get_max_len(),
+        min_len = lambda wildcards: models_data[wildcards.model_name].get_min_len(),
+        skip = lambda wildcards: models_data[wildcards.model_name].get_skip(),
+        
+        limit = lambda wildcards: '', #TODO refactor away
+        arch = lambda wildcards: models_data[wildcards.model_name].get_arch(),
+    threads: 16 #TODO why 16
     resources: gpus=1
+    wildcard_constraints:
+        prediction_type='(predictions|predictions_limited)'
     shell:
         """
         python3 scripts/inference.py \
@@ -48,13 +40,13 @@ rule run_pooling:
     input:
         window_predictions = 'outputs/{prediction_type}/{model_name}/{experiment_name}/windows.pickle'
     output:
-        out_pickle = 'outputs/{prediction_type}/{model_name}/{experiment_name}/{pooling}_pooling.pickle',
+        out_pickle = 'outputs/{prediction_type}/{model_name}/{experiment_name}/{pooling}_pooling.pickle', #redo to something else than pickle
         out_csv = 'outputs/{prediction_type}/{model_name}/{experiment_name}/{pooling}_pooling.csv'
     conda:
         "../envs/inference.yaml"
     params:
-        pooling = lambda wildcards: wildcards.pooling,
-        threshold=lambda wildcards: MODELS[wildcards.model_name]['threshold'],
+        pooling = lambda wildcards: wildcards.pooling, #TODO remove pooling? Use max always?
+        threshold = lambda wildcards: models_data[wildcards.model_name].get_threshold(), #TODO why do i need threshold
     threads: 1
     shell:
         """
@@ -66,24 +58,21 @@ rule run_pooling:
             --threshold {params.threshold} \
         """
 
-# run with --resources parallel_lock=1 to avoid paralelization and multiple runs utilizing the gpu, slowing the time
+# run with snakemake --resources parallel_lock=1 to avoid paralelization and multiple runs utilizing the gpu, slowing the time
 rule run_inference_speedtest:
-    """
-    Slices each read into a window and predicts label for these windows
-    """
     input: 
-        experiment_path = lambda wildcards: config['EXPERIMENT_NAME_TO_PATH'][wildcards.experiment_name],
-        model_path = lambda wildcards: config['MODELS'][wildcards.model_name]['path'],
+        experiment_path = lambda wildcards: experiments_data[wildcards.experiment_name].get_path(),
+        model_path = lambda wildcards: models_data[wildcards.model_name].get_path(),
     output:
         'outputs/{prediction_type}/{model_name}/{experiment_name}/speedtest/readlimit_{reads_limit}_threads_{threads}.json'
     conda:
         "../envs/inference.yaml"
     params:
-        batch_size = config['INFERENCE_PARAMETERS']['BATCH_SIZE'],
-        max_len = config['INFERENCE_PARAMETERS']['MAX_LEN'],
-        min_len = config['INFERENCE_PARAMETERS']['MIN_LEN'],
-        skip = config['INFERENCE_PARAMETERS']['SKIP'],
-        arch = lambda wildcards: config['MODELS'][wildcards.model_name]['arch'],
+        batch_size = lambda wildcards: models_data[wildcards.model_name].get_batch_size(),
+        max_len = lambda wildcards: models_data[wildcards.model_name].get_max_len(),
+        min_len = lambda wildcards: models_data[wildcards.model_name].get_min_len(),
+        skip = lambda wildcards: models_data[wildcards.model_name].get_skip(),
+        arch = lambda wildcards: models_data[wildcards.model_name].get_arch(),
         reads_limit = lambda wildcards: wildcards.reads_limit
     threads: lambda wildcards: int(wildcards.threads)
     resources: 

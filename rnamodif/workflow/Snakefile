@@ -1,8 +1,14 @@
-from pathlib import Path
-from rnamodif.workflow.training_configs import training_configs
-from rnamodif.workflow.evaluation_configs import pos_neg_pairs, comparison_groups, decay_exps, prediction_type, pooling, model_name, time_data, exp_groups, hela_decay_exps
+# from pathlib import Path
+# from rnamodif.workflow.training_configs import training_configs
+# from rnamodif.workflow.evaluation_configs import pos_neg_pairs, comparison_groups, decay_exps, prediction_type, pooling, model_name, time_data, exp_groups, hela_decay_exps, model_comparison_groups, MODELS
+from config.training_setup import experiments_data, training_configs
+from config.evaluation_setup import models_data, exp_groups, pos_neg_pairs, comparison_groups, model_comparison_groups, condition_control_pairs, pooling, datastats_groups
+# from config.training_setup import old_exps, nanoid_exps
 
-configfile: "config.yml"
+
+#Refactor away?
+# configfile: "config/config.yml"
+
 
 include: "rules/basecalling.smk"
 include: "rules/alignment.smk"
@@ -11,6 +17,7 @@ include: "rules/inference.smk"
 include: "rules/visualizations.smk"
 include: "rules/diff_exp.smk"
 include: "rules/training.smk"
+
 
 
 # TODO: REPLACE WITH YOUR FILE PATHS
@@ -26,12 +33,60 @@ include: "rules/training.smk"
 
 rule all:
     input:
+        # expand('outputs/visual/datastats/{group}_sizes_stats.csv', group=['nanoid','nanoid_shock','nia','noars60','3t3','neurons','training'])
+        # lambda wildcards: expand('outputs/visual/predictions/{model_name}/{group}_{pooling}_pooling_{plot_type}.pdf',
+        #     group=[group for group in comparison_groups.keys()],
+        #     model_name = 'CUSTOM_allneg_maxpool', 
+        #     pooling=pooling,
+        #     plot_type=['auroc', 'thresholds','pr_curve'],
+        # ),
+        expand('outputs/visual/predictions/CUSTOM_allneg_maxpool/max_ALL_DONE.txt'),
+        
+        # expand('checkpoints_pl/{model}/DONE.txt', model=training_configs.keys()),
+        
+        # expand('outputs/visual/predictions/NANOID/DMSO_1_REL5_2_{plot_type}.pdf',
+              # plot_type=['auroc','pr_curve','thresholds'])
+        # expand('outputs/visual/predictions/NANOID/DMSO_1_REL5_2_chrplot_{plot_type}.pdf',
+              # plot_type=['auroc']),
+
+        # 'outputs/visual/predictions/CUSTOM_allneg_maxpool/TRAIN_2022_NIA_OLD_max_pooling_chr_f1.pdf',
+        # expand('outputs/visual/predictions/CUSTOM_allneg_maxpool/ALL_2022_NIA_max_pooling_chr_{type}.pdf',type=['f1','auroc'])
+        # expand('outputs/visual/predictions/CUSTOM_allneg_maxpool/{experiment_name}/self_corr_max_pooling_{reference_level}_decay_plot.pdf',
+        #     experiment_name=decay_exps,
+        #    reference_level=['gene','transcript'],
+        # ),
+                
+
+
+
+        # expand('outputs/visual/predictions/CUSTOM_allneg_maxpool/max_ALL_DONE.txt'),
+        # expand("outputs/splits/{experiment_name}/FAST5_{split}_SPLIT_DONE.txt",
+        #       experiment_name=old_exps+nanoid_exps,
+        #       split=['train','test','validation'])
+        # 'outputs/splits/20180514_1541_K562_5EU_1440_labeled_II_run/FAST5_train_SPLIT_DONE.txt'
+        # "outputs/basecalling/20180327_1102_K562_5EU_0_unlabeled_run/guppy/reads.fastq.gz"
+        # "outputs/alignment/20180327_1102_K562_5EU_0_unlabeled_run/reads-align.genome.sorted.bam",
+        # "outputs/alignment/20180327_1102_K562_5EU_0_unlabeled_run/reads-align.transcriptome.sorted.bam",
+        # 'outputs/predictions/CUSTOM_allneg_maxpool/20180226_1208_K562_5EU_60_labeled_run/max_pooling.csv'
+        # "outputs/splits/20180514_1541_K562_5EU_1440_labeled_II_run/train_fast5s_list.txt"
+        # 'checkpoints_pl/TEST_REFACTOR/DONE.txt',
         # expand('outputs/visual/predictions/CUSTOM_allneg_maxpool/max_ALL_DONE.txt')
+        # expand('outputs/visual/predictions/multimodel/{model_group}/{pair_name}_{pooling}_pooling_{plot_type}_multi.pdf',
+        #     model_group=['ALL'],
+        #     pair_name=['TEST_NANOID','TEST_2022_NIA'],#[pair_name for pair_name in pos_neg_pairs.keys()],
+        #     pooling=pooling,
+        #     plot_type=['auroc', 'thresholds','pr_curve'],
+        # ),
+
+
+        # "outputs/basecalling/20180327_1102_K562_5EU_0_unlabeled_run/guppy/reads.fastq.gz"
+        
+        
         # expand('outputs/splits/{experiment_name}/FAST5_{split}_SPLIT_DONE.txt',
                # experiment_name=['20220520_hsa_dRNA_HeLa_5EU_200_1','20220303_hsa_dRNA_HeLa_DMSO_polyA_REL5_2'],
                # split=['train','test','validation']
         # ),
-        expand('checkpoints_pl/{model}/DONE.txt', model=training_configs.keys()),
+
         # 'outputs/visual/predictions/CUSTOM_allneg_maxpool/decay/max_pooling_transcript_read_limit_decay_plot.pdf',
         # 'outputs/visual/joined_predictions/CUSTOM_allneg_maxpool/ALL_NoArs60/max_pooling_transcript_decay_plot.pdf'
         # expand('outputs/visual/datastats/{group}_sizes_stats.csv', group=['nanoid','nanoid_shock','nia','noars60','3t3'])
@@ -56,3 +111,4 @@ rule all:
         # )
 
 # 
+

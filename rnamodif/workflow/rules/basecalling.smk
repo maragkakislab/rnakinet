@@ -1,5 +1,6 @@
-BASECALLER_VERSION = config['BASECALLER_VERSION']
+BASECALLER_VERSION = 'ont-guppy_6.4.8_linux64'
 
+# Downloads the basecaller software
 rule get_basecaller:
     output: f"ont-guppy/bin/guppy_basecaller"
     shell:
@@ -8,23 +9,23 @@ rule get_basecaller:
         tar -xf {BASECALLER_VERSION}.tar.gz
         """
         
+# Basecalls fast5 files into fastq files
 rule basecalling:
     input: 
-        #TODO input is a folder - specify to a file
-        experiment_path = lambda wildcards: config['EXPERIMENT_NAME_TO_PATH'][wildcards.experiment_name],
+        experiment_path = lambda wildcards: directory(experiments_data[wildcards.experiment_name].get_path()),
         basecaller_location = "ont-guppy/bin/guppy_basecaller",
     output:
         'outputs/basecalling/{experiment_name}/DONE.txt'
     params:
-        #TODO raise an error if the kit is not defined
-        kit = lambda wildcards: config['KITS'][wildcards.experiment_name],
+        kit = lambda wildcards: experiments_data[wildcards.experiment_name].get_kit(),
+        flowcell = lambda wildcards: experiments_data[wildcards.experiment_name].get_flowcell(),
     threads: 32
     resources: gpus=1
     shell:
         """
         {input.basecaller_location} \
             -x "auto" \
-            --flowcell FLO-MIN106 \
+            --flowcell {params.flowcell} \
             --kit {params.kit} \
             --records_per_fastq 0 \
             --trim_strategy none \
@@ -40,15 +41,13 @@ rule basecalling:
         echo {input.experiment_path} > {output}
         """
 
-        
-#TODO cleanup unused fastq files
+# Merges multiple fastq files into a single fastq file
 rule merge_fastq_files:
     input:
         'outputs/basecalling/{experiment_name}/DONE.txt'
     output:
         "outputs/basecalling/{experiment_name}/guppy/reads.fastq.gz"
     conda:
-        #TODO why cant it find envs/...???
         "../envs/merge_fastq.yaml"
     shell:
         """

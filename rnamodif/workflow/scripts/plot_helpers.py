@@ -13,8 +13,9 @@ def check_for_nans(predictions):
     if(np.isnan(predictions).any()):
         print('Warning: Nan found in predictions, setting to 0')
         print(np.where(np.isnan(predictions)))
+        print(len(np.where(np.isnan(predictions))))
         for nan_idx in np.where(np.isnan(predictions))[0]:
-            predictions[nan_idx] = 0.0
+            predictions[nan_idx] = np.float16(0.0)
             
 
 def plot_and_save(args, plot_fn, callbacks=[]):
@@ -75,7 +76,7 @@ def correlation_plot(df, x_column, y_column, x_label, y_label, output):
     spearman = spearmanr(x,y).statistic
     pearson = pearsonr(x,y).statistic
     
-    plt.text(0.1, 0.95, f'pearson r:{pearson:.2f} spearman r:{spearman:.2f}', fontsize=fontsize-2, transform=plt.gca().transAxes, verticalalignment='top')
+    plt.text(0.1, 0.95, f'r={pearson:.2f} ρ={spearman:.2f}', fontsize=fontsize-2, transform=plt.gca().transAxes, verticalalignment='top')
     plt.xticks(fontsize=fontsize-2)
     plt.yticks(fontsize=fontsize-2)
     

@@ -1,0 +1,318 @@
+BASECALLER_VERSION : 'ont-guppy_6.4.8_linux64'
+
+EXPERIMENT_NAME_TO_PATH : {
+    '20220520_hsa_dRNA_HeLa_5EU_200_1': 'local_store/arsenite/raw/20220520_hsa_dRNA_HeLa_5EU_200_1',
+    '20220303_hsa_dRNA_HeLa_DMSO_polyA_REL5_2': 'local_store/arsenite/raw/20220303_hsa_dRNA_HeLa_DMSO_polyA_REL5_2',
+    '20211203_mmu_dRNA_3T3_mion_1': 'local_store/arsenite/raw/20211203_mmu_dRNA_3T3_mion_1',
+    '20211203_mmu_dRNA_3T3_PION_1': 'local_store/arsenite/raw/20211203_mmu_dRNA_3T3_PION_1',
+    
+    '20220520_hsa_dRNA_HeLa_DMSO_1': 'local_store/store/seq/ont/experiments/20220520_hsa_dRNA_HeLa_DMSO_1',
+    '20220303_hsa_dRNA_HeLa_5EU_polyA_REL5_2': 'local_store/store/seq/ont/experiments/20220303_hsa_dRNA_HeLa_5EU_polyA_REL5_2',
+    
+    '20201016_hsa_dRNASeq_HeLa_dmso_polyA_REL5_short_1': 'local_store/store/seq/ont/experiments/20201016_hsa_dRNASeq_HeLa_dmso_polyA_REL5_short_1',
+    '20201016_hsa_dRNASeq_HeLa_5EU_polyA_REL5_short_1': 'local_store/store/seq/ont/experiments/20201016_hsa_dRNASeq_HeLa_5EU_polyA_REL5_short_1',
+
+    '20180327_1102_K562_5EU_0_unlabeled_run': 'local_store/nanoid/20180327_1102_K562_5EU_0_unlabeled_run',
+    '20180403_1102_K562_5EU_0_unlabeled_II_run': 'local_store/nanoid/20180403_1102_K562_5EU_0_unlabeled_II_run',
+    '20180403_1208_K562_5EU_0_unlabeled_III_run': 'local_store/nanoid/20180403_1208_K562_5EU_0_unlabeled_III_run',
+    '20180514_1054_K562_5EU_1440_labeled_run': 'local_store/nanoid/20180514_1054_K562_5EU_1440_labeled_run',
+    '20180514_1541_K562_5EU_1440_labeled_II_run': 'local_store/nanoid/20180514_1541_K562_5EU_1440_labeled_II_run',
+    '20180516_1108_K562_5EU_1440_labeled_III_run': 'local_store/nanoid/20180516_1108_K562_5EU_1440_labeled_III_run',
+    
+    '20180226_1208_K562_5EU_60_labeled_run': 'local_store/nanoid/20180226_1208_K562_5EU_60_labeled_run',
+    '20180227_1206_K562_5EU_60_labeled_II_run': 'local_store/nanoid/20180227_1206_K562_5EU_60_labeled_II_run',
+    '20180228_1655_K562_5EU_60_labeled_III_run': 'local_store/nanoid/20180228_1655_K562_5EU_60_labeled_III_run',
+    '20181206_1038_K562_5EU_60_labeled_IV_run': 'local_store/nanoid/20181206_1038_K562_5EU_60_labeled_IV_run',
+    '20190719_1232_K562_5EU_60_labeled_V_run': 'local_store/nanoid/20190719_1232_K562_5EU_60_labeled_V_run',
+    '20190719_1430_K562_5EU_60_labeled_VI_run': 'local_store/nanoid/20190719_1430_K562_5EU_60_labeled_VI_run',
+    
+    '20180628_1020_K562_5EU_60_labeled_heat_run': 'local_store/nanoid/20180628_1020_K562_5EU_60_labeled_heat_run',
+    '20180731_1020_K562_5EU_60_labeled_heat_II_run': 'local_store/nanoid/20180731_1020_K562_5EU_60_labeled_heat_II_run',
+    '20180802_1111_K562_5EU_60_labeled_heat_III_run': 'local_store/nanoid/20180802_1111_K562_5EU_60_labeled_heat_III_run',
+    '20190725_0809_K562_5EU_60_labeled_heat_IV_run': 'local_store/nanoid/20190725_0809_K562_5EU_60_labeled_heat_IV_run',
+    '20190725_0812_K562_5EU_60_labeled_heat_V_run': 'local_store/nanoid/20190725_0812_K562_5EU_60_labeled_heat_V_run',
+    
+    
+    '20201001_hsa_dRNA_Hek293T_NoArs_5P_1': 'local_store/arsenite/raw/20201001_hsa_dRNA_Hek293T_NoArs_5P_1',
+    '20201022_hsa_dRNA_Neuron_ctrl_5P_1': 'local_store/arsenite/raw/20201022_hsa_dRNA_Neuron_ctrl_5P_1',
+    '20201022_hsa_dRNA_Neuron_TDP_5P_1': 'local_store/arsenite/raw/20201022_hsa_dRNA_Neuron_TDP_5P_1',
+    
+    
+    '20210111_hsa_dRNA_HeLa_5EU_1hr_ctrl_0000m_5P_1': 'local_store/arsenite/raw/20210111_hsa_dRNA_HeLa_5EU_1hr_ctrl_0000m_5P_1',
+    '20210208_hsa_dRNA_HeLa_5EU_1hr_ctrl_0000m_5P_2': 'local_store/arsenite/raw/20210208_hsa_dRNA_HeLa_5EU_1hr_ctrl_0000m_5P_2',
+    '20210208_hsa_dRNA_HeLa_5EU_1hr_ctrl_0000m_5P_3': 'local_store/arsenite/raw/20210208_hsa_dRNA_HeLa_5EU_1hr_ctrl_0000m_5P_3',
+    
+    '20210128_hsa_dRNA_HeLa_5EU_2hr_NoArs_0030m_5P_1': 'local_store/arsenite/raw/20210128_hsa_dRNA_HeLa_5EU_2hr_NoArs_0030m_5P_1',
+    '20210128_hsa_dRNA_HeLa_5EU_2hr_NoArs_0030m_5P_2': 'local_store/arsenite/raw/20210128_hsa_dRNA_HeLa_5EU_2hr_NoArs_0030m_5P_2',
+    # 'noars_0030_3':,
+    
+    '20210128_hsa_dRNA_HeLa_5EU_2hr_Ars_0030m_5P_1': 'local_store/arsenite/raw/20210128_hsa_dRNA_HeLa_5EU_2hr_Ars_0030m_5P_1',
+    '20210128_hsa_dRNA_HeLa_5EU_2hr_Ars_0030m_5P_2': 'local_store/arsenite/raw/20210128_hsa_dRNA_HeLa_5EU_2hr_Ars_0030m_5P_2',
+    
+    '20201215_hsa_dRNA_HeLa_5EU_2hr_NoArs_0060m_5P_1': 'local_store/arsenite/raw/20201215_hsa_dRNA_HeLa_5EU_2hr_NoArs_0060m_5P_1',
+    '20210202_hsa_dRNA_HeLa_5EU_2hr_NoArs_0060m_5P_2': 'local_store/arsenite/raw/20210202_hsa_dRNA_HeLa_5EU_2hr_NoArs_0060m_5P_2',
+    '20210519_hsa_dRNA_HeLa_5EU_2hr_NoArs_0060m_5P_3': 'local_store/arsenite/raw/20210519_hsa_dRNA_HeLa_5EU_2hr_NoArs_0060m_5P_3',
+    
+    '20201215_hsa_dRNA_HeLa_5EU_2hr_Ars_0060m_5P_1': 'local_store/arsenite/raw/20201215_hsa_dRNA_HeLa_5EU_2hr_Ars_0060m_5P_1',
+    '20210202_hsa_dRNA_HeLa_5EU_2hr_Ars_0060m_5P_2': 'local_store/arsenite/raw/20210202_hsa_dRNA_HeLa_5EU_2hr_Ars_0060m_5P_2',
+    '20210519_hsa_dRNA_HeLa_5EU_2hr_Ars_0060m_5P_3': 'local_store/arsenite/raw/20210519_hsa_dRNA_HeLa_5EU_2hr_Ars_0060m_5P_3',
+    
+    '20210111_hsa_dRNA_HeLa_5EU_2hr_NoArs_0090m_5P_1': 'local_store/arsenite/raw/20210111_hsa_dRNA_HeLa_5EU_2hr_NoArs_0090m_5P_1',
+    '20210202_hsa_dRNA_HeLa_5EU_2hr_NoArs_0090m_5P_2': 'local_store/arsenite/raw/20210202_hsa_dRNA_HeLa_5EU_2hr_NoArs_0090m_5P_2',
+    '20210519_hsa_dRNA_HeLa_5EU_2hr_NoArs_0090m_5P_3': 'local_store/arsenite/raw/20210519_hsa_dRNA_HeLa_5EU_2hr_NoArs_0090m_5P_3',
+    
+    '20201220_hsa_dRNA_HeLa_5EU_2hr_NoArs_0120m_5P_1': 'local_store/arsenite/raw/20201220_hsa_dRNA_HeLa_5EU_2hr_NoArs_0120m_5P_1',
+    '20210205_hsa_dRNA_HeLa_5EU_2hr_NoArs_0120m_5P_2': 'local_store/arsenite/raw/20210205_hsa_dRNA_HeLa_5EU_2hr_NoArs_0120m_5P_2',
+    # 'noars_0120_3':,
+    
+    '20210114_hsa_dRNA_HeLa_5EU_2hr_NoArs_0180m_5P_1': 'local_store/arsenite/raw/20210114_hsa_dRNA_HeLa_5EU_2hr_NoArs_0180m_5P_1',
+    '20210205_hsa_dRNA_HeLa_5EU_2hr_NoArs_0180m_5P_2': 'local_store/arsenite/raw/20210205_hsa_dRNA_HeLa_5EU_2hr_NoArs_0180m_5P_2',
+    # 'noars_0180_3':,
+    
+    '20201220_hsa_dRNA_HeLa_5EU_2hr_NoArs_0300m_5P_1': 'local_store/arsenite/raw/20201220_hsa_dRNA_HeLa_5EU_2hr_NoArs_0300m_5P_1',
+    # 'noars_0300_2':,
+    # 'noars_0300_3':,
+    '20230706_mmu_dRNA_3T3_5EU_400_1': 'local_store/arsenite/raw/20230706_mmu_dRNA_3T3_5EU_400_1/runs/no_sample/20230706_1704_MN24753_FAR80946_027f7c1e/fast5_pass',
+    '20230816_mmu_dRNA_3T3_5EU_400_2': 'local_store/arsenite/raw/20230816_mmu_dRNA_3T3_5EU_400_2/runs/no_sample/20230816_1618_MN24753_FAX02068_aa5a172a/fast5_pass',
+    
+    
+    
+    '20180327_1102_K562_5EU_0_unlabeled_run_TEST': 'outputs/splits/20180327_1102_K562_5EU_0_unlabeled_run/test',
+    '20180514_1054_K562_5EU_1440_labeled_run_TEST': 'outputs/splits/20180514_1054_K562_5EU_1440_labeled_run/test',
+    
+    '20180403_1102_K562_5EU_0_unlabeled_II_run_TEST': 'outputs/splits/20180403_1102_K562_5EU_0_unlabeled_II_run/test',
+    '20180514_1541_K562_5EU_1440_labeled_II_run_TEST': 'outputs/splits/20180514_1541_K562_5EU_1440_labeled_II_run/test',
+    
+    '20180403_1208_K562_5EU_0_unlabeled_III_run_TEST': 'outputs/splits/20180403_1208_K562_5EU_0_unlabeled_III_run/test',
+    '20180516_1108_K562_5EU_1440_labeled_III_run_TEST': 'outputs/splits/20180516_1108_K562_5EU_1440_labeled_III_run/test',
+    
+    # '20201016_hsa_dRNASeq_HeLa_dmso_polyA_REL5_short_1_TEST': 'outputs/splits/20201016_hsa_dRNASeq_HeLa_dmso_polyA_REL5_short_1/test',
+    # '20201016_hsa_dRNASeq_HeLa_5EU_polyA_REL5_short_1_TEST': 'outputs/splits/20201016_hsa_dRNASeq_HeLa_5EU_polyA_REL5_short_1/test',
+    
+    '20220520_hsa_dRNA_HeLa_DMSO_1_TEST': 'outputs/splits/20220520_hsa_dRNA_HeLa_DMSO_1/test',
+    '20220303_hsa_dRNA_HeLa_5EU_polyA_REL5_2_TEST': 'outputs/splits/20220303_hsa_dRNA_HeLa_5EU_polyA_REL5_2/test',
+    
+    
+    '20180327_1102_K562_5EU_0_unlabeled_run_TRAIN': 'outputs/splits/20180327_1102_K562_5EU_0_unlabeled_run/train',
+    '20180514_1054_K562_5EU_1440_labeled_run_TRAIN': 'outputs/splits/20180514_1054_K562_5EU_1440_labeled_run/train',
+    
+    '20180403_1102_K562_5EU_0_unlabeled_II_run_TRAIN': 'outputs/splits/20180403_1102_K562_5EU_0_unlabeled_II_run/train',
+    '20180514_1541_K562_5EU_1440_labeled_II_run_TRAIN': 'outputs/splits/20180514_1541_K562_5EU_1440_labeled_II_run/train',
+    
+    '20180403_1208_K562_5EU_0_unlabeled_III_run_TRAIN': 'outputs/splits/20180403_1208_K562_5EU_0_unlabeled_III_run/train',
+    '20180516_1108_K562_5EU_1440_labeled_III_run_TRAIN': 'outputs/splits/20180516_1108_K562_5EU_1440_labeled_III_run/train',
+    
+    # '20201016_hsa_dRNASeq_HeLa_dmso_polyA_REL5_short_1_TEST': 'outputs/splits/20201016_hsa_dRNASeq_HeLa_dmso_polyA_REL5_short_1/test',
+    # '20201016_hsa_dRNASeq_HeLa_5EU_polyA_REL5_short_1_TEST': 'outputs/splits/20201016_hsa_dRNASeq_HeLa_5EU_polyA_REL5_short_1/test',
+    
+    '20220520_hsa_dRNA_HeLa_DMSO_1_TRAIN': 'outputs/splits/20220520_hsa_dRNA_HeLa_DMSO_1/train',
+    '20220303_hsa_dRNA_HeLa_5EU_polyA_REL5_2_TRAIN': 'outputs/splits/20220303_hsa_dRNA_HeLa_5EU_polyA_REL5_2/train',
+    
+}
+
+#TODO check if the experiment has kit when theres no explicit basecalls - throws an keyerror
+KITS : {
+    '20220520_hsa_dRNA_HeLa_DMSO_1': 'SQK-RNA002',
+    '20220303_hsa_dRNA_HeLa_5EU_polyA_REL5_2': 'SQK-RNA002',
+    '20201016_hsa_dRNASeq_HeLa_dmso_polyA_REL5_short_1': 'SQK-RNA002',
+    '20201016_hsa_dRNASeq_HeLa_5EU_polyA_REL5_short_1': 'SQK-RNA002',
+    
+    '20180327_1102_K562_5EU_0_unlabeled_run': 'SQK-RNA001',
+    '20180403_1102_K562_5EU_0_unlabeled_II_run': 'SQK-RNA001',
+    '20180403_1208_K562_5EU_0_unlabeled_III_run': 'SQK-RNA001',
+    
+    '20180514_1054_K562_5EU_1440_labeled_run': 'SQK-RNA001',
+    '20180514_1541_K562_5EU_1440_labeled_II_run': 'SQK-RNA001',
+    '20180516_1108_K562_5EU_1440_labeled_III_run': 'SQK-RNA001',
+    #Include kits for different experiments
+    #TODO add flowcells also? (neuron data have different flowcell)
+    
+    '20180327_1102_K562_5EU_0_unlabeled_run_TEST': 'SQK-RNA001',
+    '20180403_1102_K562_5EU_0_unlabeled_II_run_TEST': 'SQK-RNA001',
+    '20180403_1208_K562_5EU_0_unlabeled_III_run_TEST': 'SQK-RNA001',
+    '20180514_1054_K562_5EU_1440_labeled_run_TEST': 'SQK-RNA001',
+    '20180514_1541_K562_5EU_1440_labeled_II_run_TEST': 'SQK-RNA001',
+    '20180516_1108_K562_5EU_1440_labeled_III_run_TEST': 'SQK-RNA001',
+    
+    '20180226_1208_K562_5EU_60_labeled_run': 'SQK-RNA001',
+    '20180227_1206_K562_5EU_60_labeled_II_run': 'SQK-RNA001',
+    '20180228_1655_K562_5EU_60_labeled_III_run': 'SQK-RNA001',
+    '20181206_1038_K562_5EU_60_labeled_IV_run': 'SQK-RNA001',
+    '20190719_1232_K562_5EU_60_labeled_V_run': 'SQK-RNA001',
+    '20190719_1430_K562_5EU_60_labeled_VI_run': 'SQK-RNA001',
+    
+    '20180628_1020_K562_5EU_60_labeled_heat_run': 'SQK-RNA001',
+    '20180731_1020_K562_5EU_60_labeled_heat_II_run': 'SQK-RNA001',
+    '20180802_1111_K562_5EU_60_labeled_heat_III_run': 'SQK-RNA001',
+    '20190725_0809_K562_5EU_60_labeled_heat_IV_run': 'SQK-RNA001',
+    '20190725_0812_K562_5EU_60_labeled_heat_V_run': 'SQK-RNA001',
+    
+    '20220520_hsa_dRNA_HeLa_DMSO_1_TEST': 'SQK-RNA002',
+    '20220303_hsa_dRNA_HeLa_5EU_polyA_REL5_2_TEST': 'SQK-RNA002',
+    
+    '20201016_hsa_dRNASeq_HeLa_dmso_polyA_REL5_short_1_TEST': 'SQK-RNA002',
+    '20201016_hsa_dRNASeq_HeLa_5EU_polyA_REL5_short_1_TEST': 'SQK-RNA002',
+    
+    '20230706_mmu_dRNA_3T3_5EU_400_1': 'SQK-RNA002',
+    '20230816_mmu_dRNA_3T3_5EU_400_2': 'SQK-RNA002',
+    
+    '20220520_hsa_dRNA_HeLa_5EU_200_1': 'SQK-RNA002',
+    '20220303_hsa_dRNA_HeLa_DMSO_polyA_REL5_2': 'SQK-RNA002',
+    
+    '20220520_hsa_dRNA_HeLa_DMSO_1_TRAIN': 'SQK-RNA002',
+    '20220303_hsa_dRNA_HeLa_5EU_polyA_REL5_2_TRAIN': 'SQK-RNA002',
+    
+    '20201215_hsa_dRNA_HeLa_5EU_2hr_NoArs_0060m_5P_1': 'SQK-RNA002',
+    '20210202_hsa_dRNA_HeLa_5EU_2hr_NoArs_0060m_5P_2': 'SQK-RNA002',
+    '20210519_hsa_dRNA_HeLa_5EU_2hr_NoArs_0060m_5P_3': 'SQK-RNA002',
+    
+}
+
+# Mapping information
+HUMAN_REF_VERSION : 'Homo_sapiens.GRCh38.dna_sm.primary_assembly'
+HUMAN_TRANSCRIPTOME_VERSION : 'Homo_sapiens.GRCh38.cdna.all'
+
+# Splitting information
+default_train_chrs: [2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,'X','MT']
+default_test_chrs: [1]
+default_validation_chrs: []
+
+EXPLICIT_SPLITS: {
+    '20220520_hsa_dRNA_HeLa_DMSO_1': {
+        'train': [2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,21,22,'X','MT'],
+        'test': [1],
+        'validation': [20],
+    },
+    '20220303_hsa_dRNA_HeLa_5EU_polyA_REL5_2': {
+        'train': [2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,21,22,'X','MT'],
+        'test': [1],
+        'validation': [20],
+    },
+    
+    '20220520_hsa_dRNA_HeLa_5EU_200_1': {
+        'train': [2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,21,22,'X','MT'],
+        'test': [1],
+        'validation': [20],
+    },
+    '20220303_hsa_dRNA_HeLa_DMSO_polyA_REL5_2': {
+        'train': [2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,21,22,'X','MT'],
+        'test': [1],
+        'validation': [20],
+    },
+}
+
+EXPLICIT_REFS: {
+    '20230706_mmu_dRNA_3T3_5EU_400_1': 'Mus_musculus.GRCm39.dna_sm.primary_assembly',
+    '20230816_mmu_dRNA_3T3_5EU_400_2': 'Mus_musculus.GRCm39.dna_sm.primary_assembly',
+}
+
+EXPLICIT_TRANSCRIPTOMES: {
+    '20230706_mmu_dRNA_3T3_5EU_400_1': 'Mus_musculus.GRCm39.cdna.all',
+    '20230816_mmu_dRNA_3T3_5EU_400_2': 'Mus_musculus.GRCm39.cdna.all',
+    'ALL_NoArs60': 'Homo_sapiens.GRCh38.cdna.all',
+}
+
+USE_EXISTING_BASECALLS_EXPS: []
+
+# Inference information
+MODELS: {
+    # 'narrow_weighted':{
+    #     'path':'checkpoints_pl/5eu_2022_gru32_weighted02/last-Copy1.ckpt',
+    #     'window': 4096,
+    #     'weighted': True,
+    #  },
+    # 'narrow_standard':{
+    #     'path':'checkpoints_pl/5eu_2022_unfrozen_gru32_lowLR/last-Copy1.ckpt',
+    #     'window': 4096,
+    #     'weighted': False,
+    # },
+    # 'wide_standard':{
+    #     'path':'checkpoints_pl/2022_wide/last-Copy1.ckpt',
+    #     'window': 40960,
+    #     'weighted': False,
+    # },
+    # 'wide_weighted':{
+    #     'path':'checkpoints_pl/2022_wide_weighted02/last-Copy1.ckpt',
+    #     'window': 40960,
+    #     'weighted': True,
+    # },
+    # 'unlimited_standard_allneg':{
+    #     'path':'checkpoints_pl/2022_uncut_allneg/last-Copy1_8624step.ckpt',
+    #     'threshold': 0.75,
+    #     'arch': 'rodan',
+    # },
+    # 'unlimited_standard_2022neuronctrl':{
+    #     'path':'checkpoints_pl/2022_uncut_neg2022+neuronctrl/epoch=0-step=1625-Copy1.ckpt',
+    #     'window': null,
+    #     'weighted': False,
+    # },
+    # 'unlimited_allneg_maxpool':{
+    #     'path':'checkpoints_pl/2022_uncut_allneg_maxpool/epoch=0-step=1875-Copy1.ckpt',
+    #     'window': null,
+    #     'weighted': False,
+    # },
+    'CUSTOM_allneg_maxpool':{
+        'path':'../checkpoints_pl/2022_mine_allneg/last-Copy5.ckpt',
+        'threshold': 0.5,
+        'arch': 'cnn_gru',
+    },
+    # 'CNN_MAX_extraratio':{
+    #     'path':'checkpoints_pl/2022_mine_extraratio_max/last.ckpt',
+    #     'arch': 'custom_cnn',
+    #     'threshold': 0.5,
+    # },
+    # 'CNN_MAX_hid100':{
+    #     'path': 'checkpoints_pl/2022_cnn_max_hid100/best-step=80500-2022_valid_auroc=0.93.ckpt',
+    #     'arch': 'cnn_max',
+    #     'threshold': 0.3, 
+    # },
+    # 'TEST_model':{
+    #     'path': '../temp_checkpoints_pl/TEST/best-step=86000-2022_valid_auroc=0.92.ckpt',
+    #     'arch': 'cnn_max',
+    #     'threshold': 0.7,  
+    # },
+    # 'CNN_MAX_hid30_min15k_last':{
+    #     'path': 'checkpoints_pl/2022_cnn_max_hid30_min15k/last.ckpt',
+    #     'arch': 'cnn_max',
+    #     'threshold': 0.4,
+    # },
+    # 'CNN_MAX_hid30_min15k_best':{
+    #     'path': 'checkpoints_pl/2022_cnn_max_hid30_min15k/best-step=10000-2022_valid_auroc=0.00.ckpt',
+    #     'arch': 'cnn_max',
+    #     'threshold': 0.4,
+    # },
+    # 'CNN_RNN_basicneg':{
+    #     'path': 'checkpoints_pl/2022_cnn_rnn_hid30_basicneg/best-step=173500-2022_valid_auroc=0-Copy1.00.ckpt',
+    #     'arch': 'cnn_rnn',
+    #     'threshold': 0.5,
+    # },
+    # 'CNN_MAX_hid30_min15k_longtrain_last':{
+    #     'path': 'checkpoints_pl/2022_cnn_max_hid30_min15k_longtrain/last.ckpt',
+    #     'arch': 'cnn_max',
+    #     'threshold': 0.5,
+    # },
+    # 'CNN_RNN_allneg':{
+    #     'path': 'checkpoints_pl/2022_cnn_rnn_hid30_allneg_run2/last-Copy1.ckpt',
+    #     'arch': 'cnn_rnn',
+    #     'threshold': 0.15,
+    # },
+    # 'CNN_RNN_allneg_weighted':{
+    #     'path': 'checkpoints_pl/2022_cnn_rnn_hid10_allneg_w05/last-v1.ckpt',
+    #     'arch': 'cnn_rnn',
+    #     'threshold': 0.2,
+    # },
+    'CNN_RNN_maydata_weighted':{
+        'path': 'checkpoints_pl/CNNRNN_maydata_v2/best-step=128000.ckpt',
+        'arch': 'cnn_rnn',
+        'threshold': 0.35,
+    },
+}
+
+LIMITED_INFERENCE_FILE_LIMIT: 5
+INFERENCE_PARAMETERS: {
+    BATCH_SIZE: 1,
+    MAX_LEN: 400000,
+    MIN_LEN: 5000,
+    SKIP: 5000,
+}
+

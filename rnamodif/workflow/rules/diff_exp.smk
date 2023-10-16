@@ -3,10 +3,14 @@
 
 #TODO transcript-gene tab parametrize
 def get_transcript_to_gene_tab(experiment_name):
-    transcriptome = get_transcriptome_version(experiment_name)
+    # transcriptome = get_transcriptome_version(experiment_name)
+    transcriptome = experiments_data[experiment_name].get_transcriptome()
+    
     transcriptome_to_file = {
-        'Mus_musculus.GRCm39.cdna.all': 'transcript-gene-mouse.tab',
-        'Homo_sapiens.GRCh38.cdna.all': 'transcript-gene.tab',
+        #TODO just get from ensembl?
+        
+        'references/Mus_musculus.GRCm39.cdna.all.fa': 'transcript-gene-mouse.tab',
+        'references/Homo_sapiens.GRCh38.cdna.all.fa': 'transcript-gene.tab',
     }
     # print('using', transcriptome_to_file[transcriptome], 'map file')
     return transcriptome_to_file[transcriptome]
@@ -41,9 +45,9 @@ rule transcript_counts:
         
 rule aggregate_counts:
     input:
-        all=lambda wildcards: expand("outputs/alignment/{experiment_name}/reads.sorted.counts.txt", experiment_name=time_data[wildcards.time]['controls']+time_data[wildcards.time]['conditions'])
+        all=lambda wildcards: expand("outputs/alignment/{experiment_name}/reads.sorted.counts.txt", experiment_name=condition_control_pairs[wildcards.time_group]['controls']+condition_control_pairs[wildcards.time_group]['conditions'])
     output:
-        "outputs/diff_exp/{time}/reads.sorted.counts.aggregate.txt"
+        "outputs/diff_exp/{time_group}/reads.sorted.counts.aggregate.txt"
     conda:
         "../envs/transcript_counts.yaml"
     shell:
@@ -60,15 +64,15 @@ rule aggregate_counts:
     
 rule generate_files_for_deseq2:
     input:
-        "outputs/diff_exp/{time}/reads.sorted.counts.aggregate.txt"
+        "outputs/diff_exp/{time_group}/reads.sorted.counts.aggregate.txt"
     output:
-        counts_table_path="outputs/diff_exp/{time}/counts_table.txt",
-        metadata_path="outputs/diff_exp/{time}/metadata.txt",
+        counts_table_path="outputs/diff_exp/{time_group}/counts_table.txt",
+        metadata_path="outputs/diff_exp/{time_group}/metadata.txt",
     conda:
         "../envs/pandas_basic.yaml"
     params:
-        controls=lambda wildcards: time_data[wildcards.time]['controls'],
-        conditions=lambda wildcards: time_data[wildcards.time]['conditions'],
+        controls=lambda wildcards: condition_control_pairs[wildcards.time_group]['controls'],
+        conditions=lambda wildcards: condition_control_pairs[wildcards.time_group]['conditions'],
     shell:
         """
         python3 scripts/DESeq2_prep.py \
@@ -82,10 +86,10 @@ rule generate_files_for_deseq2:
 #TODO r argparse named arguments
 rule diff_expression:
     input:
-        counts_table="outputs/diff_exp/{time}/counts_table.txt",
-        metadata="outputs/diff_exp/{time}/metadata.txt",
+        counts_table="outputs/diff_exp/{time_group}/counts_table.txt",
+        metadata="outputs/diff_exp/{time_group}/metadata.txt",
     output:
-        "outputs/diff_exp/{time}/DESeq_output.tab"
+        "outputs/diff_exp/{time_group}/DESeq_output.tab"
     conda:
         "../envs/rscript.yaml"
     shell:
@@ -97,7 +101,6 @@ rule diff_expression:
         """
         
         
-MODELS = config['MODELS']
 rule generate_gene_prediction_stats:
     input:
         transcriptome_bam='outputs/alignment/{experiment_name}/reads-align.transcriptome.sorted.bam',
@@ -111,7 +114,7 @@ rule generate_gene_prediction_stats:
     conda:
         "../envs/gene_aggregation.yaml"
     params:
-        threshold=lambda wildcards: MODELS[wildcards.model_name]['threshold'],
+        threshold=lambda wildcards: models_data[wildcards.model_name].get_threshold(),
     wildcard_constraints:
         prediction_type='(predictions|predictions_limited)'
     shell:
@@ -138,7 +141,7 @@ rule generate_gene_prediction_stats_joined:
     conda:
         "../envs/gene_aggregation.yaml"
     params:
-        threshold=lambda wildcards: MODELS[wildcards.model_name]['threshold'],
+        threshold=lambda wildcards: models_data[wildcards.model_name].get_threshold(),
     wildcard_constraints:
         prediction_type='(joined_predictions)'
     shell:
@@ -153,7 +156,7 @@ rule generate_gene_prediction_stats_joined:
         """
 
 merge_bam_experiments = {
-    'ALL_NoArs60':hela_decay_exps
+    'ALL_NoArs60':exp_groups['hela_decay_exps']
 }     
 rule create_joined_experiment:
     input:
@@ -199,6 +202,6 @@ rule create_joined_predictions:
 #         expand('outputs/{prediction_type}/{model_name}/{experiment_name}/{pooling}_pooling_gene_level_predictions.tsv',
 #               experiment_name=TODO)
 #     output:
-#         'outputs/{prediction_type}/{model_name}/{time}/{pooling}_pooling_deseq_pred_stats.tsv'
+#         'outputs/{prediction_type}/{model_name}/{time_group}/{pooling}_pooling_deseq_pred_stats.tsv'
     
         

@@ -13,19 +13,36 @@ import yaml
 
 def parse_args(parser):
     parser.add_argument(
-        '--training-positives-exps', 
+        '--training-positives-lists', 
         type=str, 
         required=True, 
         nargs='+', 
-        help='Paths to the files containing positive sequences.'
+        help='Paths to the files containing positive fast5 files'
     )
     parser.add_argument(
-        '--training-negatives-exps', 
+        '--training-negatives-lists', 
         type=str, 
         required=True, 
         nargs='+', 
-        help='Paths to the files containing negative sequences.'
+        help='Paths to the files containing negative fast5 files.'
     )
+    
+    
+    
+#     parser.add_argument(
+#         '--training-positives-exps', 
+#         type=str, 
+#         required=True, 
+#         nargs='+', 
+#         help='Paths to the files containing positive sequences.'
+#     )
+#     parser.add_argument(
+#         '--training-negatives-exps', 
+#         type=str, 
+#         required=True, 
+#         nargs='+', 
+#         help='Paths to the files containing negative sequences.'
+#     )
     
     parser.add_argument('--min-len', type=int, required=True, help='Minimum length of the signal sequence for training and validation', default=5000)
     parser.add_argument('--max-len', type=int, required=True, help='Maximum length of the signal sequence for training and validation', default=400000)
@@ -57,16 +74,23 @@ def parse_args(parser):
     return parser    
 
 
+def read_txt_to_list(file_path):
+    with open(file_path, "r") as file:
+        strings_list = [line.strip() for line in file]
+    return strings_list
 
 #Configs
-
 def get_datasets_config(args):
-    train_pos_files = [
-        name_to_files[exp]['train'] for exp in args.training_positives_exps
-    ]
-    train_neg_files = [
-        name_to_files[exp]['train'] for exp in args.training_negatives_exps
-    ]
+    # matrix
+    train_pos_files = [read_txt_to_list(txt_path) for txt_path in args.training_positives_lists]
+    train_neg_files = [read_txt_to_list(txt_path) for txt_path in args.training_negatives_lists]
+    
+    # train_pos_files = [
+    #     name_to_files[exp]['train'] for exp in args.training_positives_exps
+    # ]
+    # train_neg_files = [
+    #     name_to_files[exp]['train'] for exp in args.training_negatives_exps
+    # ]
 
     valid_exp_to_files_pos = {
         '5eu_2020_pos':name_to_files['nia_2020_pos']['test'], 

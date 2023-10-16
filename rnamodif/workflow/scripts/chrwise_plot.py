@@ -38,16 +38,25 @@ def main(args):
     pos_preds = args.positives_predictions
     neg_preds = args.negatives_predictions
     
+    all_pos_predictions = {}
+    all_neg_predictions = {}
+    all_pos_readid_to_chr = {}
+    all_neg_readid_to_chr = {}
+    
     for pos_bam, pos_pred in zip(pos_bams, pos_preds):
         pos_predictions = read_predictions(pos_pred)
         pos_readid_to_chr = get_readid_to_chr_dict(pos_bam, pos_predictions)
+        all_pos_predictions.update(pos_predictions)
+        all_pos_readid_to_chr.update(pos_readid_to_chr)
         
     for neg_bam, neg_pred in zip(neg_bams, neg_preds):
         neg_predictions = read_predictions(neg_pred)
         neg_readid_to_chr = get_readid_to_chr_dict(neg_bam, neg_predictions)
+        all_neg_predictions.update(neg_predictions)
+        all_neg_readid_to_chr.update(neg_readid_to_chr)
         
-    pos_chr_to_preds = get_chr_to_preds_dict(pos_readid_to_chr, pos_predictions, args)
-    neg_chr_to_preds = get_chr_to_preds_dict(neg_readid_to_chr, neg_predictions, args)
+    pos_chr_to_preds = get_chr_to_preds_dict(all_pos_readid_to_chr, all_pos_predictions, args)
+    neg_chr_to_preds = get_chr_to_preds_dict(all_neg_readid_to_chr, all_neg_predictions, args)
              
     if(args.plot_type == 'auroc'):
         auroc_plot(pos_chr_to_preds, neg_chr_to_preds, args)
@@ -73,22 +82,30 @@ def f1_plot(pos_chr_to_preds, neg_chr_to_preds, args):
         for chr_name in chrs:
             pos_preds = pos_chr_to_preds[chr_name]
             neg_preds = neg_chr_to_preds[chr_name]
-            pos_labels = np.repeat(1, len(pos_preds)).tolist()
-            neg_labels = np.repeat(0, len(neg_preds)).tolist()
 
-            preds = pos_preds+neg_preds
-            labels = pos_labels+neg_labels
+
+            #balancing positives and negatives for f1 score
+            max_len = max(len(pos_preds), len(neg_preds))
+            pos_preds = np.resize(pos_preds, max_len)
+            neg_preds = np.resize(neg_preds, max_len)
             
-            split_preds+=preds
-            split_labels+=labels
-        
+            pos_labels = np.repeat(1, len(pos_preds))
+            neg_labels = np.repeat(0, len(neg_preds))
+            
+            preds = np.concatenate([pos_preds,neg_preds])
+            labels = np.concatenate([pos_labels,neg_labels])
+            
+            split_preds+=preds.tolist()
+            split_labels+=labels.tolist()
+        # print(args.chosen_threshold)
         split_preds_classes = [1 if pred >= args.chosen_threshold else 0 for pred in split_preds]
+        # print(len(split_preds_classes), sum(split_preds_classes))
         f1 = metrics.f1_score(split_labels, split_preds_classes)
         split_to_f1[split]=f1
     
-    
+    # print(split_to_f1)
     df = pd.DataFrame(list(split_to_f1.items()), columns=['Chromosomes','F1'])
-    b = sns.barplot(x='Chromosomes',y='F1', data=df)
+    b = sns.barplot(x='Chromosomes',y='F1', data=df, palette=palette)
     plt.xticks(fontsize=fontsize-2)
     plt.yticks(fontsize=fontsize-2)
     # b.set_yticklabels(b.get_yticklabels(), size = fontsize-2)

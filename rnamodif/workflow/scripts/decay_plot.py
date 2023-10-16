@@ -27,7 +27,7 @@ def main(args):
     # TODO filter bad genes
     # TODO parametrize 
     gene_join = gene_join[gene_join['reads'] > 100] #100
-    gene_join = gene_join[gene_join[column] < 5] #6 
+    gene_join = gene_join[gene_join[column] < 5] #6
     
     gene_join = add_predicted_halflifes(gene_join)
     gene_join['t5_binned'] = pd.cut(gene_join[column], bins=[0, 1, 2, 3, 4, 5], labels=['0-1', '1-2', '2-3', '3-4', '4-5'])
