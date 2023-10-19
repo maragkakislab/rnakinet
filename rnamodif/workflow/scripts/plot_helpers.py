@@ -56,7 +56,9 @@ def plot_and_save(args, plot_fn, callbacks=[]):
         callback()
     
     plt.savefig(output_file, bbox_inches='tight')
+
     
+#TODO remove, has its own script
 def correlation_plot(df, x_column, y_column, x_label, y_label, output):
     plt.figure(figsize=(1.5,1.5))
     palette = setup_palette()

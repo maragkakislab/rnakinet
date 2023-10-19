@@ -33,6 +33,8 @@ include: "rules/training.smk"
 
 rule all:
     input:
+        expand('outputs/visual/predictions/CUSTOM_allneg_maxpool/max_ALL_DONE.txt'),
+        
         # expand('outputs/visual/datastats/{group}_sizes_stats.csv', group=['nanoid','nanoid_shock','nia','noars60','3t3','neurons','training'])
         # lambda wildcards: expand('outputs/visual/predictions/{model_name}/{group}_{pooling}_pooling_{plot_type}.pdf',
         #     group=[group for group in comparison_groups.keys()],
@@ -40,7 +42,9 @@ rule all:
         #     pooling=pooling,
         #     plot_type=['auroc', 'thresholds','pr_curve'],
         # ),
-        expand('outputs/visual/predictions/CUSTOM_allneg_maxpool/max_ALL_DONE.txt'),
+
+        # 'outputs/visual/predictions/CUSTOM_allneg_maxpool/ALL_2022_NIA_max_pooling_chr_f1.pdf',
+        # 'outputs/visual/predictions/unlimited_standard_allneg/ALL_2022_NIA_max_pooling_chr_f1.pdf',
         
         # expand('checkpoints_pl/{model}/DONE.txt', model=training_configs.keys()),
         

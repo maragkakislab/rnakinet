@@ -179,4 +179,14 @@ model_comparison_groups = {
     'ALL':['CUSTOM_allneg_maxpool']#,'unlimited_standard_allneg'],#,'CNN_RNN_maydata_weighted'],
 }
 
+datastats_groups = {
+    'nanoid':[item for group in ['all_nanoid_positives','all_nanoid_negatives'] for item in exp_groups[group]],
+    'nanoid_shock':[item for group in ['nanoid_shock_controls','nanoid_shock_conditions'] for item in exp_groups[group]],
+    'nia':[item for group in ['new_2022_nia_positives','new_2022_nia_negatives'] for item in exp_groups[group]],
+    'noars60':[item for group in ['hela_decay_exps'] for item in exp_groups[group]],
+    '3t3':[item for group in ['mouse_decay_exps'] for item in exp_groups[group]],
+    'neurons': [item for group in ['neuron_exps'] for item in exp_groups[group]],
+    'training': [item for group in ['all_2022_nia_positives','all_2022_nia_negatives','neuron_exps'] for item in exp_groups[group]],
+}
+
 pooling=['max'] #TODO refactor away - big change! keep for later maybe

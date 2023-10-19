@@ -1,24 +1,7 @@
-# transcript-gene.tab downloaded and renamed from 
-# http://useast.ensembl.org/biomart/martview/989e4fff050168c3154e5398a6f27dde
-
-#TODO transcript-gene tab parametrize
-def get_transcript_to_gene_tab(experiment_name):
-    # transcriptome = get_transcriptome_version(experiment_name)
-    transcriptome = experiments_data[experiment_name].get_transcriptome()
-    
-    transcriptome_to_file = {
-        #TODO just get from ensembl?
-        
-        'references/Mus_musculus.GRCm39.cdna.all.fa': 'transcript-gene-mouse.tab',
-        'references/Homo_sapiens.GRCh38.cdna.all.fa': 'transcript-gene.tab',
-    }
-    # print('using', transcriptome_to_file[transcriptome], 'map file')
-    return transcriptome_to_file[transcriptome]
-
 rule transcript_counts:
     input:
         bam_file = "outputs/alignment/{experiment_name}/reads-align.transcriptome.sorted.bam",
-        map_file = lambda wildcards: get_transcript_to_gene_tab(wildcards.experiment_name),
+        map_file = lambda wildcards: experiments_data[wildcards.experiment_name].get_gene_transcript_table(),
     output:
         "outputs/alignment/{experiment_name}/reads.sorted.counts.txt"
     conda:
@@ -105,8 +88,8 @@ rule generate_gene_prediction_stats:
     input:
         transcriptome_bam='outputs/alignment/{experiment_name}/reads-align.transcriptome.sorted.bam',
         # transcript_to_gene_table='transcript-gene.tab',
-        transcript_to_gene_table = lambda wildcards: get_transcript_to_gene_tab(wildcards.experiment_name),
-        predictions='outputs/{prediction_type}/{model_name}/{experiment_name}/{pooling}_pooling.pickle',
+        transcript_to_gene_table = lambda wildcards: experiments_data[wildcards.experiment_name].get_gene_transcript_table(),
+        predictions='outputs/{prediction_type}/{model_name}/{experiment_name}/{pooling}_pooling.pickle', #TODO redo to csv
     output:
         gene_out = 'outputs/{prediction_type}/{model_name}/{experiment_name}/{pooling}_pooling_gene_level_predictions.tsv',
         transcript_out = 'outputs/{prediction_type}/{model_name}/{experiment_name}/{pooling}_pooling_transcript_level_predictions.tsv',
@@ -132,7 +115,7 @@ rule generate_gene_prediction_stats_joined:
     input:
         transcriptome_bam='outputs/alignment/{experiment_name}/reads-align.transcriptome.sorted.bam',
         # transcript_to_gene_table='transcript-gene.tab',
-        transcript_to_gene_table = lambda wildcards: get_transcript_to_gene_tab(wildcards.experiment_name),
+        transcript_to_gene_table = lambda wildcards: experiments_data[wildcards.experiment_name].get_gene_transcript_table(),
         predictions='outputs/{prediction_type}/{model_name}/{experiment_name}/{pooling}_pooling_joined.pickle',
     output:
         gene_out = 'outputs/{prediction_type}/{model_name}/{experiment_name}/{pooling}_pooling_gene_level_predictions.tsv',

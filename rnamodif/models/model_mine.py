@@ -58,7 +58,7 @@ class MyModel(pl.LightningModule):
             
             Permute(),
             torch.nn.GRU(input_size=128, hidden_size=32, num_layers=1,
-                         batch_first=True, bidirectional=True, dropout=0.2),
+                         batch_first=True, bidirectional=True, dropout=0.0),
             RNNPooling(),
             torch.nn.Linear(1*(2*3*32), 30),
             torch.nn.ReLU(),

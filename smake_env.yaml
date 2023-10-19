@@ -1,4 +1,4 @@
-name: smake_env
+name: smake_environment
 channels:
   - bioconda
   - conda-forge

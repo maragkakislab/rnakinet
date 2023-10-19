@@ -9,11 +9,13 @@ import torch
 
 from rnamodif.data_utils.dataloading_5eu import CompleteReadsInferenceDataset
 from rnamodif.data_utils.dataloading_uncut import UnlimitedReadsInferenceDataset
-# from rnamodif.models.model import RodanPretrained
-# from rnamodif.models.model_uncut import RodanPretrainedUnlimited
+
 from rnamodif.models.model_mine import MyModel
 from rnamodif.data_utils.workers import worker_init_fn_inference
 from rnamodif.workflow.scripts.helpers import arch_map
+
+# from rnamodif.models.model import RodanPretrained
+from rnamodif.models.model_uncut import RodanPretrainedUnlimited
         
 def main(args):
     print('CUDA', torch.cuda.is_available())

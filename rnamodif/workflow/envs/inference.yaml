@@ -16,3 +16,5 @@ dependencies:
     - pip
     - pip:
         - -e ../../../../
+        - fast-ctc-decode==0.3.5 #RODAN import
+        

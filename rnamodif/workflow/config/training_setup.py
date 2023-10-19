@@ -15,6 +15,7 @@ class ExperimentData:
                  valid_chrs=None,
                  halflives_name_to_file={},
                  time=None,
+                 gene_transcript_table=None,
                 ):
         self.name = name
         self.path = path
@@ -27,6 +28,7 @@ class ExperimentData:
         self.test_chrs = test_chrs
         self.valid_chrs = valid_chrs
         self.halflives_name_to_file = halflives_name_to_file
+        self.gene_transcript_table = gene_transcript_table
         # Time the cells have been exposed to 5EU, used for decay calculation
         self.time = time 
         
@@ -92,6 +94,10 @@ class ExperimentData:
         if(self.time is None):
             raise Exception(f'Time is not defined for {self.name}')
         return self.time
+    def get_gene_transcript_table(self):
+        if(self.gene_transcript_table is None):
+            raise Exception(f'Gene-transcript table not defined for {self.name}')
+        return self.gene_transcript_table
 
     
     
@@ -104,12 +110,17 @@ class ExperimentData:
 #     pattern_to_time = {
 #         'ALL_NoArs60': 1.0,
 #     }
-        
+      
+# transcript-gene.tab downloaded and renamed from 
+# http://useast.ensembl.org/biomart/martview/989e4fff050168c3154e5398a6f27dde
+
 mouse_genome = 'references/Mus_musculus.GRCm39.dna_sm.primary_assembly.fa'
 mouse_transcriptome = 'references/Mus_musculus.GRCm39.cdna.all.fa'
+mouse_gene_transcript_table = 'references/transcript-gene-mouse.tab'
 
 human_genome = 'references/Homo_sapiens.GRCh38.dna_sm.primary_assembly.fa'
 human_transcriptome = 'references/Homo_sapiens.GRCh38.cdna.all.fa'
+human_gene_transcript_table = 'references/transcript-gene-human.tab'
     
 experiments_data = {}
    
@@ -136,6 +147,7 @@ for exp_name in old_exps:
         train_chrs=[2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,21,22,'X','MT'],
         test_chrs=[1],
         valid_chrs=[20],
+        gene_transcript_table=human_gene_transcript_table,
     )
     experiments_data[exp_name] = exp_data
 
@@ -171,6 +183,7 @@ for exp_name in nanoid_exps:
         train_chrs=[2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,'X','MT'],
         test_chrs=[1],
         valid_chrs=[],
+        gene_transcript_table=human_gene_transcript_table,
     )
     experiments_data[exp_name] = exp_data
     
@@ -227,6 +240,7 @@ for exp_name in new_exps:
         transcriptome=human_transcriptome,
         halflives_name_to_file={'DRB':'halflives_data/experiments/hl_drb_renamed.csv'}, #TODO tani? rename?
         time=2.0, #TODO correct?
+        gene_transcript_table=human_gene_transcript_table,
     )
     experiments_data[exp_name] = exp_data
 
@@ -240,6 +254,7 @@ for exp_name in external_mouse:
         path=f'local_store/arsenite/raw/{exp_name}',
         genome=mouse_genome,
         transcriptome=mouse_transcriptome,
+        gene_transcript_table=mouse_gene_transcript_table,
     )
     experiments_data[exp_name] = exp_data
 
@@ -260,8 +275,12 @@ for exp_name in mouse:
         flowcell='FLO-MIN106',
         genome=mouse_genome,
         transcriptome=mouse_transcriptome,
-        halflives_name_to_file={'PION':'halflives_data/experiments/mmu_dRNA_3T3_mion_1/features_v1.csv'}, #TODO add PION
+        halflives_name_to_file={
+            'PION':'halflives_data/experiments/mmu_dRNA_3T3_PION_1/features_v1.csv',
+            'MION':'halflives_data/experiments/mmu_dRNA_3T3_mion_1/features_v1.csv',
+        },
         time=2.0,
+        gene_transcript_table=mouse_gene_transcript_table,
     )
     experiments_data[exp_name] = exp_data
     
@@ -315,6 +334,7 @@ for exp_name in test_splits:
         # flowcell=,
         genome=human_genome,
         transcriptome=human_transcriptome,
+        gene_transcript_table=human_gene_transcript_table,
     )
     experiments_data[exp_name] = exp_data
 
@@ -343,6 +363,7 @@ for exp_name in train_splits:
         # flowcell=,
         genome=human_genome,
         transcriptome=human_transcriptome,
+        gene_transcript_table=human_gene_transcript_table,
     )
     experiments_data[exp_name] = exp_data
     
@@ -436,6 +457,7 @@ all_train_negatives_new = [
 api_key = "TEVQbgxxvilM1WdTyqZLJ57ac"
 
 training_configs  = {
+    #TODO add RNAkinet model
     #TODO dont use name_to_files strings, unify paths from snakemake config and use here
     # 'TEST_REFACTOR': {
     #     'training_positives_exps': train_positives_all2022,

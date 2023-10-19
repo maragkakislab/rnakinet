@@ -106,6 +106,7 @@ def f1_plot(pos_chr_to_preds, neg_chr_to_preds, args):
     # print(split_to_f1)
     df = pd.DataFrame(list(split_to_f1.items()), columns=['Chromosomes','F1'])
     b = sns.barplot(x='Chromosomes',y='F1', data=df, palette=palette)
+    b.set_ylim(0, args.ylim)
     plt.xticks(fontsize=fontsize-2)
     plt.yticks(fontsize=fontsize-2)
     # b.set_yticklabels(b.get_yticklabels(), size = fontsize-2)
@@ -190,6 +191,7 @@ if __name__ == "__main__":
     parser.add_argument('--test_chrs', nargs='+', type=str, required=True, help='List of chromosomes used for testing')
     parser.add_argument('--plot_type', type=str, required=True, help='Type of the plot (auroc or f1)')
     parser.add_argument('--chosen_threshold', type=float, required=True, help='Chosen threshold for classification')
+    parser.add_argument('--ylim', type=float, required=True, help='The limit for the y axis')
     
     parser.add_argument('--output', type=str, required=True, help='Path to the output plot file.')
     args = parser.parse_args()

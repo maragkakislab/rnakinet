@@ -25,22 +25,6 @@ rule create_distribution_plot:
             --exp-names {params.exp_names} \
         """
 
-# TODO delete
-# rule create_nanoid_auroc:
-#     input:
-#         positives_paths=[f'local_store/arsenite/samples/K562_5EU_1440_labeled{prefix}_run/nanoid/pred.tab.gz' for prefix in ["","_II","_III"]],
-#         negatives_paths=[f'local_store/arsenite/samples/K562_5EU_0_unlabeled{prefix}_run/nanoid/pred.tab.gz' for prefix in ["","_II","_III"]],
-#     output:
-#         'outputs/visual/nanoid_preds/nanoid_auroc.pdf'
-#     conda:
-#         '../envs/visual.yaml'
-#     shell:
-#         """
-#         python3 scripts/auroc_nanoid.py \
-#             --positives-paths {input.positives_paths} \
-#             --negatives-paths {input.negatives_paths} \
-#             --output {output} \
-#         """
 
 #TODO test_Comparisons vs comparisons
 rule create_classification_plot:
@@ -84,8 +68,8 @@ rule create_classification_plot:
         
 rule create_classification_plot_nanoid_model:
     input:
-        neg_files = 'nanoid_hsa_dRNA_HeLa_DMSO_1_complete.pickle',
-        pos_files = 'hsa_dRNA_HeLa_5EU_polyA_REL5_2_nanoid_complete.pickle',
+        neg_files = 'outputs/predictions/nanoid/nanoid_hsa_dRNA_HeLa_DMSO_1_complete.pickle',
+        pos_files = 'outputs/predictions/nanoid/hsa_dRNA_HeLa_5EU_polyA_REL5_2_nanoid_complete.pickle',
     output:
         'outputs/visual/predictions/NANOID/DMSO_1_REL5_2_{plot_type}.pdf'
     wildcard_constraints:
@@ -115,8 +99,8 @@ rule create_classification_plot_nanoid_model:
         
 rule create_chromosome_plot_nanoid_model:
     input:
-        neg_files = 'nanoid_hsa_dRNA_HeLa_DMSO_1_complete.pickle',
-        pos_files = 'hsa_dRNA_HeLa_5EU_polyA_REL5_2_nanoid_complete.pickle',
+        neg_files = 'outputs/predictions/nanoid/nanoid_hsa_dRNA_HeLa_DMSO_1_complete.pickle',
+        pos_files = 'outputs/predictions/nanoid/hsa_dRNA_HeLa_5EU_polyA_REL5_2_nanoid_complete.pickle',
         neg_bams = 'outputs/alignment/20220520_hsa_dRNA_HeLa_DMSO_1/reads-align.genome.sorted.bam',
         pos_bams = 'outputs/alignment/20220303_hsa_dRNA_HeLa_5EU_polyA_REL5_2/reads-align.genome.sorted.bam',
     output:
@@ -128,6 +112,7 @@ rule create_chromosome_plot_nanoid_model:
         valid_chrs = [str(i) for i in [20]],
         test_chrs = [str(i) for i in [1]],
         chosen_threshold = 0.5,
+        ylim = 1.0,
     wildcard_constraints:
         plot_type='(auroc|f1)'
     shell:
@@ -142,6 +127,7 @@ rule create_chromosome_plot_nanoid_model:
             --test_chrs {params.test_chrs} \
             --plot_type {wildcards.plot_type} \
             --chosen_threshold {params.chosen_threshold} \
+            --ylim {params.ylim} \
             --output {output} \
         """
         
@@ -215,6 +201,7 @@ rule create_chromosome_plot:
         valid_chrs = [str(i) for i in [20]],
         test_chrs = [str(i) for i in [1]],
         chosen_threshold = lambda wildcards: models_data[wildcards.model_name].get_threshold(),
+        ylim = 0.80,
     wildcard_constraints:
         plot_type='(auroc|f1)'
     shell:
@@ -229,6 +216,7 @@ rule create_chromosome_plot:
             --test_chrs {params.test_chrs} \
             --plot_type {wildcards.plot_type} \
             --chosen_threshold {params.chosen_threshold} \
+            --ylim {params.ylim} \
             --output {output} \
         """
         
@@ -283,28 +271,89 @@ rule create_volcano_plot:
             --column {wildcards.column} \
         """
 
-        
-rule create_decay_plot:
+rule calculate_decay:
     input:
         gene_predictions = 'outputs/predictions/{model_name}/{experiment_name}/{pooling}_pooling_{reference_level}_level_predictions.tsv',
-        gene_halflifes = lambda wildcards: experiments_data[wildcards.experiment_name].get_halflives_name_to_file()[wildcards.halflives_name],
     output:
-        'outputs/visual/predictions/{model_name}/{experiment_name}/{halflives_name}_halflives_{pooling}_pooling_{reference_level}_decay_plot.pdf'
+        'outputs/predictions/{model_name}/{experiment_name}/{pooling}_pooling_{reference_level}_level_halflives_predictions.tsv',
     conda:
         "../envs/visual.yaml"
     params:
         tl = lambda wildcards: experiments_data[wildcards.experiment_name].get_time(),
-        # halflives_gene_column_name = 'gene', #TODO delete, replaced by reference level - gene or transcript
     #TODO add parameter for column (average_score vs percentage_modified[dependent on my threshold])
     shell:
         """
-        python3 scripts/decay_plot.py \
+        python3 scripts/calculate_decay.py \
             --gene-predictions {input.gene_predictions} \
-            --gene-halflifes {input.gene_halflifes} \
-            --gene-halflifes-gene-column {wildcards.reference_level} \
             --tl {params.tl} \
             --output {output} \
         """
+
+rule join_decay_tables:
+    input:
+        predicted_halflives='outputs/predictions/{model_name}/{experiment_name}/{pooling}_pooling_{reference_level}_level_halflives_predictions.tsv',
+        measured_halflives = lambda wildcards: experiments_data[wildcards.experiment_name].get_halflives_name_to_file()[wildcards.halflives_name],
+    output:
+        'outputs/predictions/{model_name}/{experiment_name}/{halflives_name}_{pooling}_pooling_{reference_level}_level_halflives_join.tsv',
+    conda:
+        "../envs/visual.yaml"
+    params:
+        min_reads=100,
+        max_hl=5,
+    shell:
+        """
+        python3 scripts/join_decay_tables.py \
+            --predicted-halflives {input.predicted_halflives} \
+            --measured-halflives {input.measured_halflives} \
+            --min-reads {params.min_reads} \
+            --max-measured-halflife {params.max_hl} \
+            --reference-level {wildcards.reference_level} \
+            --output {output} \
+        """
+    
+rule plot_halflives_correlation:
+    input:
+        'outputs/predictions/{model_name}/{experiment_name}/{halflives_name}_{pooling}_pooling_{reference_level}_level_halflives_join.tsv'
+    output:
+        'outputs/visual/predictions/{model_name}/{experiment_name}/{halflives_name}_halflives_{pooling}_pooling_{reference_level}_decay_plot.pdf'
+    conda:
+        "../envs/visual.yaml" 
+    params:
+        x_column='t5',
+        y_column='pred_t5',
+        x_label='t5\ measured',
+        y_label='t5\ predicted',
+    shell:
+        """
+        python3 scripts/correlation_plot.py \
+            --table {input} \
+            --x-column {params.x_column} \
+            --y-column {params.y_column} \
+            --x-label {params.x_label} \
+            --y-label {params.y_label} \
+            --output {output} \
+        """
+    
+# rule create_decay_plot:
+#     input:
+#         gene_predictions = 'outputs/predictions/{model_name}/{experiment_name}/{pooling}_pooling_{reference_level}_level_predictions.tsv',
+#         gene_halflifes = lambda wildcards: experiments_data[wildcards.experiment_name].get_halflives_name_to_file()[wildcards.halflives_name],
+#     output:
+#         'outputs/visual/predictions/{model_name}/{experiment_name}/{halflives_name}_halflives_{pooling}_pooling_{reference_level}_decay_plot.pdf'
+#     conda:
+#         "../envs/visual.yaml"
+#     params:
+#         tl = lambda wildcards: experiments_data[wildcards.experiment_name].get_time(),
+#     #TODO add parameter for column (average_score vs percentage_modified[dependent on my threshold])
+#     shell:
+#         """
+#         python3 scripts/decay_plot.py \
+#             --gene-predictions {input.gene_predictions} \
+#             --gene-halflifes {input.gene_halflifes} \
+#             --gene-halflifes-gene-column {wildcards.reference_level} \
+#             --tl {params.tl} \
+#             --output {output} \
+#         """
 
 rule create_decay_read_limit_plot:
     input:
@@ -334,10 +383,10 @@ rule create_decay_read_limit_plot:
             --output {output} \
         """
 
-#TODO save halflives prediction and just do a correlation plot rule
 self_corr_exp_1 = '20230706_mmu_dRNA_3T3_5EU_400_1'
 self_corr_exp_2 = '20230816_mmu_dRNA_3T3_5EU_400_2'
 tl = 2
+#TODO refactor to use correlation plotting
 rule create_self_corr_decay_plot:
     input:
         gene_predictions_1 = 'outputs/predictions/{model_name}/'+self_corr_exp_1+'/{pooling}_pooling_{reference_level}_level_predictions.tsv',
@@ -357,7 +406,8 @@ rule create_self_corr_decay_plot:
             --reference-level {wildcards.reference_level} \
             --output {output} \
         """
-        
+
+#TODO refactor to use correlation plotting
 rule create_fc_plot:
     input:
         gene_level_preds_control=lambda wildcards: expand(
