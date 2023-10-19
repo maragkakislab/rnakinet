@@ -48,7 +48,7 @@ def main(args):
         
         
 if __name__ == "__main__":
-    default_checkpoint = '../checkpoints_pl/2022_mine_allneg/last-Copy5.ckpt'
+    default_checkpoint = 'rnamodif/checkpoints_pl/2022_mine_allneg/last-Copy5.ckpt'
     parser = argparse.ArgumentParser(description='Run prediction on FAST5 files and save results in a pickle file.')
     parser.add_argument('--path', type=str, required=True, help='Path to the folder containing FAST5 files.')
     parser.add_argument('--checkpoint', type=str, default=default_checkpoint, help='Path to the model checkpoint file.')
