@@ -1,11 +1,10 @@
 name: rnakinet_deploy
 channels:
-    - bioconda
     - conda-forge
-    - pytorch
+    - bioconda
 dependencies:
     - pytorch-gpu=1.11
-    - pytorch-lightning=1.7.0
+    - pytorch-lightning=1.7.*
     - numpy
     - torchmetrics=0.11.4
     - ont-fast5-api
