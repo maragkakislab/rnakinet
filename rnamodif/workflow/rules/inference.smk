@@ -6,7 +6,7 @@ rule run_inference:
         experiment_path = lambda wildcards: experiments_data[wildcards.experiment_name].get_path(),
         model_path = lambda wildcards: models_data[wildcards.model_name].get_path(),
     output:
-        'outputs/{prediction_type}/{model_name}/{experiment_name}/windows.pickle' #TODO redo to something else than pickle
+        'outputs/{prediction_type}/{model_name}/{experiment_name}/windows.pickle' #TODO redo to csv or tsv
     conda:
         "../envs/inference.yaml"
     params:
@@ -17,7 +17,7 @@ rule run_inference:
         
         limit = lambda wildcards: '', #TODO refactor away
         arch = lambda wildcards: models_data[wildcards.model_name].get_arch(),
-    threads: 16 #TODO why 16
+    threads: 16 #TODO parametrize
     resources: gpus=1
     wildcard_constraints:
         prediction_type='(predictions|predictions_limited)'
@@ -40,13 +40,13 @@ rule run_pooling:
     input:
         window_predictions = 'outputs/{prediction_type}/{model_name}/{experiment_name}/windows.pickle'
     output:
-        out_pickle = 'outputs/{prediction_type}/{model_name}/{experiment_name}/{pooling}_pooling.pickle', #redo to something else than pickle
+        out_pickle = 'outputs/{prediction_type}/{model_name}/{experiment_name}/{pooling}_pooling.pickle', #redo to csv or tsv
         out_csv = 'outputs/{prediction_type}/{model_name}/{experiment_name}/{pooling}_pooling.csv'
     conda:
         "../envs/inference.yaml"
     params:
-        pooling = lambda wildcards: wildcards.pooling, #TODO remove pooling? Use max always?
-        threshold = lambda wildcards: models_data[wildcards.model_name].get_threshold(), #TODO why do i need threshold
+        pooling = lambda wildcards: wildcards.pooling, #TODO remove pooling options, no longer relevant
+        threshold = lambda wildcards: models_data[wildcards.model_name].get_threshold(),
     threads: 1
     shell:
         """

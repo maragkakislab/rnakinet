@@ -30,7 +30,6 @@ def main(args):
     
     df['total_elapsed_minutes'] = df['total_elapsed']/60
     
-#     plt.plot(fpr,tpr, linewidth=1, color=palette[i], label=f'{thresholds[i]} <= {key}  < {thresholds[i+1]} (AUROC {auroc:.2f})')
     sns.lineplot(data=df, x='using_reads', y='total_elapsed_minutes', marker='.')
 
     plt.xlabel('Number of reads', fontsize=fontsize)
@@ -40,7 +39,6 @@ def main(args):
     plt.title(df['GPU type'].values[0], fontsize=fontsize)
     sns.set_style('whitegrid')
     sns.despine()
-#     plt.legend(loc='lower right', fontsize=fontsize-2, frameon=False)
     plt.savefig(output_file, bbox_inches='tight')
                                                
     

@@ -58,7 +58,7 @@ def plot_and_save(args, plot_fn, callbacks=[]):
     plt.savefig(output_file, bbox_inches='tight')
 
     
-#TODO remove, has its own script
+#TODO refactor away, has its own script now
 def correlation_plot(df, x_column, y_column, x_label, y_label, output):
     plt.figure(figsize=(1.5,1.5))
     palette = setup_palette()
@@ -74,7 +74,6 @@ def correlation_plot(df, x_column, y_column, x_label, y_label, output):
     plt.xlabel(x_label, fontsize=fontsize)
     plt.ylabel(y_label, fontsize=fontsize)
     
-    # corrcoef = np.corrcoef(x,y)[0,1]
     spearman = spearmanr(x,y).statistic
     pearson = pearsonr(x,y).statistic
     

@@ -46,7 +46,6 @@ def main(args):
         
     if(args.plot_type == 'Uperc'):
         attribute_auroc_plot(pos_readid_to_info, neg_readid_to_info, pos_predictions, neg_predictions, args, key='percent_U', thresholds=[0,20,30,100])
-    #TODO plot auroc
     if(args.plot_type == 'length'):
         attribute_auroc_plot(pos_readid_to_info, neg_readid_to_info, pos_predictions, neg_predictions, args, key='read_length', thresholds=[0,1000,3000,5000,1000000])
         
@@ -73,7 +72,6 @@ def attribute_auroc_plot(pos_readid_to_info, neg_readid_to_info, pos_preds, neg_
         preds = pos_preds_threshold+neg_preds_threshold
         labels = pos_labels+neg_labels
         
-        print(thresholds[i], thresholds[i+1], len(labels))
         if(len(labels)<=0):
             continue
     
@@ -94,7 +92,7 @@ def attribute_auroc_plot(pos_readid_to_info, neg_readid_to_info, pos_preds, neg_
                                                
     
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Run prediction on FAST5 files and save results in a pickle file.')
+    parser = argparse.ArgumentParser(description='Separate data based on % of Us or length and plot multiple AUROC plots for these groups')
     parser.add_argument('--positives_bams', nargs='+', type=str, required=True, help='Bam files for positive reads')
     parser.add_argument('--negatives_bams', nargs='+', type=str, required=True, help='Bam files for negative reads')
     parser.add_argument('--positives_predictions', nargs='+', type=str, required=True, help='Prediction files for positive reads')

@@ -47,7 +47,6 @@ def process_read(read, window, skip=0, preprocess='rodan'):
     if (len(s) < window):
         return []
 
-    # TODO remove reshape?
     # Returning a random chunk of #window size
     return s[pos:pos+window].reshape((window, 1))
 

@@ -1,13 +1,5 @@
 from pathlib import Path
-
-# rule download_human_genome:
-#     output: f"{HUMAN_REF_VERSION}.fa"
-#     shell:
-#         f"""
-#         wget https://ftp.ensembl.org/pub/release-109/fasta/homo_sapiens/dna/{HUMAN_REF_VERSION}.fa.gz
-#         gzip -d {HUMAN_REF_VERSION}.fa.gz
-#         """
-        
+      
 rule align_to_genome:
     input:
         basecalls = lambda wildcards: experiments_data[wildcards.experiment_name].get_basecalls(),

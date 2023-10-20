@@ -45,7 +45,7 @@ if __name__ == "__main__":
         nargs='+', 
         help='Paths to the files containing predictions on negatives.'
     )
-    parser.add_argument('--output', type=str, required=True, help='Path to the output plot file.')
+    parser.add_argument('--output', type=str, required=True, help='Plot AUROC plot for the nanoid predictions')
     args = parser.parse_args()
     main(args)
   

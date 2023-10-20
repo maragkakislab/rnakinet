@@ -97,29 +97,21 @@ def f1_plot(pos_chr_to_preds, neg_chr_to_preds, args):
             
             split_preds+=preds.tolist()
             split_labels+=labels.tolist()
-        # print(args.chosen_threshold)
+
         split_preds_classes = [1 if pred >= args.chosen_threshold else 0 for pred in split_preds]
-        # print(len(split_preds_classes), sum(split_preds_classes))
         f1 = metrics.f1_score(split_labels, split_preds_classes)
         split_to_f1[split]=f1
     
-    # print(split_to_f1)
     df = pd.DataFrame(list(split_to_f1.items()), columns=['Chromosomes','F1'])
     b = sns.barplot(x='Chromosomes',y='F1', data=df, palette=palette)
     b.set_ylim(0, args.ylim)
     plt.xticks(fontsize=fontsize-2)
     plt.yticks(fontsize=fontsize-2)
-    # b.set_yticklabels(b.get_yticklabels(), size = fontsize-2)
-    # b.set_xticklabels(b.get_xticklabels(), size = fontsize-2)
     plt.xlabel('Chromosomes', fontsize=fontsize)
     plt.ylabel('F1 Score', fontsize=fontsize)
     plt.legend(loc='lower left', frameon=False, fontsize=fontsize-2)
     sns.despine()
-    # plt.tight_layout()
     plt.savefig(output_file, bbox_inches='tight')
-        
-    
-    
 
 def auroc_plot(pos_chr_to_preds, neg_chr_to_preds, args):
     output_file = args.output
@@ -144,8 +136,6 @@ def auroc_plot(pos_chr_to_preds, neg_chr_to_preds, args):
         if(len(labels)<=0):
             continue
             
-        # print(chr_name, len(pos_labels), len(neg_labels))
-        
         fpr, tpr, thresholds = metrics.roc_curve(labels, preds)
         auroc = metrics.auc(fpr, tpr)
         
@@ -177,11 +167,9 @@ def auroc_plot(pos_chr_to_preds, neg_chr_to_preds, args):
     plt.legend(loc='lower right', fontsize=fontsize-2, frameon=False)
     plt.savefig(output_file, bbox_inches='tight')
     
-
-   
     
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Run prediction on FAST5 files and save results in a pickle file.')
+    parser = argparse.ArgumentParser(description='Plot a metric for different chromosome splits (train, test, valid)')
     parser.add_argument('--positives_bams', nargs='+', type=str, required=True, help='Bam files for positive reads')
     parser.add_argument('--negatives_bams', nargs='+', type=str, required=True, help='Bam files for negative reads')
     parser.add_argument('--positives_predictions', nargs='+', type=str, required=True, help='Prediction files for positive reads')

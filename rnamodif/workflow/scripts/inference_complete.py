@@ -8,7 +8,6 @@ import numpy as np
 import torch
 import pandas as pd
 
-from rnamodif.data_utils.dataloading_5eu import CompleteReadsInferenceDataset
 from rnamodif.data_utils.dataloading_uncut import UnlimitedReadsInferenceDataset
 from rnamodif.models.model_mine import MyModel
 from rnamodif.data_utils.workers import worker_init_fn_inference
@@ -16,7 +15,9 @@ from rnamodif.data_utils.workers import worker_init_fn_inference
 def main(args):
     print('CUDA', torch.cuda.is_available())
     files = list(Path(args.path).rglob('*.fast5'))
-    print('Number of fast5 files found:', len(files)) #TODO raise error when 0?
+    print('Number of fast5 files found:', len(files))
+    if(len(files)==0):
+        raise Exception('No fast5 files found')
     
     arch = MyModel #TODO rename this class
     model = arch.load_from_checkpoint(args.checkpoint)
@@ -49,11 +50,11 @@ def main(args):
         
 if __name__ == "__main__":
     default_checkpoint = 'rnamodif/checkpoints_pl/2022_mine_allneg/last-Copy5.ckpt'
-    parser = argparse.ArgumentParser(description='Run prediction on FAST5 files and save results in a pickle file.')
+    parser = argparse.ArgumentParser(description='Run prediction on FAST5 files')
     parser.add_argument('--path', type=str, required=True, help='Path to the folder containing FAST5 files.')
     parser.add_argument('--checkpoint', type=str, default=default_checkpoint, help='Path to the model checkpoint file.')
     parser.add_argument('--out-csv', type=str, required=True, help='Path to the output csv file for pooled predictions.')
-    parser.add_argument('--max-workers', type=int, default=16, help='Maximum number of workers for data loading (default: 16).') #TODO default can be displayed in a better way in python
+    parser.add_argument('--max-workers', type=int, default=16, help='Maximum number of workers for data loading (default: 16).')
     parser.add_argument('--batch-size', type=int, default=1, help='Batch size for data loading (default: 256).')
     parser.add_argument('--max-len', type=int, default=400000, help='Maximum length of the signal sequence to process')
     parser.add_argument('--min-len', type=int, default=5000, help='Minimum length of the signal sequence to process')

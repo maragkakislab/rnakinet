@@ -15,5 +15,4 @@ dds <- DESeq(dds)
 res <- results(dds)
 
 write.table(res, args[3], sep='\t', row.names=TRUE, col.names=TRUE, dec=".")
-# head(results(dds, tidy=TRUE))
 

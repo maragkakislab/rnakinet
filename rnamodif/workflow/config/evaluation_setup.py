@@ -35,6 +35,17 @@ model_name_to_args = {
         'threshold': 0.75,
         'arch': 'rodan',
     },
+    #TODO fix paths to models
+    # 'rnakinet':{
+    #     'path':'../checkpoints_pl/rnakinet/model.ckpt',
+    #     'threshold': 0.5,
+    #     'arch': 'cnn_gru',
+    # },
+    # 'rnakinet_tl':{
+    #     'path':'checkpoints_pl/rnakinet_tl/model.ckpt',
+    #     'threshold': 0.75,
+    #     'arch': 'rodan',
+    # },
 }
 
 for model_name, model_args in model_name_to_args.items():
@@ -47,7 +58,6 @@ for model_name, model_args in model_name_to_args.items():
         skip=5000,
         threshold=model_args['threshold'],
     )
-
 
 #Evaluation data 
 #TODO unify with training data??
@@ -67,20 +77,6 @@ exp_groups = {
     ],
     'all_2022_nia_negatives':[
         '20220520_hsa_dRNA_HeLa_DMSO_1'
-    ],
-    'new_2022_nia_positives':[
-        '20220303_hsa_dRNA_HeLa_5EU_polyA_REL5_2',
-        '20220520_hsa_dRNA_HeLa_5EU_200_1',
-    ],
-    'new_2022_nia_negatives':[
-        '20220520_hsa_dRNA_HeLa_DMSO_1',
-        '20220303_hsa_dRNA_HeLa_DMSO_polyA_REL5_2',
-    ],
-    'train_nia_positives_old':[
-        '20220303_hsa_dRNA_HeLa_5EU_polyA_REL5_2_TRAIN',
-    ],
-    'train_nia_negatives_old':[
-        '20220520_hsa_dRNA_HeLa_DMSO_1_TRAIN',
     ],
     'test_nanoid_positives':[
         '20180514_1054_K562_5EU_1440_labeled_run_TEST',
@@ -156,10 +152,6 @@ pos_neg_pairs = {
         'positives':exp_groups['test_2022_nia_positives'],
         'negatives':exp_groups['test_2022_nia_negatives'],
     },
-    'TRAIN_2022_NIA_OLD':{
-        'positives':exp_groups['train_nia_positives_old'],
-        'negatives':exp_groups['train_nia_negatives_old'],
-    },
 }
 
 condition_control_pairs = {
@@ -172,7 +164,6 @@ condition_control_pairs = {
 comparison_groups = {
     'ALL':['ALL_2022_NIA','ALL_NANOID'],
     'TEST':['TEST_2022_NIA','TEST_NANOID'],
-    'TRAIN_OLD':['TRAIN_2022_NIA_OLD'],
 }
 
 model_comparison_groups = {
@@ -182,11 +173,10 @@ model_comparison_groups = {
 datastats_groups = {
     'nanoid':[item for group in ['all_nanoid_positives','all_nanoid_negatives'] for item in exp_groups[group]],
     'nanoid_shock':[item for group in ['nanoid_shock_controls','nanoid_shock_conditions'] for item in exp_groups[group]],
-    'nia':[item for group in ['new_2022_nia_positives','new_2022_nia_negatives'] for item in exp_groups[group]],
     'noars60':[item for group in ['hela_decay_exps'] for item in exp_groups[group]],
     '3t3':[item for group in ['mouse_decay_exps'] for item in exp_groups[group]],
     'neurons': [item for group in ['neuron_exps'] for item in exp_groups[group]],
     'training': [item for group in ['all_2022_nia_positives','all_2022_nia_negatives','neuron_exps'] for item in exp_groups[group]],
 }
 
-pooling=['max'] #TODO refactor away - big change! keep for later maybe
+pooling=['max'] #TODO refactor away

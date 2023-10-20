@@ -26,8 +26,7 @@ def main(args):
         y=y_axis_name, 
         data=df, 
         orient='h', 
-        # inner=None, #can be box and thinned in affinity
-        inner='box', #can be box and thinned in affinity
+        inner='box', 
         palette=palette,
         linewidth=0.75,
         scale='area',
@@ -37,7 +36,6 @@ def main(args):
     
     plt.yticks(fontsize=fontsize-2)
     plt.xticks(fontsize=fontsize-2)
-    # plt.xlim(0,1)
     
     red_patch = mpatches.Patch(color=palette_colors[0], label='Control')
     green_patch = mpatches.Patch(color=palette_colors[1], label='5EU')
@@ -62,7 +60,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Run prediction on FAST5 files and save results in a pickle file.')
     parser.add_argument('--files', type=str, required=True, nargs='+', help='Paths to the files containing predictions.')
     parser.add_argument('--output', type=str, required=True, help='Path to the output plot.')
-    parser.add_argument('--model-name', type=str, required=True, help='Name of the model to plot')
+    parser.add_argument('--model-name', type=str, required=True, help='Name of the model to use for predictions')
     parser.add_argument('--exp-names', type=str, nargs='+', required=True, help='Names of the experiments')
     
     args = parser.parse_args()

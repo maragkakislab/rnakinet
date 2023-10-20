@@ -101,16 +101,7 @@ class ExperimentData:
 
     
     
-# TODO add these to expdata, dont call the file 'train' ? this is for eval only
-# TODO how to resolve the joined experiment?
-# exp_to_halflife_file = {
-#     'ALL_NoArs60':'halflives_data/experiments/hl_drb_renamed.csv',
-# }      
-# def get_time_from_expname(experiment_name):
-#     pattern_to_time = {
-#         'ALL_NoArs60': 1.0,
-#     }
-      
+
 # transcript-gene.tab downloaded and renamed from 
 # http://useast.ensembl.org/biomart/martview/989e4fff050168c3154e5398a6f27dde
 
@@ -124,19 +115,16 @@ human_gene_transcript_table = 'references/transcript-gene-human.tab'
     
 experiments_data = {}
    
-#TODO rename
-old_exps = [
-    '20220520_hsa_dRNA_HeLa_DMSO_1',
+#TODO remove & rename
+inhouse_exps = [
+    '20220520_hsa_dRNA_HeLa_DMSO_1', 
     '20220520_hsa_dRNA_HeLa_5EU_200_1',
-    
-    '20201016_hsa_dRNASeq_HeLa_dmso_polyA_REL5_short_1',
-    '20201016_hsa_dRNASeq_HeLa_5EU_polyA_REL5_short_1',
     
     '20220303_hsa_dRNA_HeLa_DMSO_polyA_REL5_2',
     '20220303_hsa_dRNA_HeLa_5EU_polyA_REL5_2',
 ]
 
-for exp_name in old_exps:
+for exp_name in inhouse_exps:
     exp_data = ExperimentData(
         name=exp_name,
         path=f'local_store/store/seq/ont/experiments/{exp_name}',
@@ -187,63 +175,45 @@ for exp_name in nanoid_exps:
     )
     experiments_data[exp_name] = exp_data
     
-new_exps = [    
-    #TODO are these human
-    #TODO remove these and make new exp batch - these dont have specified time
-    '20201001_hsa_dRNA_Hek293T_NoArs_5P_1',
-    '20201022_hsa_dRNA_Neuron_ctrl_5P_1',
-    '20201022_hsa_dRNA_Neuron_TDP_5P_1',
-    
-    # '20210111_hsa_dRNA_HeLa_5EU_1hr_ctrl_0000m_5P_1',
-    # '20210208_hsa_dRNA_HeLa_5EU_1hr_ctrl_0000m_5P_2',
-    # '20210208_hsa_dRNA_HeLa_5EU_1hr_ctrl_0000m_5P_3',
-    
-    # '20210128_hsa_dRNA_HeLa_5EU_2hr_NoArs_0030m_5P_1',
-    # '20210128_hsa_dRNA_HeLa_5EU_2hr_NoArs_0030m_5P_2',
-    # 'noars_0030_3':,
-    
-    # '20210128_hsa_dRNA_HeLa_5EU_2hr_Ars_0030m_5P_1',
-    # '20210128_hsa_dRNA_HeLa_5EU_2hr_Ars_0030m_5P_2',
-    
+two_hour_5eu_exps = [    
+    # TODO resolve joined ALL_NoArs60 experiment for tani halflives plotting
     '20201215_hsa_dRNA_HeLa_5EU_2hr_NoArs_0060m_5P_1',
     '20210202_hsa_dRNA_HeLa_5EU_2hr_NoArs_0060m_5P_2',
     '20210519_hsa_dRNA_HeLa_5EU_2hr_NoArs_0060m_5P_3',
-    
-    # '20201215_hsa_dRNA_HeLa_5EU_2hr_Ars_0060m_5P_1',
-    # '20210202_hsa_dRNA_HeLa_5EU_2hr_Ars_0060m_5P_2',
-    # '20210519_hsa_dRNA_HeLa_5EU_2hr_Ars_0060m_5P_3',
-    
-    # '20210111_hsa_dRNA_HeLa_5EU_2hr_NoArs_0090m_5P_1',
-    # '20210202_hsa_dRNA_HeLa_5EU_2hr_NoArs_0090m_5P_2',
-    # '20210519_hsa_dRNA_HeLa_5EU_2hr_NoArs_0090m_5P_3',
-    
-    # '20201220_hsa_dRNA_HeLa_5EU_2hr_NoArs_0120m_5P_1',
-    # '20210205_hsa_dRNA_HeLa_5EU_2hr_NoArs_0120m_5P_2',
-    # 'noars_0120_3':,
-    
-    # '20210114_hsa_dRNA_HeLa_5EU_2hr_NoArs_0180m_5P_1',
-    # '20210205_hsa_dRNA_HeLa_5EU_2hr_NoArs_0180m_5P_2',
-    # 'noars_0180_3':,
-    
-    # '20201220_hsa_dRNA_HeLa_5EU_2hr_NoArs_0300m_5P_1',
-    # 'noars_0300_2':,
-    # 'noars_0300_3':,
 ]
 
-for exp_name in new_exps:
+for exp_name in two_hour_5eu_exps:
     exp_data = ExperimentData(
         name=exp_name,
         path=f'local_store/arsenite/raw/{exp_name}',
         kit='SQK-RNA002',
         flowcell='FLO-MIN106',
-        genome=human_genome, #TODO neurons are human?
+        genome=human_genome,
         transcriptome=human_transcriptome,
-        halflives_name_to_file={'DRB':'halflives_data/experiments/hl_drb_renamed.csv'}, #TODO tani? rename?
-        time=2.0, #TODO correct?
+        halflives_name_to_file={'DRB':'halflives_data/experiments/hl_drb_renamed.csv'}, #TODO tani halflives rename?
+        time=2.0,
         gene_transcript_table=human_gene_transcript_table,
     )
     experiments_data[exp_name] = exp_data
 
+
+neuron_exps = [    
+    '20201001_hsa_dRNA_Hek293T_NoArs_5P_1',
+    '20201022_hsa_dRNA_Neuron_ctrl_5P_1',
+    '20201022_hsa_dRNA_Neuron_TDP_5P_1',
+]
+for exp_name in neuron_exps:
+    exp_data = ExperimentData(
+        name=exp_name,
+        path=f'local_store/arsenite/raw/{exp_name}',
+        kit='SQK-RNA002',
+        flowcell='FLO-MIN106',
+        genome=human_genome,
+        transcriptome=human_transcriptome,
+        gene_transcript_table=human_gene_transcript_table,
+    )
+    experiments_data[exp_name] = exp_data
+    
 external_mouse = [
     '20211203_mmu_dRNA_3T3_mion_1',
     '20211203_mmu_dRNA_3T3_PION_1',
@@ -258,12 +228,12 @@ for exp_name in external_mouse:
     )
     experiments_data[exp_name] = exp_data
 
-mouse = [
+inhouse_mouse = [
     '20230706_mmu_dRNA_3T3_5EU_400_1',
     '20230816_mmu_dRNA_3T3_5EU_400_2',
 ]
 
-for exp_name in mouse:
+for exp_name in inhouse_mouse:
     root_dir=Path(f'local_store/arsenite/raw/{exp_name}')
     fast5_pass_dirs = [x for x in root_dir.glob("**/fast5_pass") if x.is_dir()]
     assert len(fast5_pass_dirs) == 1, len(fast5_pass_dirs)
@@ -285,28 +255,7 @@ for exp_name in mouse:
     experiments_data[exp_name] = exp_data
     
     
-extras = [
-    'm6A_0',
-    '2-OmeATP_0',
-    'ac4C_0',
-    'm5C_0',
-    'remdesivir_0',
-    's4U_0',
-]
-for exp_name in extras:
-    exp_data = ExperimentData(
-        name=exp_name,
-        path=f'local_store/store/seq/ont/experiments/{exp_name}/fast5',
-        # kit=,
-        # flowcell=,
-        # genome=,
-        # transcriptome=,
-    )
-    experiments_data[exp_name] = exp_data
-
-
-# # 'outputs/splits/20180327_1102_K562_5EU_0_unlabeled_run/test',
-#TODO remove _TEST splits!! (now needed for plotting, but refactored code should remove this)
+#TODO remove _TEST splits (now needed for plotting, but refactored code should remove this)
 test_splits = [
     
     '20180327_1102_K562_5EU_0_unlabeled_run_TEST',
@@ -338,7 +287,7 @@ for exp_name in test_splits:
     )
     experiments_data[exp_name] = exp_data
 
-#TODO remove _TRAIN splits!! (now needed for plotting, but refactored code should remove this)
+#TODO remove _TRAIN splits (now needed for plotting, but refactored code should remove this)
 train_splits = [
     '20180327_1102_K562_5EU_0_unlabeled_run_TRAIN',
     '20180514_1054_K562_5EU_1440_labeled_run_TRAIN',
@@ -367,126 +316,24 @@ for exp_name in train_splits:
     )
     experiments_data[exp_name] = exp_data
     
-# # 'outputs/splits/20180327_1102_K562_5EU_0_unlabeled_run/train',
-# train_splits = [
-#     '20180327_1102_K562_5EU_0_unlabeled_run_TRAIN',
-#     '20180514_1054_K562_5EU_1440_labeled_run_TRAIN',
-    
-#     '20180403_1102_K562_5EU_0_unlabeled_II_run_TRAIN',
-#     '20180514_1541_K562_5EU_1440_labeled_II_run_TRAIN',
-    
-#     '20180403_1208_K562_5EU_0_unlabeled_III_run_TRAIN',
-#     '20180516_1108_K562_5EU_1440_labeled_III_run_TRAIN',
-    
-#     '20220520_hsa_dRNA_HeLa_DMSO_1_TRAIN',
-#     '20220303_hsa_dRNA_HeLa_5EU_polyA_REL5_2_TRAIN',
-    
-# ]
-
 
 default_train_positives = [
     '20220303_hsa_dRNA_HeLa_5EU_polyA_REL5_2'
 ]
-all_train_negatives = [
-    '20220520_hsa_dRNA_HeLa_DMSO_1',
-    '20201016_hsa_dRNASeq_HeLa_dmso_polyA_REL5_short_1',
-    '20201001_hsa_dRNA_Hek293T_NoArs_5P_1',
-    '20201022_hsa_dRNA_Neuron_ctrl_5P_1',
-    '20201022_hsa_dRNA_Neuron_TDP_5P_1',
-    'm6A_0',
-    '2-OmeATP_0',
-    'ac4C_0',
-    'm5C_0',
-    'remdesivir_0',
-    's4U_0'
-]
-intermediate_train_negatives = [
-    '20220520_hsa_dRNA_HeLa_DMSO_1',
-    '20201016_hsa_dRNASeq_HeLa_dmso_polyA_REL5_short_1',
-    '20201001_hsa_dRNA_Hek293T_NoArs_5P_1',
-    '20201022_hsa_dRNA_Neuron_ctrl_5P_1',
-    '20201022_hsa_dRNA_Neuron_TDP_5P_1',
-]
-basic_train_negatives = [
-    '20220520_hsa_dRNA_HeLa_DMSO_1',
-]
-non2020_train_negatives = [
+default_train_negatives = [
     '20220520_hsa_dRNA_HeLa_DMSO_1',
     '20201001_hsa_dRNA_Hek293T_NoArs_5P_1',
     '20201022_hsa_dRNA_Neuron_ctrl_5P_1',
     '20201022_hsa_dRNA_Neuron_TDP_5P_1',
-    'm6A_0',
-    '2-OmeATP_0',
-    'ac4C_0',
-    'm5C_0',
-    'remdesivir_0',
-    's4U_0'
-]
-
-train_positives_may = [
-    '20220520_hsa_dRNA_HeLa_5EU_200_1'
-]
-train_negatives_may = [
-    '20220520_hsa_dRNA_HeLa_DMSO_1'
-]
-train_positives_all2022 = [
-    '20220520_hsa_dRNA_HeLa_5EU_200_1',
-    '20220303_hsa_dRNA_HeLa_5EU_polyA_REL5_2',
-]
-train_negatives_all2022 = [
-    '20220520_hsa_dRNA_HeLa_DMSO_1',
-    '20220303_hsa_dRNA_HeLa_DMSO_polyA_REL5_2',
-]
-
-all_train_negatives_new = [
-    '20220520_hsa_dRNA_HeLa_DMSO_1',
-    '20220303_hsa_dRNA_HeLa_DMSO_polyA_REL5_2',
-    '20201016_hsa_dRNASeq_HeLa_dmso_polyA_REL5_short_1',
-    '20201001_hsa_dRNA_Hek293T_NoArs_5P_1',
-    '20201022_hsa_dRNA_Neuron_ctrl_5P_1',
-    '20201022_hsa_dRNA_Neuron_TDP_5P_1',
-    'm6A_0',
-    '2-OmeATP_0',
-    'ac4C_0',
-    'm5C_0',
-    'remdesivir_0',
-    's4U_0'
 ]
 
 #TODO delete API KEY (comet logging)
 api_key = "TEVQbgxxvilM1WdTyqZLJ57ac"
 
 training_configs  = {
-    #TODO add RNAkinet model
-    #TODO dont use name_to_files strings, unify paths from snakemake config and use here
-    # 'TEST_REFACTOR': {
-    #     'training_positives_exps': train_positives_all2022,
-    #     'training_negatives_exps': train_negatives_all2022,
-    #     'min_len':5000,
-    #     'max_len':400000,
-    #     'skip':5000,
-    #     'workers':32,
-    #     'sampler':'ratio',
-    #     'lr':1e-3,
-    #     'warmup_steps':100,
-    #     'pos_weight':1.0,
-    #     'wd':0.01,
-    #     'arch':'cnn_rnn',
-    #     'arch_hyperparams':{
-    #         'cnn_depth':5,
-    #         'mlp_hidden_size':10,
-    #     },
-    #     'grad_acc':64,
-    #     'early_stopping_patience':200, 
-    #     'comet_api_key':api_key,
-    #     'comet_project_name':'RNAModif',
-    #     'logging_step':500, 
-    #     'enable_progress_bar':'no',
-    #     'log_to_file':True,
-    # },
-    'dummy': {
-        'training_positives_exps': train_positives_all2022,
-        'training_negatives_exps': train_negatives_may,
+    'rnakinet': {
+        'training_positives_exps': default_train_positives,
+        'training_negatives_exps': default_train_negatives,
         'min_len':5000,
         'max_len':400000,
         'skip':5000,
@@ -496,17 +343,39 @@ training_configs  = {
         'warmup_steps':100,
         'pos_weight':1.0,
         'wd':0.01,
-        'arch':'cnn_rnn',
+        'arch':'cnn_gru',
         'arch_hyperparams':{
             'cnn_depth':5,
             'mlp_hidden_size':10,
         },
         'grad_acc':64,
-        'early_stopping_patience':200, 
+        'early_stopping_patience':50, 
         'comet_api_key':api_key,
-        'comet_project_name':'RNAModif',
-        'logging_step':500, 
-        'enable_progress_bar':'yes',
-        'log_to_file':False,
+        'comet_project_name':'RNAModif', #TODO rename
+        'logging_step':500,
+        'enable_progress_bar':'no',
+        'log_to_file':True,
+    },
+    'rnakinet_tl': {
+        'training_positives_exps': default_train_positives,
+        'training_negatives_exps': default_train_negatives,
+        'min_len':5000,
+        'max_len':400000,
+        'skip':5000,
+        'workers':32,
+        'sampler':'ratio',
+        'lr':1e-3,
+        'warmup_steps':100,
+        'pos_weight':1.0,
+        'wd':0.01,
+        'arch':'rodan',
+        'arch_hyperparams':{},
+        'grad_acc':64,
+        'early_stopping_patience':50, 
+        'comet_api_key':api_key,
+        'comet_project_name':'RNAModif', #TODO rename
+        'logging_step':500,
+        'enable_progress_bar':'no',
+        'log_to_file':True,
     },
 }

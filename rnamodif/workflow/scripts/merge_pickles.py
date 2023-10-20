@@ -4,7 +4,6 @@ from collections import defaultdict
 
 def merge_dicts(pickle_files):
     merged_dict = {}
-    # merged_dict = defaultdict(dict)
     
     for pkl_file in pickle_files:
         try:

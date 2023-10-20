@@ -17,12 +17,6 @@ def plot_auroc(pos_preds, neg_preds, pos_name, neg_name):
     cutoff_1_tpr = tpr[np.argmax(tpr-fpr)]
 
     auroc = metrics.auc(fpr, tpr)
-
-    # create a new figure with a specific size (in inches)
-    # fig, ax = plt.subplots(figsize=(10, 8))
-
-    # plot ROC curve with a solid line and a professional color
-    # plt.plot(fpr, tpr, label=f'{pos_name}\n{neg_name}\nAUROC {auroc:.2f}, thr {cutoff_1:.2f} tpr {cutoff_1_tpr:.2f}', linestyle='-')
     plt.plot(fpr, tpr, label=f'{pos_name}\n{neg_name}\nAUROC {auroc:.2f}', linestyle='-')
     
     plt.plot([0, 1], [0, 1], color='black', linestyle='--')
@@ -30,17 +24,10 @@ def plot_auroc(pos_preds, neg_preds, pos_name, neg_name):
     fontsize=8
     plt.ylabel('True Positive Rate', fontsize=fontsize)
     plt.xlabel('False Positive Rate', fontsize=fontsize)
-    # plt.title('Receiver Operating Characteristic Curve', fontsize=16)
 
-    # increase ticks size
     plt.xticks(fontsize=fontsize-2)
     plt.yticks(fontsize=fontsize-2)
     
-    # add a minor grid
-    # plt.grid(which='minor', alpha=0.2)
-    # plt.grid(which='major', alpha=0.5)
-
-    # use seaborn to add a minor grid and remove the top and right walls
     sns.set_style('whitegrid')
     sns.despine()
 
@@ -51,7 +38,7 @@ def main(args):
     plot_and_save(args, plot_auroc)
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Run prediction on FAST5 files and save results in a pickle file.')
+    parser = argparse.ArgumentParser(description='Plot the AUROC plot')
     parser = parse_plotting_args(parser)
 
     args = parser.parse_args()

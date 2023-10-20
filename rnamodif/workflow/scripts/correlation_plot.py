@@ -26,7 +26,6 @@ def correlation_plot(df, x_column, y_column, x_label, y_label, output):
     plt.xlabel(x_label, fontsize=fontsize)
     plt.ylabel(y_label, fontsize=fontsize)
     
-    # corrcoef = np.corrcoef(x,y)[0,1]
     spearman = spearmanr(x,y).statistic
     pearson = pearsonr(x,y).statistic
     

@@ -1,5 +1,3 @@
-#TODO split to multiple files (decay, FC, classification...)
-
 rule create_distribution_plot:
     input:
         files = lambda wildcards: expand(
@@ -25,8 +23,6 @@ rule create_distribution_plot:
             --exp-names {params.exp_names} \
         """
 
-
-#TODO test_Comparisons vs comparisons
 rule create_classification_plot:
     input:
         neg_files = lambda wildcards: expand(
@@ -174,14 +170,12 @@ rule create_models_classification_plot:
         """
         
 
-
-#TODO why is f1 score for NIA data train chrs different in test vs all
 rule create_chromosome_plot:
     input:
         neg_files = lambda wildcards: expand(
             'outputs/predictions/{model_name}/{experiment_name}/{pooling}_pooling.pickle', 
             experiment_name=[exp for exp in pos_neg_pairs[wildcards.pair_name]['negatives']],
-            model_name=wildcards.model_name, #TODO needed?
+            model_name=wildcards.model_name, 
             pooling=wildcards.pooling,
         ),
         pos_files = lambda wildcards: expand(
@@ -280,7 +274,6 @@ rule calculate_decay:
         "../envs/visual.yaml"
     params:
         tl = lambda wildcards: experiments_data[wildcards.experiment_name].get_time(),
-    #TODO add parameter for column (average_score vs percentage_modified[dependent on my threshold])
     shell:
         """
         python3 scripts/calculate_decay.py \
@@ -334,27 +327,6 @@ rule plot_halflives_correlation:
             --output {output} \
         """
     
-# rule create_decay_plot:
-#     input:
-#         gene_predictions = 'outputs/predictions/{model_name}/{experiment_name}/{pooling}_pooling_{reference_level}_level_predictions.tsv',
-#         gene_halflifes = lambda wildcards: experiments_data[wildcards.experiment_name].get_halflives_name_to_file()[wildcards.halflives_name],
-#     output:
-#         'outputs/visual/predictions/{model_name}/{experiment_name}/{halflives_name}_halflives_{pooling}_pooling_{reference_level}_decay_plot.pdf'
-#     conda:
-#         "../envs/visual.yaml"
-#     params:
-#         tl = lambda wildcards: experiments_data[wildcards.experiment_name].get_time(),
-#     #TODO add parameter for column (average_score vs percentage_modified[dependent on my threshold])
-#     shell:
-#         """
-#         python3 scripts/decay_plot.py \
-#             --gene-predictions {input.gene_predictions} \
-#             --gene-halflifes {input.gene_halflifes} \
-#             --gene-halflifes-gene-column {wildcards.reference_level} \
-#             --tl {params.tl} \
-#             --output {output} \
-#         """
-
 rule create_decay_read_limit_plot:
     input:
         gene_predictions_list = lambda wildcards: expand('outputs/predictions/{model_name}/{experiment_name}/{pooling}_pooling_{reference_level}_level_predictions.tsv',
@@ -362,16 +334,14 @@ rule create_decay_read_limit_plot:
                                                         model_name=wildcards.model_name,
                                                         pooling=wildcards.pooling,
                                                         reference_level=wildcards.reference_level,),
-        gene_halflifes_list = lambda wildcards: [experiments_data[experiment_name].get_halflives_name_to_file()[wildcards.halflives_name] for experiment_name in exp_groups[wildcards.group_name]], #TODO expand to allow multiple halflive files?
+        gene_halflifes_list = lambda wildcards: [experiments_data[experiment_name].get_halflives_name_to_file()[wildcards.halflives_name] for experiment_name in exp_groups[wildcards.group_name]], 
     output:
-        'outputs/visual/predictions/{model_name}/decay/{halflives_name}_halflives_{group_name}_{pooling}_pooling_{reference_level}_read_limit_decay_plot.pdf' #TODO put into folders, not prefixes?
+        'outputs/visual/predictions/{model_name}/decay/{halflives_name}_halflives_{group_name}_{pooling}_pooling_{reference_level}_read_limit_decay_plot.pdf'
     conda:
         "../envs/visual.yaml"
     params:
         tl_list = lambda wildcards: [experiments_data[experiment_name].get_time() for experiment_name in exp_groups[wildcards.group_name]],
         exp_name_list = lambda wildcards: exp_groups[wildcards.group_name],
-        # halflives_gene_column_name = 'gene', #TODO delete, replaced by reference level - gene or transcript
-    #TODO add parameter for column (average_score vs percentage_modified[dependent on my threshold])
     shell:
         """
         python3 scripts/decay_read_limit_plot_multi.py \
@@ -431,9 +401,6 @@ rule create_fc_plot:
         target_col = 'log2FoldChange',
         min_reads = 100,
     shell:
-        #TODO try to filter low padj values - inside the script
-        #TODO MY_FC calculation - only simple average is weird - see how deseq does it! Get counts and let deseq calculate it?
-        #TODO deseq FC is amount - im doing a ratio - more reads means more FC but not more of ratio! rethink. Adjust by pvalue?
         """
         python3 scripts/fc_plot.py \
             --gene-level-preds-control {input.gene_level_preds_control} \
@@ -524,15 +491,13 @@ rule create_all_plots:
             plot_type=['decay_plot'],
             reference_level=['gene','transcript'],
             halflives_name=[key for experiment_name in exp_groups['mouse_decay_exps'] for key in experiments_data[experiment_name].get_halflives_name_to_file().keys()],
-            #TODO add support for multiple (mion pion) files?
         ),
         lambda wildcards: expand('outputs/visual/predictions/{model_name}/{experiment_name}/{pooling}_pooling_{reference_level}_{plot_type}.pdf',
             model_name = wildcards.model_name, 
             pooling=pooling,
-            experiment_name=exp_groups['hela_decay_exps'],#+['ALL_NoArs60'],
+            experiment_name=exp_groups['hela_decay_exps'],
             plot_type=['decay_plot'],
             reference_level=['transcript'],
-            #TODO add support for multiple (mion pion) files?
         ),
         lambda wildcards: expand('outputs/visual/predictions/{model_name}/decay/{halflives_name}_halflives_{group_name}_{pooling}_pooling_{reference_level}_{plot_type}.pdf',
             model_name = wildcards.model_name, 
@@ -541,29 +506,18 @@ rule create_all_plots:
             plot_type=['read_limit_decay_plot'],
             reference_level=['gene','transcript'],
             halflives_name=[key for experiment_name in exp_groups['mouse_decay_exps'] for key in experiments_data[experiment_name].get_halflives_name_to_file().keys()],
-            #TODO add support for multiple (mion pion) files?
         ),
         lambda wildcards: expand('outputs/visual/predictions/{model_name}/{time_group}/{pooling}_pooling_fc_{pred_col}.pdf',
             model_name = wildcards.model_name, 
-            # model_name=models_data.keys(),
             pooling=pooling,
             time_group=condition_control_pairs.keys(),
             pred_col=['average_score','percentage_modified'],
         ),
         lambda wildcards: expand('outputs/visual/predictions/{model_name}/self_corr_{pooling}_pooling_{reference_level}_decay_plot.pdf',
             model_name = wildcards.model_name, 
-            # model_name=models_data.keys(),
             pooling=pooling,
             reference_level=['gene','transcript'],
         ),
-        # expand('outputs/visual/predictions/{model_name}/{experiment_name}/speedtest_threads_{threads}.pdf',
-            # model_name = wildcards.model_name, 
-        #     experiment_name=['20220520_hsa_dRNA_HeLa_DMSO_1'],
-        #     threads=[16,64],
-        # ),
-        # expand('outputs/visual/datastats/{group}_sizes_stats.csv',group=datastats_groups.keys()),
-        # expand('outputs/visual/datastats/{group}_lengths_dist.pdf',group=datastats_groups.keys()),
-        # expand('outputs/visual/nanoid_preds/{group_name}_auroc.pdf', group_name=['nanoid']), #TODO remove from model-specific rule
     output:
         'outputs/visual/predictions/{model_name}/{pooling}_ALL_DONE.txt'
     shell:

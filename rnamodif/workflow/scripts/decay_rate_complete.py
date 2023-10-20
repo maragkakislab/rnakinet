@@ -14,7 +14,7 @@ def main(args):
     bamfile.close()
     read_to_transcript = pd.DataFrame(read_to_transcript_data)
     
-    read_to_score = pd.read_csv(args.predictions)#, sep='\t')
+    read_to_score = pd.read_csv(args.predictions)
 
     read_transcript_score = read_to_score.merge(read_to_transcript, how='left', on='read_id')
     read_transcript_score = read_transcript_score.dropna()
@@ -26,7 +26,7 @@ def main(args):
     
     transcript_agg = add_predicted_halflifes(transcript_agg)
     
-    transcript_agg.to_csv(args.output)#, sep='\t')
+    transcript_agg.to_csv(args.output)
     
 def add_predicted_halflifes(df):
     tl = args.tl

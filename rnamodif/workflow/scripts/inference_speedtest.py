@@ -11,10 +11,7 @@ import time
 import json
 import subprocess
 
-from rnamodif.data_utils.dataloading_5eu import CompleteReadsInferenceDataset
 from rnamodif.data_utils.dataloading_uncut import UnlimitedReadsInferenceDataset
-# from rnamodif.models.model import RodanPretrained
-# from rnamodif.models.model_uncut import RodanPretrainedUnlimited
 from rnamodif.models.model_mine import MyModel
 from rnamodif.data_utils.workers import worker_init_fn_inference
 from rnamodif.workflow.scripts.helpers import arch_map
@@ -97,7 +94,6 @@ if __name__ == "__main__":
     parser.add_argument('--checkpoint', type=str, required=True, help='Path to the model checkpoint file.')
     parser.add_argument('--output', type=str, required=True, help='Path to the output file with statistics about the run.')
     parser.add_argument('--max_workers', type=int, default=16, help='Maximum number of workers for data loading (default: 16).')
-    # parser.add_argument('--weighted', action='store_true', help='Whether to use weighted loss model')
     parser.add_argument('--batch-size', type=int, default=256, help='Batch size for data loading (default: 256).')
     parser.add_argument('--max-len', type=int, help='Maximum length of the signal sequence to process')
     parser.add_argument('--min-len', type=int, help='Minimum length of the signal sequence to process')

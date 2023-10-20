@@ -33,8 +33,8 @@ def main(args):
     
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Make volcano plot from differential expression analysis data.")
-    parser.add_argument("--table-path", help="tab file with deseq data. stdin if -")
-    parser.add_argument("--save-path", help="filename to save volcano plot")
+    parser.add_argument("--table-path", help="tab file with deseq data")
+    parser.add_argument("--save-path", help="Filename for the volcano plot")
     parser.add_argument("--column", type=str, help="which column to plot on the y axis")
     
     args = parser.parse_args()

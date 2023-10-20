@@ -47,12 +47,12 @@ def main(args):
         df.to_csv(handle, index=False)
     
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Run prediction on FAST5 files and save results in a pickle file.')
-    parser.add_argument('--window_predictions', type=str, required=True, help='Path to the file containing window predictions.')
+    parser = argparse.ArgumentParser(description='Run pooling on predictions and save results. Valid mostly for models that slice a read into chunks for prediction.')
+    parser.add_argument('--window_predictions', type=str, required=True, help='Path to the file containing read predictions.')
     parser.add_argument('--out_pickle', type=str, required=True, help='Path to the output pickle file for pooled predictions.')
     parser.add_argument('--out_csv', type=str, required=True, help='Path to the output csv file for pooled predictions.')
     parser.add_argument('--threshold', type=float, required=True, help='Threshold for the predictions to be considered positives')
-    parser.add_argument('--pooling', type=str, default='mean', help='Type of pooling to use to combine window predictions to read predictions (default: mean).')
+    parser.add_argument('--pooling', type=str, default='mean', help='Type of pooling to use to combine predictions to read predictions (default: mean).')
     
     
     args = parser.parse_args()

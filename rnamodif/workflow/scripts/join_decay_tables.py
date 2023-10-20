@@ -14,7 +14,6 @@ def main(args):
     
     gene_halflifes = clean_halflifes_df(gene_halflifes, group_col=args.reference_level)
         
-    #TODO refactor away
     key_map = {
         'gene': 'Gene stable ID',
         'transcript': 'Transcript stable ID',
@@ -26,7 +25,6 @@ def main(args):
     gene_join = gene_join[gene_join['reads'] > args.min_reads]
     gene_join = gene_join[gene_join[column] < args.max_measured_halflife]
     gene_join.to_csv(args.output, sep='\t')
-    
     
 def clean_halflifes_df(df, group_col):
     #grouping by gene and taking only genes that have non-conflicting t5 values

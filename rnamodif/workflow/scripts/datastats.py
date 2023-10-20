@@ -39,7 +39,6 @@ def main(args):
         exp_to_lengths[name] = read_lengths
         
     df_sizes = pd.DataFrame(list(exp_to_size.items()), columns=['Experiment_name', 'Number_of_reads'])
-    # df_lengths = pd.DataFrame(list(exp_to_lengths.items()), columns=['Experiment_name', 'Lengths'])
     df_lengths = pd.DataFrame()
     to_add = []
     

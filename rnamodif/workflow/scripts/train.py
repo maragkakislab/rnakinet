@@ -10,7 +10,6 @@ from rnamodif.workflow.scripts.helpers import arch_map #TODO refactor model mapp
 import argparse
 import yaml
 
-
 def parse_args(parser):
     parser.add_argument(
         '--training-positives-lists', 
@@ -26,24 +25,7 @@ def parse_args(parser):
         nargs='+', 
         help='Paths to the files containing negative fast5 files.'
     )
-    
-    
-    
-#     parser.add_argument(
-#         '--training-positives-exps', 
-#         type=str, 
-#         required=True, 
-#         nargs='+', 
-#         help='Paths to the files containing positive sequences.'
-#     )
-#     parser.add_argument(
-#         '--training-negatives-exps', 
-#         type=str, 
-#         required=True, 
-#         nargs='+', 
-#         help='Paths to the files containing negative sequences.'
-#     )
-    
+
     parser.add_argument('--min-len', type=int, required=True, help='Minimum length of the signal sequence for training and validation', default=5000)
     parser.add_argument('--max-len', type=int, required=True, help='Maximum length of the signal sequence for training and validation', default=400000)
     parser.add_argument('--skip', type=int, required=True, help='How many signal steps to skip at the beginning of each read', default=5000)
@@ -54,8 +36,7 @@ def parse_args(parser):
     parser.add_argument('--pos-weight', type=float, required=True, help='Positive class weight', default=1.0)
     parser.add_argument('--wd', type=float, required=True, help='Weight decay', default=0.01)
     
-    
-    parser.add_argument('--arch', type=str, required=True, help='Type of architecture to use, options: custom_cnn')
+    parser.add_argument('--arch', type=str, required=True, help='Type of architecture to use')
     parser.add_argument('--arch-hyperparams-yaml', type=str, required=True, help='Path to a yaml file containing architecture-specific hyperparameters')
     
     parser.add_argument('--grad-acc', type=int, required=True, help='Gradient accumulation steps. The same as effective batch size when batch_size == 1', default=64)
@@ -63,11 +44,9 @@ def parse_args(parser):
     
     parser.add_argument('--experiment-name', type=str, required=True, help='Name of the experiment to use for logging and naming')
     
-    #TODO make logging optional
     parser.add_argument('--comet-api-key', type=str, required=True, help='Comet API key for logging')
     parser.add_argument('--comet-project-name', type=str, required=True, help='Comet project name for logging')
     parser.add_argument('--logging-step', type=int, required=True, help='After how many effective batches to log metrics', default=500)
-    #TODO parse boolean or remove
     parser.add_argument('--enable-progress-bar', type=str, required=True, help='Whether to print proress bar, options yes or no')
     
     parser.add_argument('--save-path', type=str, required=True, help='Path for the final model file')
@@ -81,54 +60,26 @@ def read_txt_to_list(file_path):
 
 #Configs
 def get_datasets_config(args):
-    # matrix
     train_pos_files = [read_txt_to_list(txt_path) for txt_path in args.training_positives_lists]
     train_neg_files = [read_txt_to_list(txt_path) for txt_path in args.training_negatives_lists]
-    
-    # train_pos_files = [
-    #     name_to_files[exp]['train'] for exp in args.training_positives_exps
-    # ]
-    # train_neg_files = [
-    #     name_to_files[exp]['train'] for exp in args.training_negatives_exps
-    # ]
 
+    #TODO rename, these are not used for validation, but only for intermediate plotting
     valid_exp_to_files_pos = {
-        '5eu_2020_pos':name_to_files['nia_2020_pos']['test'], 
         'Nanoid_pos_1':name_to_files['nano_pos_1']['test'], 
         'Nanoid_pos_2':name_to_files['nano_pos_2']['test'], 
         'Nanoid_pos_3':name_to_files['nano_pos_3']['test'], 
-        
-        '5eu_2022_chr1_pos_march':name_to_files['nia_2022_pos_march']['test'],
-        '5eu_2022_chr20_pos_march':name_to_files['nia_2022_pos_march']['validation'],
-        
-        '5eu_2022_chr1_pos_may':name_to_files['nia_2022_pos_may']['test'],
-        '5eu_2022_chr20_pos_may':name_to_files['nia_2022_pos_may']['validation'],
     }
 
     valid_exp_to_files_neg = {
-        'UNM_2020':name_to_files['nia_2020_neg']['test'], 
         'Nanoid_neg_1':name_to_files['nano_neg_1']['test'], 
         'Nanoid_neg_2':name_to_files['nano_neg_2']['test'], 
         'Nanoid_neg_3':name_to_files['nano_neg_3']['test'], 
-        
-        '5eu_2022_chr1_neg_march':name_to_files['nia_2022_neg_march']['test'],
-        '5eu_2022_chr20_neg_march':name_to_files['nia_2022_neg_march']['validation'],
-        
-        '5eu_2022_chr1_neg_may':name_to_files['nia_2022_neg_may']['test'],
-        '5eu_2022_chr20_neg_may':name_to_files['nia_2022_neg_may']['validation'],
-        
     }
 
     valid_auroc_tuples = [
-        ('5eu_2020_pos', 'UNM_2020', '2020'),
         ('Nanoid_pos_1', 'Nanoid_neg_1', 'Nanoid_1'),
         ('Nanoid_pos_2', 'Nanoid_neg_2', 'Nanoid_2'),
         ('Nanoid_pos_3', 'Nanoid_neg_3', 'Nanoid_3'),
-        ('5eu_2022_chr1_pos_march', '5eu_2022_chr1_neg_march', '2022 march test'),
-        ('5eu_2022_chr1_pos_may', '5eu_2022_chr1_neg_may', '2022 may test'),
-        ('5eu_2022_chr20_pos_march', '5eu_2022_chr20_neg_march', '2022 march valid'),
-        ('5eu_2022_chr20_pos_may', '5eu_2022_chr20_neg_may', '2022 may valid'),
-        
     ]
     datasets = {
         'train_pos_files':train_pos_files,
@@ -138,7 +89,6 @@ def get_datasets_config(args):
         'valid_auroc_tuples':valid_auroc_tuples,
     }
     return datasets
-
 
 
 def get_dataloading_config(args):
@@ -224,7 +174,6 @@ def train_save(datasets, model_params, data_params, training_params, logging_par
         verbose=True,
     )
     callbacks = [checkpoint_callback, early_stopping_callback]
-    #TODO am i fallbacking to the best model?
     logger = CometLogger(
         api_key=logging_params['api_key'], 
         project_name=logging_params['project_name'], 
@@ -241,7 +190,6 @@ def train_save(datasets, model_params, data_params, training_params, logging_par
         accumulate_grad_batches=training_params['grad_accumulation'],
         resume_from_checkpoint=None,
         enable_progress_bar  = logging_params['enable_progress_bar'],
-        # ckpt_path=f'/home/jovyan/RNAModif/rnamodif/checkpoints_pl/{experiment_name}/last.ckpt'
     )
 
     trainer.fit(model, dm)

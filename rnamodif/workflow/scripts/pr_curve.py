@@ -31,8 +31,6 @@ def plot_pr_curve(pos_preds, neg_preds, pos_name, neg_name):
 
     auroc = metrics.auc(recall, precision)
     
-    
-    # plt.plot(recall, precision, marker='.', label=f'{pos_name}\n{neg_name}\nAUPRC {auroc:.2f}')
     plt.plot(recall, precision, label=f'{pos_name}\n{neg_name}\nAUPRC {auroc:.2f}')
     
     fontsize=8
@@ -48,14 +46,10 @@ def plot_pr_curve(pos_preds, neg_preds, pos_name, neg_name):
     
         
 def main(args):
-    # fig, ax = plt.subplots(figsize=(5,5))
-    # ax.spines['right'].set_visible(False)
-    # ax.spines['top'].set_visible(False)
-    
     plot_and_save(args, plot_pr_curve)
     
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Run prediction on FAST5 files and save results in a pickle file.')
+    parser = argparse.ArgumentParser(description='Plot a Precision-Recall curve')
     parser = parse_plotting_args(parser)
     
     args = parser.parse_args()

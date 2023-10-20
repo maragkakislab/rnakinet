@@ -11,8 +11,8 @@ def main(args):
     gene_preds_1 = pd.read_csv(args.gene_predictions_1, sep='\t')
     gene_preds_2 = pd.read_csv(args.gene_predictions_2, sep='\t')
     
-    gene_preds_1 = gene_preds_1[gene_preds_1['reads'] > 100] #100
-    gene_preds_2 = gene_preds_2[gene_preds_2['reads'] > 100] #100
+    gene_preds_1 = gene_preds_1[gene_preds_1['reads'] > 100]
+    gene_preds_2 = gene_preds_2[gene_preds_2['reads'] > 100]
     
     gene_preds_1 = add_predicted_halflifes(gene_preds_1)
     gene_preds_2 = add_predicted_halflifes(gene_preds_2)
@@ -29,29 +29,15 @@ def main(args):
 
 def add_predicted_halflifes(df):
     tl = args.tl
-    # col = 'average_score'
     col = 'percentage_modified'
-    #TODO which statistic?
-    # y = gene_join['percentage_modified'].values
-    
     df['pred_t5'] = -tl * np.log(2) / np.log(1-df[col]) #ORIG
-    # df['pred_t5'] = df[col]
-    # df['pred_t5'] = -tl * np.log(2) / np.log(df[col])
-    
-    # print(df[['t5','pred_t5','percentage_modified','average_score','reads','Gene.stable.ID']].head())
-    # df['pred_t5'] = -tl * np.log(2) / np.log(df[col]) #TODO DELETE
-    
-    # gene_join['pred_t5'] = -tl * np.log(2) / np.log(1-(1/(1+((1-gene_join[col])/gene_join[col]))))
     df = df.replace([np.inf, -np.inf], np.nan)
     df = df[~df['pred_t5'].isna()]
-    
-    # df = df[(df['percentage_modified']>0.15) & (df['percentage_modified']<0.9)] #Matt paper figure recommendation
-    
     return df
     
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Run prediction on FAST5 files and save results in a pickle file.')
+    parser = argparse.ArgumentParser(description='Plots two decay rate predictions against each other')
     parser.add_argument('--gene-predictions-1', type=str, required=True)
     parser.add_argument('--gene-predictions-2', type=str, required=True)
     parser.add_argument('--tl', type=float, required=True, help='Time parameter for the decay equation')

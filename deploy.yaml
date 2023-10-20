@@ -4,8 +4,8 @@ channels:
     - conda-forge
     - pytorch
 dependencies:
-    - pytorch-gpu=1.11.* 
-    - pytorch-lightning=1.7.*
+    - pytorch-gpu=1.11
+    - pytorch-lightning=1.7.0
     - numpy
     - torchmetrics=0.11.4
     - ont-fast5-api
