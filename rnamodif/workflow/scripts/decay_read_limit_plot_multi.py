@@ -30,7 +30,7 @@ def main(args):
 
 def plot_read_limit(gene_predictions, gene_halflifes, column, tl, exp_name):
     gene_preds = pd.read_csv(gene_predictions, sep='\t')
-    gene_halflifes = pd.read_csv(gene_halflifes)
+    gene_halflifes = pd.read_csv(gene_halflifes, sep='\t')
     gene_halflifes = clean_halflifes_df(gene_halflifes, group_col=column)
         
     key_map = {

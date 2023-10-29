@@ -53,3 +53,16 @@ rule merge_fastq_files:
         """
         zcat outputs/basecalling/{wildcards.experiment_name}/guppy/pass/fastq_runid*.fastq.gz | pigz > {output}
         """
+        
+        
+rule merge_fastq_files_fail_pass:
+    input:
+        'outputs/basecalling/{experiment_name}/DONE.txt'
+    output:
+        "outputs/basecalling/{experiment_name}/guppy/all_reads.fastq.gz"
+    conda:
+        "../envs/merge_fastq.yaml"
+    shell:
+        """
+        zcat outputs/basecalling/{wildcards.experiment_name}/guppy/*/fastq_runid*.fastq.gz | pigz > {output}
+        """

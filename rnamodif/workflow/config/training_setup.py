@@ -190,7 +190,7 @@ for exp_name in two_hour_5eu_exps:
         flowcell='FLO-MIN106',
         genome=human_genome,
         transcriptome=human_transcriptome,
-        halflives_name_to_file={'DRB':'halflives_data/experiments/hl_drb_renamed.csv'}, #TODO tani halflives rename?
+        halflives_name_to_file={'DRB':'halflives_data/experiments/hl_drb_renamed.tsv'}, #TODO tani halflives rename?
         time=2.0,
         gene_transcript_table=human_gene_transcript_table,
     )
@@ -246,8 +246,8 @@ for exp_name in inhouse_mouse:
         genome=mouse_genome,
         transcriptome=mouse_transcriptome,
         halflives_name_to_file={
-            'PION':'halflives_data/experiments/mmu_dRNA_3T3_PION_1/features_v1.csv',
-            'MION':'halflives_data/experiments/mmu_dRNA_3T3_mion_1/features_v1.csv',
+            'PION':'halflives_data/experiments/mmu_dRNA_3T3_PION_1/features_v1.tsv',
+            'MION':'halflives_data/experiments/mmu_dRNA_3T3_mion_1/features_v1.tsv',
         },
         time=2.0,
         gene_transcript_table=mouse_gene_transcript_table,
@@ -315,6 +315,17 @@ for exp_name in train_splits:
         gene_transcript_table=human_gene_transcript_table,
     )
     experiments_data[exp_name] = exp_data
+
+# Used for concatenating all replicates
+experiments_data['ALL_NoArs60'] = ExperimentData(
+    name='ALL_NoArs60',
+    genome=human_genome,
+    transcriptome=human_transcriptome,
+    gene_transcript_table=human_gene_transcript_table,
+    time=2.0,
+    halflives_name_to_file={'DRB':'halflives_data/experiments/hl_drb_renamed.tsv'}, #TODO tani halflives rename?
+)
+ 
     
 
 default_train_positives = [

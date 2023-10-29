@@ -4,8 +4,7 @@ import pandas as pd
 import numpy as np
 import seaborn as sns
 from pathlib import Path
-from plot_helpers import setup_palette, correlation_plot
-
+from plot_helpers import setup_palette
 
 
 def main(args):

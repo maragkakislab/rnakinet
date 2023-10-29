@@ -267,11 +267,13 @@ rule create_volcano_plot:
 
 rule calculate_decay:
     input:
-        gene_predictions = 'outputs/predictions/{model_name}/{experiment_name}/{pooling}_pooling_{reference_level}_level_predictions.tsv',
+        gene_predictions = 'outputs/{prediction_type}/{model_name}/{experiment_name}/{pooling}_pooling_{reference_level}_level_predictions.tsv',
     output:
-        'outputs/predictions/{model_name}/{experiment_name}/{pooling}_pooling_{reference_level}_level_halflives_predictions.tsv',
+        'outputs/{prediction_type}/{model_name}/{experiment_name}/{pooling}_pooling_{reference_level}_level_halflives_predictions.tsv',
     conda:
         "../envs/visual.yaml"
+    wildcard_constraints:
+        prediction_type='(joined_predictions|predictions)'
     params:
         tl = lambda wildcards: experiments_data[wildcards.experiment_name].get_time(),
     shell:
@@ -282,55 +284,154 @@ rule calculate_decay:
             --output {output} \
         """
 
-rule join_decay_tables:
+rule filter_decay_preds:
     input:
-        predicted_halflives='outputs/predictions/{model_name}/{experiment_name}/{pooling}_pooling_{reference_level}_level_halflives_predictions.tsv',
-        measured_halflives = lambda wildcards: experiments_data[wildcards.experiment_name].get_halflives_name_to_file()[wildcards.halflives_name],
+        'outputs/{prediction_type}/{model_name}/{experiment_name}/{pooling}_pooling_{reference_level}_level_halflives_predictions.tsv',
     output:
-        'outputs/predictions/{model_name}/{experiment_name}/{halflives_name}_{pooling}_pooling_{reference_level}_level_halflives_join.tsv',
+        'outputs/{prediction_type}/{model_name}/{experiment_name}/{pooling}_pooling_{reference_level}_level_halflives_predictions_clean.tsv',
     conda:
         "../envs/visual.yaml"
+    wildcard_constraints:
+        prediction_type='(joined_predictions|predictions)'
     params:
         min_reads=100,
-        max_hl=5,
+        max_measured_halflife=None,
+        read_cols = ['reads'],
     shell:
         """
-        python3 scripts/join_decay_tables.py \
-            --predicted-halflives {input.predicted_halflives} \
-            --measured-halflives {input.measured_halflives} \
+        python3 scripts/filter_transcripts.py \
+            --table {input} \
             --min-reads {params.min_reads} \
-            --max-measured-halflife {params.max_hl} \
-            --reference-level {wildcards.reference_level} \
+            --max-measured-halflife {params.max_measured_halflife} \
+            --read-cols {params.read_cols} \
+            --output {output} \
+        """
+        
+rule normalize_decay:
+    input:
+        'outputs/{prediction_type}/{model_name}/{experiment_name}/{pooling}_pooling_{reference_level}_level_halflives_predictions_clean.tsv',
+    output:
+        'outputs/{prediction_type}/{model_name}/{experiment_name}/{pooling}_pooling_{reference_level}_level_halflives_predictions_clean_normalized.tsv',
+    conda:
+        "../envs/visual.yaml"
+    wildcard_constraints:
+        prediction_type='(joined_predictions|predictions)'
+    params:
+        halflife_column = 'pred_t5'
+    shell:
+        """
+        python3 scripts/normalize_decay.py \
+            --table {input} \
+            --halflife-column {params.halflife_column} \
+            --output {output} \
+        """
+
+ref_map = {
+    'gene': 'Gene stable ID',
+    'transcript': 'Transcript stable ID',
+}
+rule join_predicted_and_measured_tables:
+    input:
+        predicted_halflives='outputs/{prediction_type}/{model_name}/{experiment_name}/{pooling}_pooling_{reference_level}_level_halflives_predictions_clean_normalized.tsv',
+        measured_halflives = lambda wildcards: experiments_data[wildcards.experiment_name].get_halflives_name_to_file()[wildcards.halflives_name],
+    output:
+        'outputs/{prediction_type}/{model_name}/{experiment_name}/{halflives_name}_{pooling}_pooling_{reference_level}_level_halflives_join.tsv',
+    conda:
+        "../envs/visual.yaml"
+    wildcard_constraints:
+        prediction_type='(joined_predictions|predictions)'
+    params:
+        table_a_column=lambda wildcards: ref_map[wildcards.reference_level],
+        table_b_column=lambda wildcards: wildcards.reference_level,
+        halflife_column='t5',
+    shell:
+        """
+        python3 scripts/join_tables.py \
+            --table-a {input.predicted_halflives} \
+            --table-b {input.measured_halflives} \
+            --table-a-column '{params.table_a_column}' \
+            --table-b-column '{params.table_b_column}' \
+            --halflife-column '{params.halflife_column}' \
+            --output {output} \
+        """
+
+rule filter_bad_transcripts:
+    input:
+        'outputs/{prediction_type}/{model_name}/{experiment_name}/{halflives_name}_{pooling}_pooling_{reference_level}_level_halflives_join.tsv',
+    output:
+        'outputs/{prediction_type}/{model_name}/{experiment_name}/{halflives_name}_{pooling}_pooling_{reference_level}_level_halflives_join_clean.tsv',
+    conda:
+        "../envs/visual.yaml"
+    wildcard_constraints:
+        prediction_type='(joined_predictions|predictions)'
+    params:
+        min_reads=100,
+        max_measured_halflife=5,
+        read_cols = ['reads'],
+    shell:
+        """
+        python3 scripts/filter_transcripts.py \
+            --table {input} \
+            --min-reads {params.min_reads} \
+            --max-measured-halflife {params.max_measured_halflife} \
+            --read-cols {params.read_cols} \
+            --output {output} \
+        """
+        
+rule normalize_measured_decay:
+    input:
+        'outputs/{prediction_type}/{model_name}/{experiment_name}/{halflives_name}_{pooling}_pooling_{reference_level}_level_halflives_join_clean.tsv',
+    output:
+        'outputs/{prediction_type}/{model_name}/{experiment_name}/{halflives_name}_{pooling}_pooling_{reference_level}_level_halflives_join_clean_normalized.tsv',
+    conda:
+        "../envs/visual.yaml"
+    wildcard_constraints:
+        prediction_type='(joined_predictions|predictions)'
+    params:
+        halflife_column = 't5'
+    shell:
+        """
+        python3 scripts/normalize_decay.py \
+            --table {input} \
+            --halflife-column {params.halflife_column} \
             --output {output} \
         """
     
+def get_measured_hl_column(normalization):
+    if(normalization == 'unnormalized'):
+        return 't5'
+    else:
+        return f'{normalization}_t5'
+    
 rule plot_halflives_correlation:
     input:
-        'outputs/predictions/{model_name}/{experiment_name}/{halflives_name}_{pooling}_pooling_{reference_level}_level_halflives_join.tsv'
+        'outputs/{prediction_type}/{model_name}/{experiment_name}/{halflives_name}_{pooling}_pooling_{reference_level}_level_halflives_join_clean_normalized.tsv'
     output:
-        'outputs/visual/predictions/{model_name}/{experiment_name}/{halflives_name}_halflives_{pooling}_pooling_{reference_level}_decay_plot.pdf'
+        'outputs/visual/{prediction_type}/{model_name}/{experiment_name}/{halflives_name}_halflives_{pooling}_pooling_{reference_level}_{normalization}_decay_plot.pdf'
     conda:
         "../envs/visual.yaml" 
+    wildcard_constraints:
+        prediction_type='(joined_predictions|predictions)'
     params:
-        x_column='t5',
-        y_column='pred_t5',
-        x_label='t5\ measured',
-        y_label='t5\ predicted',
+        x_column=lambda wildcards: get_measured_hl_column(wildcards.normalization),
+        y_column=lambda wildcards: f'{wildcards.normalization}_pred_t5',
+        x_label=lambda wildcards: f'{wildcards.normalization} t5 measured',
+        y_label=lambda wildcards: f'{wildcards.normalization} t5 predicted',
     shell:
         """
         python3 scripts/correlation_plot.py \
             --table {input} \
             --x-column {params.x_column} \
             --y-column {params.y_column} \
-            --x-label {params.x_label} \
-            --y-label {params.y_label} \
+            --x-label '{params.x_label}' \
+            --y-label '{params.y_label}' \
             --output {output} \
         """
-    
+
 rule create_decay_read_limit_plot:
     input:
         gene_predictions_list = lambda wildcards: expand('outputs/predictions/{model_name}/{experiment_name}/{pooling}_pooling_{reference_level}_level_predictions.tsv',
-                                                        experiment_name=exp_groups[wildcards.group_name], #Using the mouse decay exps
+                                                        experiment_name=exp_groups[wildcards.group_name],
                                                         model_name=wildcards.model_name,
                                                         pooling=wildcards.pooling,
                                                         reference_level=wildcards.reference_level,),
@@ -352,28 +453,75 @@ rule create_decay_read_limit_plot:
             --exp-name-list {params.exp_name_list} \
             --output {output} \
         """
-
-self_corr_exp_1 = '20230706_mmu_dRNA_3T3_5EU_400_1'
-self_corr_exp_2 = '20230816_mmu_dRNA_3T3_5EU_400_2'
-tl = 2
-#TODO refactor to use correlation plotting
-rule create_self_corr_decay_plot:
+        
+#TODO redundant?
+rule filter_bad_transcripts_selfcorr:
     input:
-        gene_predictions_1 = 'outputs/predictions/{model_name}/'+self_corr_exp_1+'/{pooling}_pooling_{reference_level}_level_predictions.tsv',
-        gene_predictions_2 = 'outputs/predictions/{model_name}/'+self_corr_exp_2+'/{pooling}_pooling_{reference_level}_level_predictions.tsv',
+        'outputs/predictions/{model_name}/decay/{pooling}_pooling_{reference_level}_level_halflives_join.tsv',
     output:
-        'outputs/visual/predictions/{model_name}/self_corr_{pooling}_pooling_{reference_level}_decay_plot.pdf'
+        'outputs/predictions/{model_name}/decay/{pooling}_pooling_{reference_level}_level_halflives_join_clean.tsv',
     conda:
         "../envs/visual.yaml"
     params:
-        tl = tl,
+        min_reads=100,
+        max_measured_halflife=None,
+        read_cols = ['reads_x','reads_y'],
     shell:
         """
-        python3 scripts/self_corr_decay_plot.py \
-            --gene-predictions-1 {input.gene_predictions_1} \
-            --gene-predictions-2 {input.gene_predictions_2} \
-            --tl {params.tl} \
-            --reference-level {wildcards.reference_level} \
+        python3 scripts/filter_transcripts.py \
+            --table {input} \
+            --min-reads {params.min_reads} \
+            --max-measured-halflife {params.max_measured_halflife} \
+            --read-cols {params.read_cols} \
+            --output {output} \
+        """
+        
+rule create_self_corr_decay_plot:
+    input:
+        'outputs/predictions/{model_name}/decay/{pooling}_pooling_{reference_level}_level_halflives_join_clean.tsv',
+    output:
+        'outputs/visual/predictions/{model_name}/self_corr_{pooling}_pooling_{reference_level}_{normalization}_decay_plot.pdf'
+    conda:
+        "../envs/visual.yaml"
+    params:
+        x_column=lambda wildcards: f'{wildcards.normalization}_pred_t5_x',
+        y_column=lambda wildcards: f'{wildcards.normalization}_pred_t5_y',
+        x_label=lambda wildcards: f'{wildcards.normalization} t5 replicate 1',
+        y_label=lambda wildcards: f'{wildcards.normalization} t5 replicate 2',
+    shell:
+        """
+        python3 scripts/correlation_plot.py \
+            --table {input} \
+            --x-column {params.x_column} \
+            --y-column {params.y_column} \
+            --x-label '{params.x_label}' \
+            --y-label '{params.y_label}' \
+            --share-axes \
+            --output {output} \
+        """
+        
+self_corr_exp_1 = '20230706_mmu_dRNA_3T3_5EU_400_1'
+self_corr_exp_2 = '20230816_mmu_dRNA_3T3_5EU_400_2'
+rule join_predicted_tables:
+    input:
+        table_a = 'outputs/predictions/{model_name}/'+self_corr_exp_1+'/{pooling}_pooling_{reference_level}_level_halflives_predictions_clean_normalized.tsv',
+        table_b = 'outputs/predictions/{model_name}/'+self_corr_exp_2+'/{pooling}_pooling_{reference_level}_level_halflives_predictions_clean_normalized.tsv',
+    output:
+        'outputs/predictions/{model_name}/decay/{pooling}_pooling_{reference_level}_level_halflives_join.tsv',
+    conda:
+        "../envs/visual.yaml"
+    params:
+        table_a_column=lambda wildcards: ref_map[wildcards.reference_level],
+        table_b_column=lambda wildcards: ref_map[wildcards.reference_level],
+        halflife_column='pred_t5',
+    shell:
+        """
+        python3 scripts/join_tables.py \
+            --table-a {input.table_a} \
+            --table-b {input.table_b} \
+            --table-a-column '{params.table_a_column}' \
+            --table-b-column '{params.table_b_column}' \
+            --halflife-column '{params.halflife_column}' \
             --output {output} \
         """
 
@@ -484,13 +632,14 @@ rule create_all_plots:
             pair_name=[pair_name for pair_name in pos_neg_pairs.keys()],
             plot_type=['violin'],    
         ),
-        lambda wildcards: expand('outputs/visual/predictions/{model_name}/{experiment_name}/{halflives_name}_halflives_{pooling}_pooling_{reference_level}_{plot_type}.pdf',
+        lambda wildcards: expand('outputs/visual/predictions/{model_name}/{experiment_name}/{halflives_name}_halflives_{pooling}_pooling_{reference_level}_{normalization}_{plot_type}.pdf',
             model_name = wildcards.model_name, 
             pooling=pooling,
             experiment_name=exp_groups['mouse_decay_exps'],
             plot_type=['decay_plot'],
             reference_level=['gene','transcript'],
             halflives_name=[key for experiment_name in exp_groups['mouse_decay_exps'] for key in experiments_data[experiment_name].get_halflives_name_to_file().keys()],
+            normalization=['unnormalized','standardized','robust','quantile','minmax'],
         ),
         lambda wildcards: expand('outputs/visual/predictions/{model_name}/{experiment_name}/{pooling}_pooling_{reference_level}_{plot_type}.pdf',
             model_name = wildcards.model_name, 
@@ -513,18 +662,17 @@ rule create_all_plots:
             time_group=condition_control_pairs.keys(),
             pred_col=['average_score','percentage_modified'],
         ),
-        lambda wildcards: expand('outputs/visual/predictions/{model_name}/self_corr_{pooling}_pooling_{reference_level}_decay_plot.pdf',
+        lambda wildcards: expand('outputs/visual/predictions/{model_name}/self_corr_{pooling}_pooling_{reference_level}_{normalization}_decay_plot.pdf',
             model_name = wildcards.model_name, 
             pooling=pooling,
             reference_level=['gene','transcript'],
-        ),
+            normalization=['unnormalized','standardized','robust','quantile','minmax'],
+        ),        
     output:
         'outputs/visual/predictions/{model_name}/{pooling}_ALL_DONE.txt'
     shell:
         """
         touch {output}
         """
-        
-        
         
         

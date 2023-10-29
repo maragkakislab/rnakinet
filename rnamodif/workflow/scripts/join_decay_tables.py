@@ -4,13 +4,13 @@ import pandas as pd
 import numpy as np
 import seaborn as sns
 from pathlib import Path
-from plot_helpers import setup_palette, correlation_plot
+from plot_helpers import setup_palette
 
 
 
 def main(args):
     gene_preds = pd.read_csv(args.predicted_halflives, sep='\t')
-    gene_halflifes = pd.read_csv(args.measured_halflives)
+    gene_halflifes = pd.read_csv(args.measured_halflives, sep='\t')
     
     gene_halflifes = clean_halflifes_df(gene_halflifes, group_col=args.reference_level)
         

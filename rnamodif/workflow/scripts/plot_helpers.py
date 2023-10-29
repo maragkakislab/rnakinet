@@ -56,36 +56,6 @@ def plot_and_save(args, plot_fn, callbacks=[]):
         callback()
     
     plt.savefig(output_file, bbox_inches='tight')
-
-    
-#TODO refactor away, has its own script now
-def correlation_plot(df, x_column, y_column, x_label, y_label, output):
-    plt.figure(figsize=(1.5,1.5))
-    palette = setup_palette()
-    sns.regplot(data=df, x=x_column, y=y_column, 
-            scatter_kws={'alpha':0.6, 's':7, 'color':palette[0]}, 
-            line_kws={"color": palette[1], "lw": 2},  
-    )
-    
-    x = df[x_column].values
-    y = df[y_column].values
-    
-    fontsize=8
-    plt.xlabel(x_label, fontsize=fontsize)
-    plt.ylabel(y_label, fontsize=fontsize)
-    
-    spearman = spearmanr(x,y).statistic
-    pearson = pearsonr(x,y).statistic
-    
-    plt.text(0.1, 0.95, f'r={pearson:.2f} ρ={spearman:.2f}', fontsize=fontsize-2, transform=plt.gca().transAxes, verticalalignment='top')
-    plt.xticks(fontsize=fontsize-2)
-    plt.yticks(fontsize=fontsize-2)
-    
-    sns.set_style('whitegrid')
-    sns.despine()
-    
-    plt.savefig(output, bbox_inches='tight')     
-    
     
     
 def parse_plotting_args(parser):

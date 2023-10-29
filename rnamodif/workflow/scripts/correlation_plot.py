@@ -22,6 +22,22 @@ def correlation_plot(df, x_column, y_column, x_label, y_label, output):
     x = df[x_column].values
     y = df[y_column].values
     
+    if args.share_axes:
+        max_range = max((x.max()-x.min()),y.max()-y.min())
+        padding = max_range*0.05
+        common_range = [
+            min(x.min(), y.min())-padding, 
+            max(x.max(), y.max())+padding
+        ]
+        plt.xlim(common_range)
+        plt.ylim(common_range)
+        
+        y_lim = plt.gca().get_ylim()
+        y_ticks = plt.gca().get_yticks()
+        y_ticks_visible = y_ticks[(y_ticks >= y_lim[0]) & (y_ticks <= y_lim[1])]
+        
+        plt.gca().set_xticks(y_ticks_visible)
+    
     fontsize=8
     plt.xlabel(x_label, fontsize=fontsize)
     plt.ylabel(y_label, fontsize=fontsize)
@@ -45,6 +61,7 @@ if __name__ == "__main__":
     parser.add_argument('--y-column', type=str, required=True)
     parser.add_argument('--x-label', type=str, required=True)
     parser.add_argument('--y-label', type=str, required=True)
+    parser.add_argument('--share-axes', action=argparse.BooleanOptionalAction)
     parser.add_argument('--output', type=str, help='Path to the output plot.')
     
     args = parser.parse_args()
