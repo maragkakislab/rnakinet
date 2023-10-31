@@ -1,8 +1,0 @@
-channels:
-    - conda-forge
-    - bioconda
-dependencies:
-    - r-essentials
-    - r-base
-    - bioconductor-deseq2
-    - r-argparse

@@ -1,5 +1,0 @@
-channels:
-    - bioconda
-    - conda-forge
-dependencies:
-    - ont-fast5-api==4.1.1
