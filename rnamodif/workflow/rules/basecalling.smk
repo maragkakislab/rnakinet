@@ -5,8 +5,8 @@ rule get_basecaller:
     output: f"ont-guppy/bin/guppy_basecaller"
     shell:
         f"""
-        wget https://cdn.oxfordnanoportal.com/software/analysis/{BASECALLER_VERSION}.tar.gz
-        tar -xf {BASECALLER_VERSION}.tar.gz
+        wget https://cdn.oxfordnanoportal.com/software/analysis/ont-guppy_6.4.8_linux64.tar.gz
+        tar -xf ont-guppy_6.4.8_linux64.tar.gz
         """
         
 # Basecalls fast5 files into fastq files
