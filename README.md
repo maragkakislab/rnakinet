@@ -1,5 +1,5 @@
 # RNAkinet
-RNAkinet is a project dedicated to detecting 5eu-modified reads directly from the raw nanopore sequencing signal. Furthermore, it offers tools to calculate transcript decay rates.
+RNAkinet is a project dedicated to detecting 5eu-modified reads directly from the raw nanopore sequencing signal. Furthermore, it offers tools to calculate transcript halflives.
 
 # Usage
 ## Installation
@@ -17,7 +17,7 @@ This creates a csv file with columns `read_id` - the read id, `5eu_mod_score` - 
 rnakinet-inference --path data/experiment/fast5_folder --output preds.csv
 ```
 
-## Calculate transcript decay rates
+## Calculate transcript halflives
 ```sh
 rnakinet-predict-halflives --transcriptome-bam <path_to_transcriptome_alignment.bam> --predictions <predictions_name.csv> --tl <experiment_tl> --output <halflives_name.csv>
 ```
@@ -33,5 +33,5 @@ This creates a csv file with columns `transcript` - the transcript identifier fr
 rnakinet-predict-halflives --transcriptome-bam alignments/experiment/transcriptome_alignment.bam --predictions preds.csv --tl 2.0 --output halflives.csv
 ```
 
-Note that the calculated decay rates `pred_t5` are the most reliable for transcripts with at least 200 reads available
+Note that the calculated halflives `pred_t5` are the most reliable for transcripts with at least 200 reads available
 
