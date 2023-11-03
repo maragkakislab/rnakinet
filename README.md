@@ -12,6 +12,8 @@ rnakinet-inference --path <path_to_folder_containing_fast5s> --output <predictio
 ```
 This creates a csv file with columns `read_id` - the read id, `5eu_mod_score` - the raw prediction score from 0 to 1, `5eu_modified_prediction` - Boolean column, True if the read is predicted to be modified by 5EU, False otherwise
 
+Nvidia GPU is required to run this command
+
 ### Example
 ```sh
 rnakinet-inference --path data/experiment/fast5_folder --output preds.csv
