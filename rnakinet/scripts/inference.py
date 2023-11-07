@@ -33,7 +33,7 @@ def run(args):
         worker_init_fn=worker_init_fn_inference
     )
 
-    trainer = pl.Trainer(accelerator='gpu', precision=16)
+    trainer = pl.Trainer(accelerator='gpu', precision=16, logger=False)
     predictions = trainer.predict(model, dataloader)
     
     id_to_pred = {}
@@ -58,8 +58,8 @@ def main():
     parser.add_argument('--path', type=str, required=True, help='Path to the folder containing FAST5 files.')
     parser.add_argument('--checkpoint', type=str, default=default_checkpoint, help='Path to the model checkpoint file.')
     parser.add_argument('--output', type=str, required=True, help='Path to the output csv file for pooled predictions.')
-    parser.add_argument('--max-workers', type=int, default=16, help='Maximum number of workers for data loading (default: 16).')
-    parser.add_argument('--batch-size', type=int, default=1, help='Batch size for data loading (default: 256).')
+    parser.add_argument('--max-workers', type=int, default=16, help='Maximum number of workers for data loading')
+    parser.add_argument('--batch-size', type=int, default=1, help='Batch size for data loading')
     parser.add_argument('--max-len', type=int, default=400000, help='Maximum length of the signal sequence to process')
     parser.add_argument('--min-len', type=int, default=5000, help='Minimum length of the signal sequence to process')
     parser.add_argument('--skip', type=int, default=5000, help='How many signal steps to skip at the beginning of each sequence (trimming)')
