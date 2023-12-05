@@ -1,14 +1,13 @@
 import argparse
 from pathlib import Path
-from torch.utils.data import DataLoader
-import pytorch_lightning as pl
 import pickle
-from collections import defaultdict
 import numpy as np
 import torch
+from torch.utils.data import DataLoader
 import pandas as pd
 import sys
 import os
+from tqdm import tqdm
 
 from rnakinet.data_utils.dataloading import UnlimitedReadsInferenceDataset
 from rnakinet.models.model import RNAkinet
@@ -20,9 +19,14 @@ def run(args):
     print('Number of fast5 files found:', len(files))
     if(len(files)==0):
         raise Exception('No fast5 files found')
+        
+    model = RNAkinet()
+    model.load_state_dict(torch.load(args.checkpoint)['state_dict'])
+    model.eval()
     
-    arch = RNAkinet
-    model = arch.load_from_checkpoint(args.checkpoint)
+    if torch.cuda.is_available():
+        model.cuda()
+    
     dset = UnlimitedReadsInferenceDataset(files=files, max_len=args.max_len, min_len=args.min_len, skip=args.skip)
     
     dataloader = DataLoader(
@@ -33,22 +37,24 @@ def run(args):
         worker_init_fn=worker_init_fn_inference
     )
 
-    trainer = pl.Trainer(accelerator='gpu', precision=16, logger=False)
-    predictions = trainer.predict(model, dataloader)
-    
     id_to_pred = {}
-    for pr, ids in predictions:
-        readid_probs = zip(ids['readid'], pr.numpy())
-        for readid, probab in readid_probs:
-            assert len(probab) == 1
-            id_to_pred[readid] = probab[0]
+    with torch.no_grad():
+        for batch in tqdm(dataloader):
+            inputs, ids = batch
+            if torch.cuda.is_available():
+                inputs = inputs.cuda()
+            outputs = model(inputs)
             
+            readid_probs = zip(ids['readid'], outputs.cpu().numpy())
+            for readid, probab in readid_probs:
+                assert len(probab) == 1
+                id_to_pred[readid] = probab[0]
+                
     with open(args.output, 'wb') as handle:
         df = pd.DataFrame.from_dict(id_to_pred, orient='index').reset_index()
         df.columns = ['read_id', '5eu_mod_score']
         df['5eu_modified_prediction'] = df['5eu_mod_score'] > args.threshold
         df.to_csv(handle, index=False)
-        
         
 def main():
     base_dir = os.path.dirname(os.path.dirname(__file__))
@@ -67,3 +73,6 @@ def main():
     
     args = parser.parse_args(sys.argv[1:])
     run(args)
+
+if __name__ == "__main__":
+    main()

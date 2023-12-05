@@ -1,5 +1,4 @@
 import random
-import pytorch_lightning as pl
 import numpy as np
 from ont_fast5_api.fast5_interface import get_fast5_file
 from torch.utils.data import IterableDataset, Dataset
