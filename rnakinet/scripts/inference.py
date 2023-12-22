@@ -21,11 +21,13 @@ def run(args):
         raise Exception('No fast5 files found')
         
     model = RNAkinet()
-    model.load_state_dict(torch.load(args.checkpoint)['state_dict'])
+    model.load_state_dict(torch.load(args.checkpoint, map_location='cpu')['state_dict'])
     model.eval()
     
-    if torch.cuda.is_available():
+    if torch.cuda.is_available() and not args.use_cpu:
         model.cuda()
+    else:
+        model.cpu()
     
     dset = UnlimitedReadsInferenceDataset(files=files, max_len=args.max_len, min_len=args.min_len, skip=args.skip)
     
@@ -41,8 +43,11 @@ def run(args):
     with torch.no_grad():
         for batch in tqdm(dataloader):
             inputs, ids = batch
-            if torch.cuda.is_available():
+            if torch.cuda.is_available() and not args.use_cpu:
                 inputs = inputs.cuda()
+            else:
+                inputs = inputs.cpu()
+                
             outputs = model(inputs)
             
             readid_probs = zip(ids['readid'], outputs.cpu().numpy())
@@ -70,6 +75,8 @@ def main():
     parser.add_argument('--min-len', type=int, default=5000, help='Minimum length of the signal sequence to process')
     parser.add_argument('--skip', type=int, default=5000, help='How many signal steps to skip at the beginning of each sequence (trimming)')
     parser.add_argument('--threshold', type=float, default=0.5, help='Threshold for the predictions to be considered positives')
+    parser.add_argument('--use-cpu', action='store_true', help='Use CPU for computation instead of GPU')
+
     
     args = parser.parse_args(sys.argv[1:])
     run(args)
