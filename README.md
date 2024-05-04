@@ -35,5 +35,15 @@ This creates a csv file with columns `transcript` - the transcript identifier fr
 rnakinet-predict-halflives --transcriptome-bam alignments/experiment/transcriptome_alignment.bam --predictions preds.csv --tl 2.0 --output halflives.csv
 ```
 
-Note that the calculated halflives `pred_t5` are the most reliable for transcripts with at least 200 reads available
+Note that the calculated halflives `pred_t5` are the most reliable for transcripts with high read count. 
+The following plot shows correlation of halflives computed from RNAkinet predictions with experimentaly measured halflives [1] as we increase read count requirement.
+We recommend users to acknowledge this and put more confidence in halflife predictions for transcripts with high read count, and less confidence for transcripts with low read count.
+
+![Screenshot 2024-05-04 at 10 41 33](https://github.com/maragkakislab/rnakinet/assets/30112906/3d39e7c1-24bc-4c00-b484-fecc9711ef5c)
+
+
+[1] Eisen,T.J., Eichhorn,S.W., Subtelny,A.O., Lin,K.S., McGeary,S.E., Gupta,S. and Bartel,D.P.
+(2020) The Dynamics of Cytoplasmic mRNA Metabolism. Mol. Cell, 77, 786-799.e10.
+
+
 
