@@ -39,7 +39,7 @@ Note that the calculated halflives `pred_t5` are the most reliable for transcrip
 The following plot shows correlation of halflives computed from RNAkinet predictions with experimentaly measured halflives [1] as we increase read count requirement.
 We recommend users to acknowledge this and put more confidence in halflife predictions for transcripts with high read count, and less confidence for transcripts with low read count.
 
-![Screenshot 2024-05-04 at 10 51 39](https://github.com/maragkakislab/rnakinet/assets/30112906/91b9e9e3-4a9b-4c1f-a0e2-9ef5eef045e7)
+<img src="https://github.com/maragkakislab/rnakinet/assets/30112906/91b9e9e3-4a9b-4c1f-a0e2-9ef5eef045e7)" width="400" height="400">
 
 [1] Eisen,T.J., Eichhorn,S.W., Subtelny,A.O., Lin,K.S., McGeary,S.E., Gupta,S. and Bartel,D.P.
 (2020) The Dynamics of Cytoplasmic mRNA Metabolism. Mol. Cell, 77, 786-799.e10.
