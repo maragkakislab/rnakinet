@@ -11,6 +11,8 @@ from tqdm import tqdm
 
 from rnakinet.data_utils.dataloading import UnlimitedReadsInferenceDataset
 from rnakinet.models.model import RNAkinet
+from rnakinet.models.model_experimental import RNAkinet_LastOnly
+
 from rnakinet.data_utils.workers import worker_init_fn_inference
 
 def run(args):
@@ -20,8 +22,18 @@ def run(args):
     if(len(files)==0):
         raise Exception('No fast5 files found')
         
-    model = RNAkinet()
-    model.load_state_dict(torch.load(args.checkpoint, map_location='cpu')['state_dict'])
+    kit_architecture = {
+        'r9':RNAkinet, 
+        'r10':RNAkinet_LastOnly
+    }
+    kit_checkpoint = {
+        'r9':os.path.join(base_dir, 'models', 'rnakinet_r9.ckpt'), 
+        'r10':os.path.join(base_dir, 'models', 'rnakinet_r10.ckpt')
+    }
+    
+    model = kit_architecture[args.kit]()
+    
+    model.load_state_dict(torch.load(kit_checkpoint[args.kit], map_location='cpu')['state_dict'])
     model.eval()
     
     if torch.cuda.is_available() and not args.use_cpu:
@@ -63,11 +75,10 @@ def run(args):
         
 def main():
     base_dir = os.path.dirname(os.path.dirname(__file__))
-    default_checkpoint = os.path.join(base_dir, 'models', 'rnakinet.ckpt')
     
     parser = argparse.ArgumentParser(description='Run prediction on FAST5 files')
     parser.add_argument('--path', type=str, required=True, help='Path to the folder containing FAST5 files.')
-    parser.add_argument('--checkpoint', type=str, default=default_checkpoint, help='Path to the model checkpoint file.')
+    parser.add_argument('--kit', type=str, default=default_checkpoint, help='Sequencing kit used to produce FAST5 files. Model will be selected based on this.', choices=['r9','r10'])
     parser.add_argument('--output', type=str, required=True, help='Path to the output csv file for pooled predictions.')
     parser.add_argument('--max-workers', type=int, default=16, help='Maximum number of workers for data loading')
     parser.add_argument('--batch-size', type=int, default=1, help='Batch size for data loading')
