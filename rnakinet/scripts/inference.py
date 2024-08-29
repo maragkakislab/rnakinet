@@ -26,10 +26,12 @@ def run(args):
         'r9':RNAkinet, 
         'r10':RNAkinet_LastOnly
     }
+    base_dir = os.path.dirname(os.path.dirname(__file__))
     kit_checkpoint = {
         'r9':os.path.join(base_dir, 'models', 'rnakinet_r9.ckpt'), 
         'r10':os.path.join(base_dir, 'models', 'rnakinet_r10.ckpt')
     }
+    print('Using checkpoint', kit_checkpoint[args.kit])
     
     model = kit_architecture[args.kit]()
     
@@ -74,7 +76,6 @@ def run(args):
         df.to_csv(handle, index=False)
         
 def main():
-    base_dir = os.path.dirname(os.path.dirname(__file__))
     
     parser = argparse.ArgumentParser(description='Run prediction on FAST5 files')
     parser.add_argument('--path', type=str, required=True, help='Path to the folder containing FAST5 files.')
