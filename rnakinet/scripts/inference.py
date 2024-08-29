@@ -78,7 +78,7 @@ def main():
     
     parser = argparse.ArgumentParser(description='Run prediction on FAST5 files')
     parser.add_argument('--path', type=str, required=True, help='Path to the folder containing FAST5 files.')
-    parser.add_argument('--kit', type=str, default=default_checkpoint, help='Sequencing kit used to produce FAST5 files. Model will be selected based on this.', choices=['r9','r10'])
+    parser.add_argument('--kit', type=str, default='r9', help='Sequencing kit used to produce FAST5 files. Model will be selected based on this.', choices=['r9','r10'])
     parser.add_argument('--output', type=str, required=True, help='Path to the output csv file for pooled predictions.')
     parser.add_argument('--max-workers', type=int, default=16, help='Maximum number of workers for data loading')
     parser.add_argument('--batch-size', type=int, default=1, help='Batch size for data loading')
