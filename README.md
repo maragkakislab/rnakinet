@@ -45,7 +45,7 @@ The following plots show correlation of halflives computed from RNAkinet predict
 We recommend users to acknowledge this and put more confidence in halflife predictions for transcripts with high read count, and less confidence for transcripts with low read count.
 
 <img src="https://github.com/user-attachments/assets/b01b062a-1b64-4de4-b076-fb0c4ebb84e8" width="400" height="400">
-<img src="https://github.com/user-attachments/assets/09508b62-7500-49e1-b3b8-00ca119c0f02" width="400" height="400">
+<img src="https://github.com/user-attachments/assets/1c2c0dd7-3ee4-4806-81d0-a757b3ac8dcd" width="400" height="400">
 
 [1] Eisen,T.J., Eichhorn,S.W., Subtelny,A.O., Lin,K.S., McGeary,S.E., Gupta,S. and Bartel,D.P.
 (2020) The Dynamics of Cytoplasmic mRNA Metabolism. Mol. Cell, 77, 786-799.e10.
