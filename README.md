@@ -18,6 +18,11 @@ Nvidia GPU is recommended to run this command. If you want to run inference on a
 ```sh
 rnakinet-inference --path data/experiment/fast5_folder --output preds.csv
 ```
+### R9 and R10 kits
+RNAkinet can be run on fast5 filed produced by nanopore R9 and R10 kits. You can specify your kit using the `--kit` option (default kit is R9)
+```sh
+rnakinet-inference --path data/experiment/fast5_folder --kit r10 --output preds.csv
+```
 
 ## Calculate transcript halflives
 ```sh
@@ -36,10 +41,11 @@ rnakinet-predict-halflives --transcriptome-bam alignments/experiment/transcripto
 ```
 
 Note that the calculated halflives `pred_t5` are the most reliable for transcripts with high read count. 
-The following plot shows correlation of halflives computed from RNAkinet predictions with experimentaly measured halflives [1] as we increase read count requirement.
+The following plots show correlation of halflives computed from RNAkinet predictions with experimentaly measured halflives [1] as we increase read count requirement.
 We recommend users to acknowledge this and put more confidence in halflife predictions for transcripts with high read count, and less confidence for transcripts with low read count.
 
-<img src="https://github.com/maragkakislab/rnakinet/assets/30112906/91b9e9e3-4a9b-4c1f-a0e2-9ef5eef045e7)" width="400" height="400">
+<img src="https://github.com/user-attachments/assets/b01b062a-1b64-4de4-b076-fb0c4ebb84e8" width="400" height="400">
+<img src="https://github.com/user-attachments/assets/09508b62-7500-49e1-b3b8-00ca119c0f02" width="400" height="400">
 
 [1] Eisen,T.J., Eichhorn,S.W., Subtelny,A.O., Lin,K.S., McGeary,S.E., Gupta,S. and Bartel,D.P.
 (2020) The Dynamics of Cytoplasmic mRNA Metabolism. Mol. Cell, 77, 786-799.e10.
