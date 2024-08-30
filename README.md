@@ -19,7 +19,7 @@ Nvidia GPU is recommended to run this command. If you want to run inference on a
 rnakinet-inference --path data/experiment/fast5_folder --output preds.csv
 ```
 ### R9 and R10 kits
-RNAkinet can be run on fast5 filed produced by nanopore R9 and R10 kits. You can specify your kit using the `--kit` option (default kit is R9)
+RNAkinet can be run on fast5 files produced by nanopore R9 and R10 kits. You can specify your kit using the `--kit` option (default kit is R9)
 ```sh
 rnakinet-inference --path data/experiment/fast5_folder --kit r10 --output preds.csv
 ```
