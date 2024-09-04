@@ -6,7 +6,7 @@ RNAkinet is a project dedicated to detecting 5eu-modified reads directly from th
 ```sh
 pip install rnakinet
 ```
-## Predict 5EU in your fast5 files
+## Predict 5EU in fast5 files
 ```sh
 rnakinet-inference --path <path_to_folder_containing_fast5s> --output <predictions_name.csv>
 ```
@@ -18,8 +18,9 @@ Nvidia GPU is recommended to run this command. If you want to run inference on a
 ```sh
 rnakinet-inference --path data/experiment/fast5_folder --output preds.csv
 ```
-### R9 and R10 kits
-RNAkinet can be run on fast5 files produced by nanopore R9 and R10 kits. You can specify your kit using the `--kit` option. Note that the R10 version is a work in progress.
+
+### Selecting flow-cell chemistry
+RNAkinet has been extensively tested on flow-cells with the R9 chemistry. Experimental support is offered for R10. You can specify the flow-cell chemistry with the `--kit` option.
 ```sh
 rnakinet-inference --path data/experiment/fast5_folder --kit r10 --output preds.csv
 ```
@@ -47,8 +48,7 @@ We recommend users to acknowledge this and put more confidence in halflife predi
 <img src="https://github.com/user-attachments/assets/b01b062a-1b64-4de4-b076-fb0c4ebb84e8" width="400" height="400">
 <img src="https://github.com/user-attachments/assets/1c2c0dd7-3ee4-4806-81d0-a757b3ac8dcd" width="400" height="400">
 
-[1] Eisen,T.J., Eichhorn,S.W., Subtelny,A.O., Lin,K.S., McGeary,S.E., Gupta,S. and Bartel,D.P.
-(2020) The Dynamics of Cytoplasmic mRNA Metabolism. Mol. Cell, 77, 786-799.e10.
+[1] Eisen,T.J., Eichhorn,S.W., Subtelny,A.O., Lin,K.S., McGeary,S.E., Gupta,S. and Bartel,D.P. (2020) The Dynamics of Cytoplasmic mRNA Metabolism. Mol. Cell, 77, 786-799.e10.
 
-
-
+# Cite
+Vlastimil Martinek, Jessica Martin, Cedric Belair, Matthew J Payea, Sulochan Malla, Panagiotis Alexiou, Manolis Maragkakis, Deep learning and direct sequencing of labeled RNA captures transcriptome dynamics, NAR Genomics and Bioinformatics, Volume 6, Issue 3, September 2024, lqae116, https://doi.org/10.1093/nargab/lqae116
