@@ -9,7 +9,7 @@ import sys
 import os
 from tqdm import tqdm
 
-from rnakinet.data_utils.dataloading import UnlimitedReadsInferenceDataset
+from rnakinet.data_utils.dataloading import UnlimitedReadsInferenceDatasetFast5, UnlimitedReadsInferenceDatasetPod5
 from rnakinet.models.model import RNAkinet
 from rnakinet.models.model_experimental import RNAkinet_LastOnly
 
@@ -17,10 +17,11 @@ from rnakinet.data_utils.workers import worker_init_fn_inference
 
 def run(args):
     print('CUDA', torch.cuda.is_available())
-    files = list(Path(args.path).rglob('*.fast5'))
-    print('Number of fast5 files found:', len(files))
+    reads_format = args.format
+    files = list(Path(args.path).rglob(f'*.{reads_format}'))
+    print(f'Number of {reads_format} files found: {len(files)}')
     if(len(files)==0):
-        raise Exception('No fast5 files found')
+        raise Exception(f'No {reads_format} files found')
         
     kit_architecture = {
         'r9':RNAkinet, 
@@ -42,8 +43,13 @@ def run(args):
         model.cuda()
     else:
         model.cpu()
+        
+    format_dataset_map = {
+        'fast5': UnlimitedReadsInferenceDatasetFast5,
+        'pod5': UnlimitedReadsInferenceDatasetPod5,
+    }
     
-    dset = UnlimitedReadsInferenceDataset(files=files, max_len=args.max_len, min_len=args.min_len, skip=args.skip)
+    dset = format_dataset_map[reads_format](files=files, max_len=args.max_len, min_len=args.min_len, skip=args.skip)
     
     dataloader = DataLoader(
         dset, 
@@ -88,6 +94,7 @@ def main():
     parser.add_argument('--skip', type=int, default=5000, help='How many signal steps to skip at the beginning of each sequence (trimming)')
     parser.add_argument('--threshold', type=float, default=0.5, help='Threshold for the predictions to be considered positives')
     parser.add_argument('--use-cpu', action='store_true', help='Use CPU for computation instead of GPU')
+    parser.add_argument('--format', type=str, default='fast5', help='Format of read files', choices=['fast5','pod5'])
 
     
     args = parser.parse_args(sys.argv[1:])

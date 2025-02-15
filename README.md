@@ -6,13 +6,15 @@ RNAkinet is a project dedicated to detecting 5eu-modified reads directly from th
 ```sh
 pip install rnakinet
 ```
-## Predict 5EU in fast5 files
+## Predict 5EU in fast5/pod5 files
 ```sh
 rnakinet-inference --path <path_to_folder_containing_fast5s> --output <predictions_name.csv>
 ```
 This creates a csv file with columns `read_id` - the read id, `5eu_mod_score` - the raw prediction score from 0 to 1, `5eu_modified_prediction` - Boolean column, True if the read is predicted to be modified by 5EU, False otherwise
 
 Nvidia GPU is recommended to run this command. If you want to run inference on a CPU-only machine, use the `--use-cpu` option. This will substantially increase runtime.
+
+If you want to use pod5 files instead, add the `--format pod5` flag.
 
 ### Example
 ```sh
@@ -24,6 +26,7 @@ RNAkinet has been extensively tested on flow-cells with the R9 chemistry. Experi
 ```sh
 rnakinet-inference --path data/experiment/fast5_folder --kit r10 --output preds.csv
 ```
+
 
 ## Calculate transcript halflives
 ```sh
