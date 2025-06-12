@@ -1,30 +1,41 @@
 rule get_dorado:
     output: 
-        dorado_dir = '{dorado_version}/bin/dorado'
-        model_dir = model_dir
+        dorado_dir = '{dorado_version}/bin/dorado',
     shell:
         """
-        wget https://cdn.oxfordnanoportal.com/software/analysis/{dorado_version}.tar.gz -O {dorado_version}.tar.gz
-        tar -xf {dorado_version}.tar.gz
-        {output.dorado_dir} download --model {output.model_dir}
+        wget https://cdn.oxfordnanoportal.com/software/analysis/{wildcards.dorado_version}.tar.gz -O {wildcards.dorado_version}.tar.gz
+        tar -xf {wildcards.dorado_version}.tar.gz
         """
 
+rule get_basecalling_model:
+    input:
+        dorado_dir = '{dorado_version}/bin/dorado',
+    output:
+        model_dir = directory('basecalling_models_{dorado_version}/{model_name}'),
+    shell:
+        """
+        mkdir -p basecalling_models_{wildcards.dorado_version}
+        {input.dorado_dir} download --model {wildcards.model_name} --models-directory basecalling_models_{wildcards.dorado_version}/
+        """
+
+        
 # TODO pass/fail ? outputs both set of reads or just pass?
 rule basecalling_dorado:
     input: 
-        pod5_folder = lambda wildcards: f'data/{wildcards.experiment_name}', #TODO generalize
-        basecaller_location = lambda wildcards: f'{wildcards.dorado_version}/bin/dorado',
-        basecalling_model = lambda wildcards: wildcards.basecalling_model, #TODO syntax
+        pod5_folder = lambda wildcards: exp_to_path[wildcards.experiment_name],
+        dorado_location = lambda wildcards: f'{wildcards.dorado_version}/bin/dorado',
+        basecaller_location = lambda wildcards: f'basecalling_models_{wildcards.dorado_version}/{wildcards.basecalling_model}',
     output:
-        done_txt ='outputs/basecalling/{experiment_name}/DONE.txt',
+        done_txt ='outputs/basecalling/{experiment_name}/{dorado_version}/{basecalling_model}/DONE.txt',
         out_reads = 'outputs/basecalling/{experiment_name}/{dorado_version}/{basecalling_model}/all_reads.fastq',
     threads: 32
     resources: gpus=1
     shell:
         """
-        {input.basecaller_location} basecaller {input.basecalling_model} {input.pod5_folder} \
+        {input.dorado_location} basecaller {input.basecaller_location} {input.pod5_folder} \
             --no-trim \
             --emit-fastq \
+            --recursive \
             > {output.out_reads}
 
         echo {input.pod5_folder} > {output.done_txt}
