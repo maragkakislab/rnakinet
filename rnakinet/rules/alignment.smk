@@ -1,3 +1,15 @@
+rule get_reference:
+    output:
+        'references/{reference_name}'
+    params:
+        uri = lambda wildcards: reference_to_download[wildcards.reference_name]
+    shell:
+        """
+        wget {params.uri} \
+            -P references/
+        gunzip references/{wildcards.reference_name}.gz
+        """
+
 rule align_to_genome:
     input:
         basecalls = "outputs/basecalling/{experiment_name}/{dorado_version}/{basecalling_model}/all_reads.fastq",
@@ -9,7 +21,7 @@ rule align_to_genome:
     conda:
         "../envs/alignment.yaml"
     params:
-        dorado_location = dorado_location,
+        dorado_location = lambda wildcards: f'{wildcards.dorado_version}/bin/dorado',
     threads: 16
     shell:
         """
