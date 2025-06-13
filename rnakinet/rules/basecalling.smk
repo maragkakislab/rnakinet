@@ -18,8 +18,6 @@ rule get_basecalling_model:
         {input.dorado_dir} download --model {wildcards.model_name} --models-directory basecalling_models_{wildcards.dorado_version}/
         """
 
-        
-# TODO pass/fail ? outputs both set of reads or just pass?
 rule basecalling_dorado:
     input: 
         pod5_folder = lambda wildcards: exp_to_path[wildcards.experiment_name],
@@ -33,18 +31,9 @@ rule basecalling_dorado:
     shell:
         """
         {input.dorado_location} basecaller {input.basecaller_location} {input.pod5_folder} \
-            --no-trim \
             --emit-fastq \
             --recursive \
             > {output.out_reads}
 
         echo {input.pod5_folder} > {output.done_txt}
         """
-            
-rule zip_dorado_basecalls:
-    input:
-        'outputs/basecalling/{experiment_name}/{dorado_version}/{basecalling_model}/all_reads.fastq'
-    output:
-        'outputs/basecalling/{experiment_name}/{dorado_version}/{basecalling_model}/all_reads.fastq.gz'
-    shell:
-        'gzip -c {input} > {output}'
