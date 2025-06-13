@@ -14,8 +14,8 @@ def main(bam_path, output_path, train_chromosomes, test_chromosomes, validation_
             chromosome_to_reads[chromosome] = read_ids
     
     for ch in train_chromosomes+test_chromosomes+validation_chromosomes:
-        print(f"WARNING: Chromosome {ch} missing from the BAM file")
-        chromosome_to_reads[ch] = []
+        if(len(chromosome_to_reads[ch]) == 0):
+            print(f"WARNING: Chromosome {ch} missing from the BAM file")
     
     train_readids = np.concatenate([chromosome_to_reads[ch] for ch in train_chromosomes]) if train_chromosomes else np.array([])
     test_readids = np.concatenate([chromosome_to_reads[ch] for ch in test_chromosomes]) if test_chromosomes else np.array([])
