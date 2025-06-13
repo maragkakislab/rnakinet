@@ -30,7 +30,7 @@ rule create_split_pod5s:
         experiment_path = lambda wildcards: exp_to_path[wildcards.experiment_name], #TODO set paths to raw pod5s
     output: #TODO add outputs/splits/expname/{split} folder as output for viz rules
         "outputs/splits/{experiment_name}/POD5_{split}_SPLIT_DONE.txt",
-        # directory("outputs/splits/{experiment_name}/{split}"),
+        "outputs/splits/{experiment_name}/{split}.pod5",
     conda:
         "../envs/pod5_splitting.yaml"
     threads: 16
