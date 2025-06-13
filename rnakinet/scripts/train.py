@@ -1,14 +1,14 @@
 import torch
 print('CUDA', torch.cuda.is_available())
 
-import comet_ml
+import wandb
 from rnakinet.data_utils.dataloading_pod5 import TrainingDatamodule
 import pytorch_lightning as pl
-from pytorch_lightning.loggers import CometLogger
+from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 from pathlib import Path
-from rnakinet.workflow.scripts.helpers import arch_map #TODO refactor model mapping from strings 
+from rnakinet.scripts.helpers import arch_map #TODO refactor model mapping from strings 
 import argparse
 import yaml
 
@@ -48,7 +48,7 @@ def parse_args(parser):
     parser.add_argument('--skip', type=int, required=True, help='How many signal steps to skip at the beginning of each read', default=5000)
     parser.add_argument('--valid-read-limit', type=int, required=True, help='How many reads to use for the validation procedure', default=5000)
     parser.add_argument('--workers', type=int, required=True, help='How many workers to use for dataloading. Each worker makes replicate of the dataset', default=32)
-    parser.add_argument('--sampler', type=str, required=True, help='How to sample from training datasets. Options: ratio (each fast5 file has the same probability) or uniform (each experiment has the same probability)', default='ratio')
+    parser.add_argument('--sampler', type=str, required=True, help='How to sample from training datasets. Options: ratio (each read has the same probability) or uniform (each experiment has the same probability)', default='ratio')
     parser.add_argument('--lr', type=float, required=True, help='Learning rate', default=1e-3)
     parser.add_argument('--warmup-steps', type=int, required=True, help='Learning rate warmup steps', default=1000)
     parser.add_argument('--wd', type=float, required=True, help='Weight decay', default=0.01)
@@ -61,8 +61,8 @@ def parse_args(parser):
     
     parser.add_argument('--experiment-name', type=str, required=True, help='Name of the experiment to use for logging and naming')
     
-    parser.add_argument('--comet-api-key', type=str, required=True, help='Comet API key for logging')
-    parser.add_argument('--comet-project-name', type=str, required=True, help='Comet project name for logging')
+    parser.add_argument('--wandb-api-key', type=str, required=True, help='WANDB API key for logging')
+    parser.add_argument('--wandb-project-name', type=str, required=True, help='WANDB project name for logging')
     parser.add_argument('--logging-step', type=int, required=True, help='After how many effective batches to log metrics', default=500)
     parser.add_argument('--enable-progress-bar', type=str, required=True, help='Whether to print proress bar, options yes or no')
     
@@ -74,7 +74,6 @@ def parse_args(parser):
 def get_datasets_config(args):
     train_pos_pod5s = args.training_positives_pod5s
     train_neg_pod5s = args.training_negatives_pod5s
-    # train_neg_lists = [read_txt_to_list(txt_path) for txt_path in args.training_negatives_lists]
 
     valid_pos_pod5s = args.validation_positives_pod5s
     valid_neg_pod5s = args.validation_negatives_pod5s    
@@ -131,8 +130,8 @@ def get_logging_config(args):
     logging_params = {
         'experiment_name':args.experiment_name,
         'logging_step':args.logging_step,
-        'api_key':args.comet_api_key,
-        'project_name':args.comet_project_name,
+        'api_key':args.wandb_api_key,
+        'project_name':args.wandb_project_name,
         "model_save_path":args.save_path,
         'enable_progress_bar':prog_bar_map[args.enable_progress_bar],
     }
@@ -166,10 +165,15 @@ def train_save(datasets, model_params, data_params, training_params, logging_par
         verbose=True,
     )
     callbacks = [checkpoint_callback, early_stopping_callback]
-    logger = CometLogger(
-        api_key=logging_params['api_key'], 
-        project_name=logging_params['project_name'], 
-        experiment_name=logging_params['experiment_name'],
+
+    try:
+        wandb.login(key=logging_params['api_key'])
+        wandb.init(project=logging_params['project_name'], name=logging_params['experiment_name'], config={**model_params, **data_params, **training_params})
+        print('WANDB login OK')
+    except ValueError as e:
+        print(e)
+    logger = WandbLogger(
+        project=logging_params['project_name'], 
     ) 
     
     val_logging_step = logging_params['logging_step']*training_params['grad_accumulation']

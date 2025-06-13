@@ -14,6 +14,6 @@ dependencies:
         - torch==2.2
         - lightning==2.2
         - torchmetrics==0.11.4
-        - comet_ml==3.33.11
+        - wandb==0.20.1
         - pod5==0.3.23
-        - -e ../../../../
+        - -e ../../../

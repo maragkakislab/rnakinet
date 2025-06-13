@@ -7,10 +7,7 @@ from tqdm import tqdm
 from pod5 import Reader
 
 from rnakinet.data_utils.generators import uniform_gen, ratio_gen
-# from rnakinet.data_utils.read_utils import process_read
 from rnakinet.data_utils.read_utils import process_pod5_read
-
-# from rnakinet.data_utils.workers import worker_init_fn
 
 class TrainingDatamodule(pl.LightningDataModule):
     def __init__(
@@ -25,7 +22,7 @@ class TrainingDatamodule(pl.LightningDataModule):
             workers,
             max_len,
             skip,
-            multiexp_generator_type, #TODO needed?
+            multiexp_generator_type,
             min_len,
     ):
 
@@ -57,7 +54,7 @@ class TrainingDatamodule(pl.LightningDataModule):
                 max_len = self.max_len,
                 skip=self.skip,
                 min_len=self.min_len,
-                multiexp_generator_type=self.multiexp_generator_type, #TODO needed?
+                multiexp_generator_type=self.multiexp_generator_type,
             )
             self.valid_dataset = UnlimitedReadsValidDataset(
                 pos_pod5s=self.valid_pos_pod5s,
@@ -66,7 +63,7 @@ class TrainingDatamodule(pl.LightningDataModule):
                 skip=self.skip,
                 max_len=self.max_len,
                 min_len=self.min_len,
-                multiexp_generator_type='uniform', #TODO needed?
+                multiexp_generator_type='uniform',
             )
 
     def train_dataloader(self):
@@ -91,7 +88,7 @@ class UnlimitedReadsTrainingDataset(IterableDataset):
     def process_pod5(self, pod5_file, label, exp):
         while True:
             with Reader(pod5_file) as reader:
-                read_ids = reader.read_ids()
+                read_ids = reader.read_ids
                 random.shuffle(read_ids)
                 for read in reader.reads(selection=read_ids):
                     x = process_pod5_read(read, skip=self.skip)
@@ -102,7 +99,7 @@ class UnlimitedReadsTrainingDataset(IterableDataset):
 
     def get_pod5_size(self, pod5_file):
         with Reader(pod5_file) as reader:
-            return len(reader.read_ids())
+            return len(reader.read_ids)
 
     def get_stream(self):
         pos_gens = []
@@ -139,9 +136,9 @@ class UnlimitedReadsValidDataset(Dataset):
     """
     Mapped Dataset that contains validation reads
     """
-    def __init__(self, positive_pod5s, negative_pod5s, max_len, skip, min_len, multiexp_generator_type, valid_read_limit):
-        self.positive_pod5s = positive_pod5s
-        self.negative_pod5s = negative_pod5s
+    def __init__(self, pos_pod5s, neg_pod5s, max_len, skip, min_len, multiexp_generator_type, valid_read_limit):
+        self.positive_pod5s = pos_pod5s
+        self.negative_pod5s = neg_pod5s
         self.max_len = max_len
         self.min_len = min_len
         self.skip = skip
@@ -151,10 +148,10 @@ class UnlimitedReadsValidDataset(Dataset):
         print('Generating valid dataset')
         self.items = self.generate_data()
 
-    def process_pod5(self, pod5_file, label, exp):
+    def process_pod5(self, pod5_file, label):
         while True:
             with Reader(pod5_file) as reader:
-                read_ids = reader.read_ids()
+                read_ids = reader.read_ids
                 random.shuffle(read_ids)
                 for read in reader.reads(selection=read_ids):
                     x = process_pod5_read(read, skip=self.skip)
@@ -165,10 +162,9 @@ class UnlimitedReadsValidDataset(Dataset):
     
     def get_pod5_size(self, pod5_file):
         with Reader(pod5_file) as reader:
-            return len(reader.read_ids())
+            return len(reader.read_ids)
 
     def generate_data(self):
-
         pos_gens = []
         pos_sizes = []
         for pos_pod5 in self.positive_pod5s:
@@ -203,41 +199,3 @@ class UnlimitedReadsValidDataset(Dataset):
 
     def __getitem__(self, idx):
         return self.items[idx]
-
-
-# class UnlimitedReadsInferenceDataset(IterableDataset):
-#     """
-#     Iterable Dataset that contains all reads
-#     """
-
-#     def __init__(self, files, max_len, skip, min_len):
-#         self.files = files
-#         self.max_len = max_len
-#         self.skip = skip
-#         self.min_len = min_len
-
-#     def process_files_fully(self, files):
-#         for fast5 in files:
-#             try:
-#                 with get_fast5_file(fast5, mode='r') as f5:
-#                     for i, read in enumerate(f5.get_reads()):
-#                         x = process_read(read, skip=self.skip)
-#                         start = 0
-#                         stop = len(x)
-#                         if(len(x) > self.max_len or len(x) < self.min_len):
-#                             continue
-#                         identifier = {
-#                             'file': str(fast5),
-#                             'readid': read.read_id,
-#                             'read_index_in_file': 0,
-#                             'start': start,
-#                             'stop': stop,
-#                         }
-#                         yield x.reshape(-1, 1).swapaxes(0, 1), identifier
-#             except OSError as error:
-#                 print(error)
-#                 continue
-
-#     def __iter__(self):
-#         return self.process_files_fully(self.files)
-  
