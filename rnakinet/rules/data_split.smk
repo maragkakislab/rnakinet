@@ -1,6 +1,6 @@
 rule split_readids_on_chromosomes:
     input:
-        bam_path=lambda wildcards : f"outputs/alignment/{wildcards.experiment_name}/{config['dorado_version']}/{config['basecalling_model']}/reads-align.genome.sorted.bam",
+        bam_path=lambda wildcards : f"outputs/alignment/{wildcards.experiment_name}/{basecalling_config['dorado_version']}/{basecalling_config['basecalling_model']}/reads-align.genome.sorted.bam",
     output:
         "outputs/splits/{experiment_name}/train_readids.txt",
         "outputs/splits/{experiment_name}/test_readids.txt",
