@@ -19,7 +19,7 @@ def run(args):
     model_path = args.model_path
     print('Using checkpoint', model_path)
     
-    model = arch_map[args.arch]
+    model = arch_map[args.arch]()
     
     model.load_state_dict(torch.load(model_path, map_location='cpu')['state_dict'])
     model.eval()
