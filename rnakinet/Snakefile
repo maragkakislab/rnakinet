@@ -50,6 +50,26 @@ config = {
     'basecalling_model':'rna004_130bps_hac@v5.2.0',
 }
 
+model_to_path = {
+    'test_2': 'checkpoints_pl/test_run_2/last.ckpt'
+}
+
+model_inference_params = {
+    'test_2': {
+        'batch_size': 1,
+        'max_len': 400000,
+        'min_len': 5000,
+        'skip': 5000,
+        'threads': 16,
+        'arch': 'rnakinet',
+    },
+}
+
+inference_run_to_files = {
+    '20250529_hsa_dRNA_HeLa_5EU_1': ['outputs/splits/20250529_hsa_dRNA_HeLa_5EU_1/test.pod5'],
+    '20250529_hsa_dRNA_HeLa_DMSO_1': ['outputs/splits/20250529_hsa_dRNA_HeLa_DMSO_1/test.pod5'],
+}
+
 train_chrs=[2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,21,22,'X','MT']
 test_chrs=[1]
 valid_chrs=[20]
