@@ -17,16 +17,15 @@ rule create_classification_plot:
     conda:
         '../envs/visual.yaml'
     params:
-        pos_group_names = lambda wildcards: inference_run_groups[wildcards.group]['positives'], #TODO wildcard.group + 'positives' ?
-        neg_group_names = lambda wildcards: inference_run_groups[wildcards.group]['negatives'],
+        # This can be used to plot multiple lines in one plot, by specifying groups in-order of both positives and negatives
+        pos_group_names = lambda wildcards: wildcards.group,
+        neg_group_names = lambda wildcards: wildcards.group,
         chosen_threshold = lambda wildcards: model_inference_params[wildcards.model_name]['threshold'],
     shell:
         """
         python3 scripts/{wildcards.plot_type}.py \
             --positives-in-order {input.pos_files} \
             --negatives-in-order {input.neg_files} \
-            --positives-names-in-order {params.pos_experiments} \
-            --negatives-names-in-order {params.neg_experiments} \
             --negatives-groups-in-order {params.neg_group_names} \
             --positives-groups-in-order {params.pos_group_names} \
             --output {output} \

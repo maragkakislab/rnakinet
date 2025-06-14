@@ -31,15 +31,15 @@ def plot_and_save(args, plot_fn, callbacks=[]):
         group_to_preds[group]={'positives':[],'negatives':[]}
     
     for pos_file, pos_group in zip(pos_preds, pos_groups):
-        positives = pd.read_csv(pos_file)['5eu_mod_score'].values
+        positives = pd.read_csv(pos_file)['5eu_mod_score'].values.tolist()
         check_for_nans(positives)
         group_to_preds[pos_group]['positives']+=positives
 
     for neg_file, neg_group in zip(neg_preds, neg_groups):
-        negatives = pd.read_csv(neg_file)['5eu_mod_score'].values
+        negatives = pd.read_csv(neg_file)['5eu_mod_score'].values.tolist()
         check_for_nans(negatives)
         group_to_preds[neg_group]['negatives']+=negatives
-        
+
     for group, subdict in group_to_preds.items():
         plot_fn(subdict['positives'], subdict['negatives'],  f'{group}_positives', f'{group}_negatives')
     

@@ -82,10 +82,12 @@ include: "rules/alignment.smk"
 include: "rules/data_split.smk"
 include: "rules/training.smk"
 include: "rules/inference.smk"
+include: "rules/visualizations.smk"
 
 rule all:
     input:
-        expand('outputs/{model_name}/{experiment_name}/preds.csv',model_name='test_2', experiment_name='20250529_hsa_dRNA_HeLa_5EU_1')
+        expand('outputs/visual/predictions/{model_name}/{group}_{plot_type}.pdf', model_name='test_2', group='HeLa_NIH_2025', plot_type=['auroc','thresholds','pr_curve','pr_ratios'])
+        #expand('outputs/{model_name}/{experiment_name}/preds.csv',model_name='test_2', experiment_name=['20250529_hsa_dRNA_HeLa_5EU_1', '20250529_hsa_dRNA_HeLa_DMSO_1'])
         #expand("outputs/splits/{experiment_name}/{split}.pod5", experiment_name=['20250529_hsa_dRNA_HeLa_5EU_1','20250529_hsa_dRNA_HeLa_DMSO_1'], split=['train','validation','test'])
         #expand('checkpoints_pl/{training_run_name}/DONE.txt', training_run_name='test_run_2')
 
