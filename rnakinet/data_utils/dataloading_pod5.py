@@ -7,7 +7,7 @@ from pod5 import Reader
 
 from rnakinet.data_utils.generators import uniform_gen, ratio_gen
 from rnakinet.data_utils.read_utils import process_pod5_read
-
+from rnakinet.data_utils.workers import worker_init_fn_train
 class TrainingDatamodule(pl.LightningDataModule):
     def __init__(
             self,
@@ -66,7 +66,12 @@ class TrainingDatamodule(pl.LightningDataModule):
             )
 
     def train_dataloader(self):
-        return DataLoader(self.train_dataset, batch_size=self.batch_size, num_workers=self.workers)
+        return DataLoader(
+            self.train_dataset, 
+            batch_size=self.batch_size, 
+            num_workers=self.workers,
+            worker_init_fn=worker_init_fn_train,
+        )
 
     def val_dataloader(self):
         return  DataLoader(self.valid_dataset, batch_size=self.batch_size)
@@ -84,11 +89,13 @@ class UnlimitedReadsTrainingDataset(IterableDataset):
         self.skip = skip
         self.multiexp_generator_type = multiexp_generator_type
 
+        # This will get modified by worker processes, if multiprocessing takes place
+        self.pod5_to_readids = {pod5: Reader(pod5).read_ids for pod5 in self.positive_pod5s+self.negative_pod5s}
+
     def process_pod5(self, pod5_file, label, exp):
         while True:
             with Reader(pod5_file) as reader:
-                read_ids = reader.read_ids
-                random.shuffle(read_ids)
+                read_ids = self.pod5_to_readids[pod5_file]
                 for read in reader.reads(selection=read_ids):
                     x = process_pod5_read(read, skip=self.skip)
                     y = np.array(label)
@@ -97,8 +104,7 @@ class UnlimitedReadsTrainingDataset(IterableDataset):
                     yield x.reshape(-1, 1).swapaxes(0, 1), np.array([y], dtype=np.float32), exp
 
     def get_pod5_size(self, pod5_file):
-        with Reader(pod5_file) as reader:
-            return len(reader.read_ids)
+        return len(self.pod5_to_readids[pod5_file])
 
     def get_stream(self):
         pos_gens = []
