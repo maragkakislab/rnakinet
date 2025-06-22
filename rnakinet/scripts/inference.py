@@ -5,7 +5,7 @@ import pandas as pd
 import sys
 from tqdm import tqdm
 
-from rnakinet.data_utils.dataloading_pod5 import InferenceDataset
+from rnakinet.data_utils.dataloading_pod5_batched import InferenceDataset
 from rnakinet.data_utils.workers import worker_init_fn_inference
 from rnakinet.scripts.helpers import arch_map
 

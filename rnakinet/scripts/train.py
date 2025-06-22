@@ -2,7 +2,7 @@ import torch
 print('CUDA', torch.cuda.is_available())
 
 import wandb
-from rnakinet.data_utils.dataloading_pod5 import TrainingDatamodule
+from rnakinet.data_utils.dataloading_pod5_batched import TrainingDatamodule
 import pytorch_lightning as pl
 from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning.callbacks import ModelCheckpoint
@@ -52,6 +52,7 @@ def parse_args(parser):
     parser.add_argument('--lr', type=float, required=True, help='Learning rate', default=1e-3)
     parser.add_argument('--warmup-steps', type=int, required=True, help='Learning rate warmup steps', default=1000)
     parser.add_argument('--wd', type=float, required=True, help='Weight decay', default=0.01)
+    parser.add_argument('--batch-size', type=int, required=True, help='Batch size to use for training', default=32)
     
     parser.add_argument('--arch', type=str, required=True, help='Type of architecture to use')
     parser.add_argument('--arch-hyperparams-yaml', type=str, required=True, help='Path to a yaml file containing architecture-specific hyperparameters')
@@ -89,7 +90,7 @@ def get_datasets_config(args):
 
 def get_dataloading_config(args):
     data_params = {
-        'batch_size':1,
+        'batch_size':args.batch_size,
         'valid_read_limit':args.valid_read_limit,
         'shuffle_valid':False,
         'workers':args.workers,

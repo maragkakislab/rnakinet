@@ -24,7 +24,7 @@ valid_chrs=[20]
 
 # TRAINING CONFIGURATIONS
 training_configs  = {
-    'test_run_2': {
+    'test_run_4': {
         'training_positives_exps': ['20250529_hsa_dRNA_HeLa_5EU_1'],
         'training_negatives_exps': ['20250529_hsa_dRNA_HeLa_DMSO_1'],
         'validation_positives_exps': ['20250529_hsa_dRNA_HeLa_5EU_1'], #Same experiment, but will take reads from a different chromosome
@@ -33,13 +33,14 @@ training_configs  = {
         'max_len':400000,
         'skip':5000,
         'workers':32,
+        'batch_size':32,
         'sampler':'ratio', #sample from experiments based on their size, alternative 'uniform' for uniform sampling
         'lr':1e-3,
         'warmup_steps':100,
         'wd':0.01,
         'arch':'rnakinet', #'rnakinet' (default) or 'rnakinet_lastonly' (different rnn pooling method)
         'arch_hyperparams':{},
-        'grad_acc':64,
+        'grad_acc':1,
         'early_stopping_patience':50, 
         'wandb_api_key':os.getenv("WANDB_API_KEY"), #OPTIONAL: Set your wandb API key for plotting training metrics
         'wandb_project_name':'RNAkinet',
@@ -86,10 +87,10 @@ include: "rules/visualizations.smk"
 
 rule all:
     input:
-        expand('outputs/visual/predictions/{model_name}/{group}_{plot_type}.pdf', model_name='test_2', group='HeLa_NIH_2025', plot_type=['auroc','thresholds','pr_curve','pr_ratios'])
+        #expand('outputs/visual/predictions/{model_name}/{group}_{plot_type}.pdf', model_name='test_2', group='HeLa_NIH_2025', plot_type=['auroc','thresholds','pr_curve','pr_ratios'])
         #expand('outputs/{model_name}/{experiment_name}/preds.csv',model_name='test_2', experiment_name=['20250529_hsa_dRNA_HeLa_5EU_1', '20250529_hsa_dRNA_HeLa_DMSO_1'])
         #expand("outputs/splits/{experiment_name}/{split}.pod5", experiment_name=['20250529_hsa_dRNA_HeLa_5EU_1','20250529_hsa_dRNA_HeLa_DMSO_1'], split=['train','validation','test'])
-        #expand('checkpoints_pl/{training_run_name}/DONE.txt', training_run_name='test_run_2')
+        expand('checkpoints_pl/{training_run_name}/DONE.txt', training_run_name='test_run_4')
 
 
         

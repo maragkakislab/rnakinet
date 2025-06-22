@@ -19,6 +19,7 @@ rule run_training:
         valid_read_limit = lambda wildcards: training_configs[wildcards.training_run_name]['valid_read_limit'],
         skip = lambda wildcards: training_configs[wildcards.training_run_name]['skip'],
         workers = lambda wildcards: training_configs[wildcards.training_run_name]['workers'],
+        batch_size = lambda wildcards: training_configs[wildcards.training_run_name]['batch_size'],
         sampler = lambda wildcards: training_configs[wildcards.training_run_name]['sampler'],
         lr = lambda wildcards: training_configs[wildcards.training_run_name]['lr'],
         warmup_steps = lambda wildcards: training_configs[wildcards.training_run_name]['warmup_steps'],
@@ -55,6 +56,7 @@ rule run_training:
             --valid-read-limit {params.valid_read_limit} \
             --skip {params.skip} \
             --workers {params.workers} \
+            --batch-size {params.batch_size} \
             --sampler {params.sampler} \
             --lr {params.lr} \
             --warmup-steps {params.warmup_steps} \
