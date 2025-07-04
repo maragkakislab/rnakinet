@@ -1,34 +1,40 @@
 import os
+from pathlib import Path
 from dotenv import load_dotenv
 load_dotenv()
 
 # DATA PREPARATION CONFIGURATION
+#TODO refactor genome/transcriptome URLs to be automatically constructed
 fasta_to_download = {
     'Homo_sapiens.GRCh38.dna_sm.primary_assembly.fa': 'https://ftp.ensembl.org/pub/release-114/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna_sm.primary_assembly.fa.gz',
     'Homo_sapiens.GRCh38.cdna.all.fa': 'https://ftp.ensembl.org/pub/release-114/fasta/homo_sapiens/cdna/Homo_sapiens.GRCh38.cdna.all.fa.gz',
     
     'Mus_musculus.GRCm39.dna_sm.primary_assembly.fa':'https://ftp.ensembl.org/pub/release-114/fasta/mus_musculus/dna/Mus_musculus.GRCm39.dna_sm.primary_assembly.fa.gz',
+    'Mus_musculus.GRCm39.cdna.all.fa': 'https://ftp.ensembl.org/pub/release-114/fasta/mus_musculus/cdna/Mus_musculus.GRCm39.cdna.all.fa.gz',
 }
 
 exp_to_reference = {
-    '20250529_hsa_dRNA_HeLa_5EU_1':       'references/Homo_sapiens.GRCh38.dna_sm.primary_assembly.fa',
-    '20250529_hsa_dRNA_HeLa_DMSO_1':      'references/Homo_sapiens.GRCh38.dna_sm.primary_assembly.fa',
-    '20250529_hsa_dRNA_Hek293_5EU_1':     'references/Homo_sapiens.GRCh38.dna_sm.primary_assembly.fa',
-    '20250529_hsa_dRNA_Hek293_DMSO_1':    'references/Homo_sapiens.GRCh38.dna_sm.primary_assembly.fa',
-    '20250612_hsa_dRNA_MCF10A_5EU_1':     'references/Homo_sapiens.GRCh38.dna_sm.primary_assembly.fa',
-    '20250612_hsa_dRNA_MCF10A_control_1': 'references/Homo_sapiens.GRCh38.dna_sm.primary_assembly.fa',
-    '20250618_hsa_dRNA_I90_5EU_1':        'references/Homo_sapiens.GRCh38.dna_sm.primary_assembly.fa',
-    '20250612_hsa_dRNA_I90_control_1':    'references/Homo_sapiens.GRCh38.dna_sm.primary_assembly.fa',
+    '20250529_hsa_dRNA_HeLa_5EU_1':       'references/fasta/Homo_sapiens.GRCh38.dna_sm.primary_assembly.fa',
+    '20250529_hsa_dRNA_HeLa_DMSO_1':      'references/fasta/Homo_sapiens.GRCh38.dna_sm.primary_assembly.fa',
+    '20250529_hsa_dRNA_Hek293_5EU_1':     'references/fasta/Homo_sapiens.GRCh38.dna_sm.primary_assembly.fa',
+    '20250529_hsa_dRNA_Hek293_DMSO_1':    'references/fasta/Homo_sapiens.GRCh38.dna_sm.primary_assembly.fa',
+    '20250612_hsa_dRNA_MCF10A_5EU_1':     'references/fasta/Homo_sapiens.GRCh38.dna_sm.primary_assembly.fa',
+    '20250612_hsa_dRNA_MCF10A_control_1': 'references/fasta/Homo_sapiens.GRCh38.dna_sm.primary_assembly.fa',
+    '20250618_hsa_dRNA_I90_5EU_1':        'references/fasta/Homo_sapiens.GRCh38.dna_sm.primary_assembly.fa',
+    '20250612_hsa_dRNA_I90_control_1':    'references/fasta/Homo_sapiens.GRCh38.dna_sm.primary_assembly.fa',
 
-    '20250528_mmu_dRNA_3T3_5EU_1':  'references/Mus_musculus.GRCm39.dna_sm.primary_assembly.fa',
-    '20250528_mmu_dRNA_3T3_DMSO_1': 'references/Mus_musculus.GRCm39.dna_sm.primary_assembly.fa',
+    '20250528_mmu_dRNA_3T3_5EU_1':  'references/fasta/Mus_musculus.GRCm39.dna_sm.primary_assembly.fa',
+    '20250528_mmu_dRNA_3T3_DMSO_1': 'references/fasta/Mus_musculus.GRCm39.dna_sm.primary_assembly.fa',
 
     #TODO Macaca mulatta? primary_assembly on ensembl is shattered to separate chromosomes, not a single file
     # '20250611_mml_dRNA_PBMC_5EU_1':,
     # '20250612_mml_dRNA_PBMC_control_1':,
 }
 exp_to_transcriptome = {
-    '20250529_hsa_dRNA_HeLa_5EU_1':'references/Homo_sapiens.GRCh38.cdna.all.fa',
+    '20250529_hsa_dRNA_HeLa_5EU_1':'references/fasta/Homo_sapiens.GRCh38.cdna.all.fa',
+
+    '20250528_mmu_dRNA_3T3_5EU_1':  'references/fasta/Mus_musculus.GRCm39.cdna.all.fa',
+    '20250528_mmu_dRNA_3T3_DMSO_1': 'references/fasta/Mus_musculus.GRCm39.cdna.all.fa',
 }
 exp_to_path = {
     '20250529_hsa_dRNA_HeLa_5EU_1':'/home/jovyan/data/experiments/20250529_hsa_dRNA_HeLa_5EU_1/',
@@ -48,8 +54,6 @@ exp_to_path = {
 
     '20250528_mmu_dRNA_3T3_5EU_1':'/home/jovyan/data/experiments/20250528_mmu_dRNA_3T3_5EU_1',
     '20250528_mmu_dRNA_3T3_DMSO_1':'/home/jovyan/data/experiments/20250528_mmu_dRNA_3T3_DMSO_1',
-    
-    
 }
 basecalling_config = {
     'dorado_version':'dorado-1.0.1-linux-x64', # versions: https://dorado-docs.readthedocs.io/en/latest/
@@ -151,6 +155,9 @@ model_inference_params = {
 inference_run_to_files = {
     '20250529_hsa_dRNA_HeLa_5EU_1_TEST': ['outputs/splits/20250529_hsa_dRNA_HeLa_5EU_1/test.pod5'],
     '20250529_hsa_dRNA_HeLa_DMSO_1_TEST': ['outputs/splits/20250529_hsa_dRNA_HeLa_DMSO_1/test.pod5'],
+
+    '20250528_mmu_dRNA_3T3_5EU_1':Path('/home/jovyan/data/experiments/20250528_mmu_dRNA_3T3_5EU_1').rglob("*.pod5"),
+    '20250528_mmu_dRNA_3T3_DMSO_1':Path('/home/jovyan/data/experiments/20250528_mmu_dRNA_3T3_DMSO_1').rglob("*.pod5"),
 }
 inference_run_groups = {
     'HeLa_NIH_2025':{
@@ -159,13 +166,22 @@ inference_run_groups = {
     },
 }
 
+# HALFLIVES CONFIGURATION
+ENSEMBL_URL = 'http://may2025.archive.ensembl.org'
+exp_to_ensembl_species = {
+    '20250528_mmu_dRNA_3T3_5EU_1':'mmusculus',
+    '20250528_mmu_dRNA_3T3_DMSO_1': 'mmusculus',
+}
 
+# RULES
 include: "rules/basecalling.smk"
 include: "rules/alignment.smk"
 include: "rules/data_split.smk"
 include: "rules/training.smk"
 include: "rules/inference.smk"
 include: "rules/visualizations.smk"
+include: "rules/halflives.smk"
+
 
 rule all:
     input:
@@ -174,7 +190,11 @@ rule all:
         #expand('outputs/{model_name}/{experiment_name}/preds.csv',model_name='test_2', experiment_name=['20250529_hsa_dRNA_HeLa_5EU_1', '20250529_hsa_dRNA_HeLa_DMSO_1'])
         #expand("outputs/splits/{experiment_name}/{split}.pod5", experiment_name=['20250529_hsa_dRNA_HeLa_5EU_1','20250529_hsa_dRNA_HeLa_DMSO_1'], split=['train','validation','test'])
         # expand('checkpoints_pl/{training_run_name}/DONE.txt', training_run_name='Hela_batch_32_more_fast_2')
-        expand("outputs/alignment/{experiment_name}/{dorado_version}/{basecalling_model}/reads-align.transcriptome.sorted.bam.bai", experiment_name='20250529_hsa_dRNA_HeLa_5EU_1',dorado_version=basecalling_config['dorado_version'],basecalling_model=basecalling_config['basecalling_model'])
+        # expand("outputs/alignment/{experiment_name}/{dorado_version}/{basecalling_model}/reads-align.transcriptome.sorted.bam.bai", experiment_name='20250529_hsa_dRNA_HeLa_5EU_1',dorado_version=basecalling_config['dorado_version'],basecalling_model=basecalling_config['basecalling_model'])
+        # expand("references/{species_id}/transcript-gene-ids.tab", species_id='hsapiens')
+        expand('outputs/predictions/{model_name}/{experiment_name}/gene_level_predictions.tsv', model_name='Hela_batch_64', experiment_name='20250528_mmu_dRNA_3T3_5EU_1')
+        # 'outputs/alignment/20250528_mmu_dRNA_3T3_5EU_1/reads-align.transcriptome.sorted.bam'
+        
 
 
         
