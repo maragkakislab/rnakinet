@@ -172,6 +172,13 @@ exp_to_ensembl_species = {
     '20250528_mmu_dRNA_3T3_5EU_1':'mmusculus',
     '20250528_mmu_dRNA_3T3_DMSO_1': 'mmusculus',
 }
+exp_to_tl = {
+    '20250528_mmu_dRNA_3T3_5EU_1': 24, #TODO fake experiment, testing only
+}
+halflives_name_to_file = {
+    'mion':'halflives_data/3T3_mion_halflives.csv',
+    'PION':'halflives_data/3T3_PION_halflives.csv',
+}
 
 # RULES
 include: "rules/basecalling.smk"
@@ -192,8 +199,10 @@ rule all:
         # expand('checkpoints_pl/{training_run_name}/DONE.txt', training_run_name='Hela_batch_32_more_fast_2')
         # expand("outputs/alignment/{experiment_name}/{dorado_version}/{basecalling_model}/reads-align.transcriptome.sorted.bam.bai", experiment_name='20250529_hsa_dRNA_HeLa_5EU_1',dorado_version=basecalling_config['dorado_version'],basecalling_model=basecalling_config['basecalling_model'])
         # expand("references/{species_id}/transcript-gene-ids.tab", species_id='hsapiens')
-        expand('outputs/predictions/{model_name}/{experiment_name}/gene_level_predictions.tsv', model_name='Hela_batch_64', experiment_name='20250528_mmu_dRNA_3T3_5EU_1')
-        # 'outputs/alignment/20250528_mmu_dRNA_3T3_5EU_1/reads-align.transcriptome.sorted.bam'
+        # expand('outputs/predictions/{model_name}/{experiment_name}/gene_level_predictions.tsv', model_name='Hela_batch_64', experiment_name='20250528_mmu_dRNA_3T3_5EU_1')
+        # expand('outputs/predictions/{model_name}/{experiment_name}/{reference_level}_level_halflives_predictions.tsv',model_name='Hela_batch_64', experiment_name='20250528_mmu_dRNA_3T3_5EU_1', reference_level=['gene','transcript']),
+        expand('outputs/visual/predictions/{model_name}/{experiment_name}/decay/{halflives_name}_halflives_{reference_level}_read_limit_decay_plot.pdf',model_name='Hela_batch_64', experiment_name='20250528_mmu_dRNA_3T3_5EU_1', halflives_name=['mion','PION'],reference_level=['gene','transcript'])
+        
         
 
 
