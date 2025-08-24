@@ -65,7 +65,7 @@ def main():
     parser = argparse.ArgumentParser(description='Run prediction on POD5 files')
     parser.add_argument('--pod5-files', type=str, required=True, nargs='+', help='Paths to POD5 files.')
     parser.add_argument('--model-path', type=str, required=True, help='Path to model weights.')
-    parser.add_argument('--arch', type=str, default='rnakinet', help='Architecture of the model', choices=['rnakinet','rnakinet_lastonly'])
+    parser.add_argument('--arch', type=str, default='rnakinet', help='Architecture of the model')
     parser.add_argument('--output', type=str, required=True, help='Path to the output csv file.')
     parser.add_argument('--max-workers', type=int, default=16, help='Maximum number of workers for data loading')
     parser.add_argument('--batch-size', type=int, default=1, help='Batch size for data loading')

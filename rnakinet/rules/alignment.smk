@@ -1,23 +1,23 @@
 rule download_fasta:
     output:
-        'references/fasta/{reference_name}'
+        REFERENCES_DIR + '/fasta/{reference_name}'
     params:
-        uri = lambda wildcards: fasta_to_download[wildcards.reference_name]
+        uri = lambda wildcards: FASTA_TO_DOWNLOAD[wildcards.reference_name]
     shell:
         """
         wget {params.uri} \
             -P references/fasta/
-        gunzip -f references/fasta/{wildcards.reference_name}.gz
+        gunzip -f {REFERENCES_DIR}/fasta/{wildcards.reference_name}.gz
         """
 
 rule align_to_genome:
     input:
         basecalls = "outputs/basecalling/{experiment_name}/{dorado_version}/{basecalling_model}/all_reads.fastq",
         dorado_location = lambda wildcards: f'{wildcards.dorado_version}/bin/dorado',
-        reference_path = lambda wildcards: exp_to_reference[wildcards.experiment_name],
+        reference_path = lambda wildcards: f'{REFERENCES_DIR}/fasta/{EXP_TO_REFERENCE[wildcards.experiment_name]}',
     output:
-        bam = "outputs/alignment/{experiment_name}/{dorado_version}/{basecalling_model}/reads-align.genome.sorted.bam",
-        bai = "outputs/alignment/{experiment_name}/{dorado_version}/{basecalling_model}/reads-align.genome.sorted.bam.bai"
+        bam = OUTPUTS_DIR + "/alignment/{experiment_name}/{dorado_version}/{basecalling_model}/reads-align.genome.sorted.bam",
+        bai = OUTPUTS_DIR + "/alignment/{experiment_name}/{dorado_version}/{basecalling_model}/reads-align.genome.sorted.bam.bai"
     conda:
         "../envs/alignment.yaml"
     params:
@@ -38,12 +38,12 @@ rule align_to_genome:
 
 rule align_to_transcriptome:
     input:
-        basecalls = "outputs/basecalling/{experiment_name}/{dorado_version}/{basecalling_model}/all_reads.fastq",
+        basecalls = OUTPUTS_DIR + "/basecalling/{experiment_name}/{dorado_version}/{basecalling_model}/all_reads.fastq",
         dorado_location = lambda wildcards: f'{wildcards.dorado_version}/bin/dorado',
-        reference_path = lambda wildcards: exp_to_transcriptome[wildcards.experiment_name],
+        reference_path = lambda wildcards: f'{REFERENCES_DIR}/fasta/{EXP_TO_TRANSCRIPTOME[wildcards.experiment_name]}',
     output:
-        bam = "outputs/alignment/{experiment_name}/{dorado_version}/{basecalling_model}/reads-align.transcriptome.sorted.bam",
-        bai = "outputs/alignment/{experiment_name}/{dorado_version}/{basecalling_model}/reads-align.transcriptome.sorted.bam.bai"
+        bam = OUTPUTS_DIR + "/alignment/{experiment_name}/{dorado_version}/{basecalling_model}/reads-align.transcriptome.sorted.bam",
+        bai = OUTPUTS_DIR + "/alignment/{experiment_name}/{dorado_version}/{basecalling_model}/reads-align.transcriptome.sorted.bam.bai"
     conda:
         "../envs/alignment.yaml"
     params:
@@ -63,7 +63,7 @@ rule align_to_transcriptome:
 
 rule ensembl_build_tab_file_with_transcript_and_gene_ids:
     output:
-        "references/{species_id}/transcript-gene-ids.tab",
+        REFERENCES_DIR + "/{species_id}/transcript-gene-ids.tab",
     params:
         link = ENSEMBL_URL + '/biomart/martservice?query=',
         xml = '<?xml version="1.0" encoding="UTF-8"?>',

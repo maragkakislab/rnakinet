@@ -1,19 +1,19 @@
 rule run_inference:
     input: 
-        pod5_files = lambda wildcards: inference_run_to_files[wildcards.experiment_name],
-        model_path = lambda wildcards: model_to_path[wildcards.model_name],
+        pod5_files = lambda wildcards: INFERENCE_RUN_TO_FILES[wildcards.experiment_name],
+        model_path = lambda wildcards: MODEL_TO_PATH[wildcards.model_name],
     output:
-        csv_path = 'outputs/predictions/{model_name}/{experiment_name}/preds.csv',
+        csv_path = OUTPUTS_DIR + '/predictions/{model_name}/{experiment_name}/preds.csv',
     conda:
         "../envs/inference.yaml"
     params:
-        batch_size = lambda wildcards: model_inference_params[wildcards.model_name]['batch_size'],
-        max_len = lambda wildcards: model_inference_params[wildcards.model_name]['max_len'],
-        min_len = lambda wildcards: model_inference_params[wildcards.model_name]['min_len'],
-        skip = lambda wildcards: model_inference_params[wildcards.model_name]['skip'],
-        arch = lambda wildcards: model_inference_params[wildcards.model_name]['arch'],
-        threshold = lambda wildcards: model_inference_params[wildcards.model_name]['threshold'],
-    threads:  lambda wildcards: model_inference_params[wildcards.model_name]['threads'],
+        batch_size = lambda wildcards: MODEL_INFERENCE_PARAMS[wildcards.model_name]['batch_size'],
+        max_len = lambda wildcards: MODEL_INFERENCE_PARAMS[wildcards.model_name]['max_len'],
+        min_len = lambda wildcards: MODEL_INFERENCE_PARAMS[wildcards.model_name]['min_len'],
+        skip = lambda wildcards: MODEL_INFERENCE_PARAMS[wildcards.model_name]['skip'],
+        arch = lambda wildcards: MODEL_INFERENCE_PARAMS[wildcards.model_name]['arch'],
+        threshold = lambda wildcards: MODEL_INFERENCE_PARAMS[wildcards.model_name]['threshold'],
+    threads:  lambda wildcards: MODEL_INFERENCE_PARAMS[wildcards.model_name]['threads'],
     resources: gpus=1
     shell:
         """

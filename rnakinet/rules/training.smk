@@ -2,43 +2,43 @@ import yaml
 
 rule run_training:
     input:
-        train_positives_pod5s=lambda wildcards: expand("outputs/splits/{experiment_name}/train.pod5",
-                                          experiment_name=training_configs[wildcards.training_run_name]['training_positives_exps']),
+        train_positives_pod5s=lambda wildcards: expand(OUTPUTS_DIR + "/splits/{experiment_name}/train.pod5",
+                                          experiment_name=TRAINING_CONFIGS[wildcards.training_run_name]['training_positives_exps']),
         train_negatives_pod5s=lambda wildcards: expand("outputs/splits/{experiment_name}/train.pod5",
-                                          experiment_name=training_configs[wildcards.training_run_name]['training_negatives_exps']),
+                                          experiment_name=TRAINING_CONFIGS[wildcards.training_run_name]['training_negatives_exps']),
         validation_positives_pod5s=lambda wildcards: expand("outputs/splits/{experiment_name}/validation.pod5",
-                                          experiment_name=training_configs[wildcards.training_run_name]['validation_positives_exps']),
+                                          experiment_name=TRAINING_CONFIGS[wildcards.training_run_name]['validation_positives_exps']),
         validation_negatives_pod5s=lambda wildcards: expand("outputs/splits/{experiment_name}/validation.pod5",
-                                          experiment_name=training_configs[wildcards.training_run_name]['validation_negatives_exps']),
+                                          experiment_name=TRAINING_CONFIGS[wildcards.training_run_name]['validation_negatives_exps']),
     output:
-        done_txt = 'checkpoints_pl/{training_run_name}/DONE.txt',
-        arch_hyperparams_yaml = 'checkpoints_pl/{training_run_name}/arch_hyperparams.yaml',
+        done_txt = CHECKPOINTS_DIR + '/{training_run_name}/DONE.txt',
+        arch_hyperparams_yaml = CHECKPOINTS_DIR + '/{training_run_name}/arch_hyperparams.yaml',
     params:
-        min_len = lambda wildcards: training_configs[wildcards.training_run_name]['min_len'],
-        max_len = lambda wildcards: training_configs[wildcards.training_run_name]['max_len'],
-        valid_read_limit = lambda wildcards: training_configs[wildcards.training_run_name]['valid_read_limit'],
-        skip = lambda wildcards: training_configs[wildcards.training_run_name]['skip'],
-        workers = lambda wildcards: training_configs[wildcards.training_run_name]['workers'],
-        batch_size = lambda wildcards: training_configs[wildcards.training_run_name]['batch_size'],
-        sampler = lambda wildcards: training_configs[wildcards.training_run_name]['sampler'],
-        lr = lambda wildcards: training_configs[wildcards.training_run_name]['lr'],
-        warmup_steps = lambda wildcards: training_configs[wildcards.training_run_name]['warmup_steps'],
-        wd = lambda wildcards: training_configs[wildcards.training_run_name]['wd'],
-        arch = lambda wildcards: training_configs[wildcards.training_run_name]['arch'],
-        arch_hyperparams = lambda wildcards: training_configs[wildcards.training_run_name]['arch_hyperparams'],
-        grad_acc = lambda wildcards: training_configs[wildcards.training_run_name]['grad_acc'],
-        early_stopping_patience = lambda wildcards: training_configs[wildcards.training_run_name]['early_stopping_patience'],
-        wandb_api_key = lambda wildcards: training_configs[wildcards.training_run_name]['wandb_api_key'],
-        wandb_project_name = lambda wildcards: training_configs[wildcards.training_run_name]['wandb_project_name'],
-        logging_step = lambda wildcards: training_configs[wildcards.training_run_name]['logging_step'],
-        enable_progress_bar = lambda wildcards: training_configs[wildcards.training_run_name]['enable_progress_bar'],
-        log_to_file = lambda wildcards: training_configs[wildcards.training_run_name]['log_to_file'],
-        save_path = lambda wildcards: f'checkpoints_pl/{wildcards.training_run_name}',
+        min_len = lambda wildcards: TRAINING_CONFIGS[wildcards.training_run_name]['min_len'],
+        max_len = lambda wildcards: TRAINING_CONFIGS[wildcards.training_run_name]['max_len'],
+        valid_read_limit = lambda wildcards: TRAINING_CONFIGS[wildcards.training_run_name]['valid_read_limit'],
+        skip = lambda wildcards: TRAINING_CONFIGS[wildcards.training_run_name]['skip'],
+        workers = lambda wildcards: TRAINING_CONFIGS[wildcards.training_run_name]['workers'],
+        batch_size = lambda wildcards: TRAINING_CONFIGS[wildcards.training_run_name]['batch_size'],
+        sampler = lambda wildcards: TRAINING_CONFIGS[wildcards.training_run_name]['sampler'],
+        lr = lambda wildcards: TRAINING_CONFIGS[wildcards.training_run_name]['lr'],
+        warmup_steps = lambda wildcards: TRAINING_CONFIGS[wildcards.training_run_name]['warmup_steps'],
+        wd = lambda wildcards: TRAINING_CONFIGS[wildcards.training_run_name]['wd'],
+        arch = lambda wildcards: TRAINING_CONFIGS[wildcards.training_run_name]['arch'],
+        arch_hyperparams = lambda wildcards: TRAINING_CONFIGS[wildcards.training_run_name]['arch_hyperparams'],
+        grad_acc = lambda wildcards: TRAINING_CONFIGS[wildcards.training_run_name]['grad_acc'],
+        early_stopping_patience = lambda wildcards: TRAINING_CONFIGS[wildcards.training_run_name]['early_stopping_patience'],
+        wandb_api_key = WANDB_API_KEY,
+        wandb_project_name = lambda wildcards: TRAINING_CONFIGS[wildcards.training_run_name]['wandb_project_name'],
+        logging_step = lambda wildcards: TRAINING_CONFIGS[wildcards.training_run_name]['logging_step'],
+        enable_progress_bar = lambda wildcards: TRAINING_CONFIGS[wildcards.training_run_name]['enable_progress_bar'],
+        log_to_file = lambda wildcards: TRAINING_CONFIGS[wildcards.training_run_name]['log_to_file'],
+        save_path = lambda wildcards: f'{CHECKPOINTS_DIR}/{wildcards.training_run_name}',
     threads: 32 
     resources: 
         gpus=1,
     log:
-        'checkpoints_pl/{training_run_name}/stdout.log'
+        CHECKPOINTS_DIR + '/{training_run_name}/stdout.log'
     conda:
         '../envs/training.yaml'
     shell:
@@ -70,7 +70,7 @@ rule run_training:
             --wandb-project-name {params.wandb_project_name} \
             --logging-step {params.logging_step} \
             --enable-progress-bar {params.enable_progress_bar} \
-            --save-path checkpoints_pl \
+            --save-path {params.save_path} \
             "
 
         if [ "{params.log_to_file}" = "True" ]; then

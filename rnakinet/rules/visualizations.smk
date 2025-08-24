@@ -1,17 +1,17 @@
 rule create_classification_plot:
     input:
         pos_files = lambda wildcards: expand(
-            'outputs/predictions/{model_name}/{inference_run}/preds.csv', 
-            inference_run=inference_run_groups[wildcards.group]['positives'],
+            OUTPUTS_DIR + '/predictions/{model_name}/{inference_run}/preds.csv', 
+            inference_run=INFERENCE_RUN_GROUPS[wildcards.group]['positives'],
             model_name=wildcards.model_name,
         ),
         neg_files = lambda wildcards: expand(
-            'outputs/predictions/{model_name}/{inference_run}/preds.csv',
-            inference_run=inference_run_groups[wildcards.group]['negatives'],
+            OUTPUTS_DIR + '/predictions/{model_name}/{inference_run}/preds.csv',
+            inference_run=INFERENCE_RUN_GROUPS[wildcards.group]['negatives'],
             model_name=wildcards.model_name,
         ),
     output:
-        'outputs/visual/predictions/{model_name}/{group}_{plot_type}.pdf'
+        OUTPUTS_DIR + '/visual/predictions/{model_name}/{group}_{plot_type}.pdf'
     wildcard_constraints:
         plot_type='(auroc|thresholds|pr_curve|pr_ratios)'
     conda:
@@ -20,7 +20,7 @@ rule create_classification_plot:
         # This can be used to plot multiple lines in one plot, by specifying groups in-order of both positives and negatives
         pos_group_names = lambda wildcards: wildcards.group,
         neg_group_names = lambda wildcards: wildcards.group,
-        chosen_threshold = lambda wildcards: model_inference_params[wildcards.model_name]['threshold'],
+        chosen_threshold = lambda wildcards: MODEL_INFERENCE_PARAMS[wildcards.model_name]['threshold'],
     shell:
         """
         python3 scripts/{wildcards.plot_type}.py \

@@ -20,12 +20,12 @@ rule get_basecalling_model:
 
 rule basecalling_dorado:
     input: 
-        pod5_folder = lambda wildcards: exp_to_path[wildcards.experiment_name],
+        pod5_folder = lambda wildcards: f'{DATA_DIR}/{EXP_TO_PATH[wildcards.experiment_name]}',
         dorado_location = lambda wildcards: f'{wildcards.dorado_version}/bin/dorado',
         basecaller_location = lambda wildcards: f'basecalling_models_{wildcards.dorado_version}/{wildcards.basecalling_model}',
     output:
-        done_txt ='outputs/basecalling/{experiment_name}/{dorado_version}/{basecalling_model}/DONE.txt',
-        out_reads = 'outputs/basecalling/{experiment_name}/{dorado_version}/{basecalling_model}/all_reads.fastq',
+        done_txt = OUTPUTS_DIR + '/basecalling/{experiment_name}/{dorado_version}/{basecalling_model}/DONE.txt',
+        out_reads = OUTPUTS_DIR + '/basecalling/{experiment_name}/{dorado_version}/{basecalling_model}/all_reads.fastq',
     threads: 32
     resources: gpus=1
     shell:

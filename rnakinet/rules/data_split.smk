@@ -1,16 +1,16 @@
 rule split_readids_on_chromosomes:
     input:
-        bam_path=lambda wildcards : f"outputs/alignment/{wildcards.experiment_name}/{basecalling_config['dorado_version']}/{basecalling_config['basecalling_model']}/reads-align.genome.sorted.bam",
+        bam_path=lambda wildcards : f"{OUTPUTS_DIR}/alignment/{wildcards.experiment_name}/{BASECALLING_CONFIG['dorado_version']}/{basecalling_config['basecalling_model']}/reads-align.genome.sorted.bam",
     output:
-        "outputs/splits/{experiment_name}/train_readids.txt",
-        "outputs/splits/{experiment_name}/test_readids.txt",
-        "outputs/splits/{experiment_name}/validation_readids.txt",
+        OUTPUTS_DIR + "/splits/{experiment_name}/train_readids.txt",
+        OUTPUTS_DIR + "/splits/{experiment_name}/test_readids.txt",
+        OUTPUTS_DIR + "/splits/{experiment_name}/validation_readids.txt",
     conda:
         "../envs/bam_splitting.yaml"
     params:
-        train_chromosomes=lambda wildcards: reference_to_splits[exp_to_reference[wildcards.experiment_name]]['train_chrs'],
-        test_chromosomes=lambda wildcards: reference_to_splits[exp_to_reference[wildcards.experiment_name]]['test_chrs'],
-        validation_chromosomes=lambda wildcards: reference_to_splits[exp_to_reference[wildcards.experiment_name]]['valid_chrs'],
+        train_chromosomes=lambda wildcards: REFERENCE_TO_SPLITS[EXP_TO_REFERENCE[wildcards.experiment_name]]['train_chrs'],
+        test_chromosomes=lambda wildcards: REFERENCE_TO_SPLITS[EXP_TO_REFERENCE[wildcards.experiment_name]]['test_chrs'],
+        validation_chromosomes=lambda wildcards: REFERENCE_TO_SPLITS[EXP_TO_REFERENCE[wildcards.experiment_name]]['valid_chrs'],
     shell:
         """
         python3 scripts/splitting.py \
@@ -26,11 +26,11 @@ rule create_split_pod5s:
     Creates new pod5 file for given readids, so they can be loaded faster during training
     '''
     input:
-        ids = "outputs/splits/{experiment_name}/{split}_readids.txt", #The split needs to be non-empty txt file
-        experiment_path = lambda wildcards: exp_to_path[wildcards.experiment_name], #TODO set paths to raw pod5s
+        ids = OUTPUTS_DIR + "/splits/{experiment_name}/{split}_readids.txt", #The split needs to be non-empty txt file
+        experiment_path = lambda wildcards: f'{DATA_DIR}/{EXP_TO_PATH[wildcards.experiment_name]}',
     output: #TODO add outputs/splits/expname/{split} folder as output for viz rules
-        "outputs/splits/{experiment_name}/POD5_{split}_SPLIT_DONE.txt",
-        "outputs/splits/{experiment_name}/{split}.pod5",
+        OUTPUTS_DIR + "/splits/{experiment_name}/POD5_{split}_SPLIT_DONE.txt",
+        OUTPUTS_DIR + "/splits/{experiment_name}/{split}.pod5",
     conda:
         "../envs/pod5_splitting.yaml"
     threads: 16
@@ -39,7 +39,7 @@ rule create_split_pod5s:
         pod5 filter \
             {input.experiment_path} \
             --recursive \
-            --output outputs/splits/{wildcards.experiment_name}/{wildcards.split}.pod5 \
+            --output {OUTPUTS_DIR}/splits/{wildcards.experiment_name}/{wildcards.split}.pod5 \
             --threads {threads} \
             --ids {input.ids} \
             --missing-ok

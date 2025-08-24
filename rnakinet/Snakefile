@@ -1,203 +1,39 @@
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+
 load_dotenv()
+WANDB_API_KEY = os.getenv("WANDB_API_KEY") #Optional and used only for training
 
-# DATA PREPARATION CONFIGURATION
-#TODO refactor genome/transcriptome URLs to be automatically constructed
-fasta_to_download = {
-    'Homo_sapiens.GRCh38.dna_sm.primary_assembly.fa': 'https://ftp.ensembl.org/pub/release-114/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna_sm.primary_assembly.fa.gz',
-    'Homo_sapiens.GRCh38.cdna.all.fa': 'https://ftp.ensembl.org/pub/release-114/fasta/homo_sapiens/cdna/Homo_sapiens.GRCh38.cdna.all.fa.gz',
-    
-    'Mus_musculus.GRCm39.dna_sm.primary_assembly.fa':'https://ftp.ensembl.org/pub/release-114/fasta/mus_musculus/dna/Mus_musculus.GRCm39.dna_sm.primary_assembly.fa.gz',
-    'Mus_musculus.GRCm39.cdna.all.fa': 'https://ftp.ensembl.org/pub/release-114/fasta/mus_musculus/cdna/Mus_musculus.GRCm39.cdna.all.fa.gz',
-}
+# LOAD CONFIG
+if "--configfile" in sys.argv:
+    i = sys.argv.index("--configfile")
+    config_path = sys.argv[i + 1]
+    configfile: config_path
+else:
+    config_path = "config/config.yml"
+    configfile: config_path
 
-exp_to_reference = {
-    '20250529_hsa_dRNA_HeLa_5EU_1':       'references/fasta/Homo_sapiens.GRCh38.dna_sm.primary_assembly.fa',
-    '20250529_hsa_dRNA_HeLa_DMSO_1':      'references/fasta/Homo_sapiens.GRCh38.dna_sm.primary_assembly.fa',
-    '20250529_hsa_dRNA_Hek293_5EU_1':     'references/fasta/Homo_sapiens.GRCh38.dna_sm.primary_assembly.fa',
-    '20250529_hsa_dRNA_Hek293_DMSO_1':    'references/fasta/Homo_sapiens.GRCh38.dna_sm.primary_assembly.fa',
-    '20250612_hsa_dRNA_MCF10A_5EU_1':     'references/fasta/Homo_sapiens.GRCh38.dna_sm.primary_assembly.fa',
-    '20250612_hsa_dRNA_MCF10A_control_1': 'references/fasta/Homo_sapiens.GRCh38.dna_sm.primary_assembly.fa',
-    '20250618_hsa_dRNA_I90_5EU_1':        'references/fasta/Homo_sapiens.GRCh38.dna_sm.primary_assembly.fa',
-    '20250612_hsa_dRNA_I90_control_1':    'references/fasta/Homo_sapiens.GRCh38.dna_sm.primary_assembly.fa',
-
-    '20250528_mmu_dRNA_3T3_5EU_1':  'references/fasta/Mus_musculus.GRCm39.dna_sm.primary_assembly.fa',
-    '20250528_mmu_dRNA_3T3_DMSO_1': 'references/fasta/Mus_musculus.GRCm39.dna_sm.primary_assembly.fa',
-    '20240502_mmu_dRNA_3T3_5EU_400_2_R10': 'references/fasta/Mus_musculus.GRCm39.dna_sm.primary_assembly.fa',
-
-    #TODO Macaca mulatta? primary_assembly on ensembl is shattered to separate chromosomes, not a single file
-    # '20250611_mml_dRNA_PBMC_5EU_1':,
-    # '20250612_mml_dRNA_PBMC_control_1':,
-}
-exp_to_transcriptome = {
-    '20240502_mmu_dRNA_3T3_5EU_400_2_R10':  'references/fasta/Mus_musculus.GRCm39.cdna.all.fa',
-}
-exp_to_path = {
-    '20250529_hsa_dRNA_HeLa_5EU_1':'/home/jovyan/data/experiments/20250529_hsa_dRNA_HeLa_5EU_1/',
-    '20250529_hsa_dRNA_HeLa_DMSO_1':'/home/jovyan/data/experiments/20250529_hsa_dRNA_HeLa_DMSO_1/',
-
-    '20250529_hsa_dRNA_Hek293_5EU_1':'/home/jovyan/data/experiments/20250529_hsa_dRNA_Hek293_5EU_1',
-    '20250529_hsa_dRNA_Hek293_DMSO_1':'/home/jovyan/data/experiments/20250529_hsa_dRNA_Hek293_DMSO_1',
-
-    '20250611_mml_dRNA_PBMC_5EU_1':'/home/jovyan/data/experiments/20250611_mml_dRNA_PBMC_5EU_1',
-    '20250612_mml_dRNA_PBMC_control_1':'/home/jovyan/data/experiments/20250612_mml_dRNA_PBMC_control_1',
-
-    '20250618_hsa_dRNA_I90_5EU_1':'/home/jovyan/data/experiments/20250618_hsa_dRNA_I90_5EU_1',
-    '20250612_hsa_dRNA_I90_control_1':'/home/jovyan/data/experiments/20250612_hsa_dRNA_I90_control_1',
-
-    '20250612_hsa_dRNA_MCF10A_5EU_1':'/home/jovyan/data/experiments/20250612_hsa_dRNA_MCF10A_5EU_1',
-    '20250612_hsa_dRNA_MCF10A_control_1':'/home/jovyan/data/experiments/20250612_hsa_dRNA_MCF10A_control_1',
-
-    '20250528_mmu_dRNA_3T3_5EU_1':'/home/jovyan/data/experiments/20250528_mmu_dRNA_3T3_5EU_1',
-    '20250528_mmu_dRNA_3T3_DMSO_1':'/home/jovyan/data/experiments/20250528_mmu_dRNA_3T3_DMSO_1',
-
-    '20240502_mmu_dRNA_3T3_5EU_400_2_R10':'/home/jovyan/data/experiments/20240502_mmu_dRNA_3T3_5EU_400_2_R10',
-    
-}
-basecalling_config = {
-    'dorado_version':'dorado-1.0.1-linux-x64', # versions: https://dorado-docs.readthedocs.io/en/latest/
-    'basecalling_model':'rna004_130bps_hac@v5.2.0',
-}
-
-reference_to_splits = {
-    'references/fasta/Homo_sapiens.GRCh38.dna_sm.primary_assembly.fa': {
-        'train_chrs':[2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,21,22,'X','MT'],
-        'test_chrs':[1],
-        'valid_chrs':[20],
-    },
-    'references/fasta/Mus_musculus.GRCm39.dna_sm.primary_assembly.fa': {
-        'train_chrs':[2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,'X','MT'],
-        'test_chrs':[1],
-        'valid_chrs':[19],
-    },
-    
-}
-
-
-
-# TRAINING CONFIGURATIONS
-training_configs  = {
-    'Hela_batch_64': {
-        'training_positives_exps': ['20250529_hsa_dRNA_HeLa_5EU_1'],
-        'training_negatives_exps': ['20250529_hsa_dRNA_HeLa_DMSO_1'],
-        'validation_positives_exps': ['20250529_hsa_dRNA_HeLa_5EU_1'], #Same experiment, but will take reads from a different chromosome
-        'validation_negatives_exps': ['20250529_hsa_dRNA_HeLa_DMSO_1'],
-        'min_len':5000,
-        'max_len':400000,
-        'skip':5000,
-        'workers':32,
-        'batch_size':64,
-        'sampler':'ratio', #sample from experiments based on their size, alternative 'uniform' for uniform sampling
-        'lr':1e-4,
-        'warmup_steps':100,
-        'wd':0.01,
-        'arch':'rnakinet', #'rnakinet' (default) or 'rnakinet_lastonly' (different rnn pooling method)
-        'arch_hyperparams':{},
-        'grad_acc':1,
-        'early_stopping_patience':150, 
-        'wandb_api_key':os.getenv("WANDB_API_KEY"), #OPTIONAL: Set your wandb API key for plotting training metrics
-        'wandb_project_name':'RNAkinet',
-        'logging_step':500,
-        'enable_progress_bar':'yes', #set to yes if you want to log training progress bar
-        'log_to_file':False, #set to False if you want to log to console, otherwise logged to checkpoints_pl folder
-        'valid_read_limit':5000,
-    },
-    'Human_batch_64_uniform': {
-        'training_positives_exps': ['20250529_hsa_dRNA_HeLa_5EU_1', '20250529_hsa_dRNA_Hek293_5EU_1', '20250612_hsa_dRNA_MCF10A_5EU_1', '20250618_hsa_dRNA_I90_5EU_1'],
-        'training_negatives_exps': ['20250529_hsa_dRNA_HeLa_DMSO_1', '20250529_hsa_dRNA_Hek293_DMSO_1', '20250612_hsa_dRNA_MCF10A_control_1','20250612_hsa_dRNA_I90_control_1'],
-        'validation_positives_exps': ['20250529_hsa_dRNA_HeLa_5EU_1', '20250529_hsa_dRNA_Hek293_5EU_1', '20250612_hsa_dRNA_MCF10A_5EU_1', '20250618_hsa_dRNA_I90_5EU_1'],
-        'validation_negatives_exps': ['20250529_hsa_dRNA_HeLa_DMSO_1', '20250529_hsa_dRNA_Hek293_DMSO_1', '20250612_hsa_dRNA_MCF10A_control_1','20250612_hsa_dRNA_I90_control_1'],
-        'min_len':5000,
-        'max_len':400000,
-        'skip':5000,
-        'workers':32,
-        'batch_size':64,
-        'sampler':'uniform', #sample from experiments based on their size, alternative 'uniform' for uniform sampling
-        'lr':1e-4,
-        'warmup_steps':100,
-        'wd':0.01,
-        'arch':'rnakinet', #'rnakinet' (default) or 'rnakinet_lastonly' (different rnn pooling method)
-        'arch_hyperparams':{},
-        'grad_acc':1,
-        'early_stopping_patience':200, 
-        'wandb_api_key':os.getenv("WANDB_API_KEY"), #OPTIONAL: Set your wandb API key for plotting training metrics
-        'wandb_project_name':'RNAkinet',
-        'logging_step':10000,
-        'enable_progress_bar':'no', #set to yes if you want to log training progress bar
-        'log_to_file':False, #set to False if you want to log to console, otherwise logged to checkpoints_pl folder
-        'valid_read_limit':50000,
-    },
-}
-
-# INFERENCE AND VISUALIZATION CONFIGURATION (POST-TRAINING)
-model_to_path = {
-    'test_2': 'checkpoints_pl/test_run_2/last.ckpt',
-    'HeLa_batch_32': 'checkpoints_pl/test_run_4/best-step=175000-valid_loss=0.29.ckpt',
-    'Hela_batch_64': 'checkpoints_pl/Hela_batch_64/best-step=1271000-valid_loss=0.25.ckpt',
-}
-model_inference_params = {
-    'test_2': {
-        'batch_size': 1,
-        'max_len': 400000,
-        'min_len': 5000,
-        'skip': 5000,
-        'threads': 16,
-        'arch': 'rnakinet',
-        'threshold': 0.5,
-    },
-    'HeLa_batch_32': {
-        'batch_size': 32,
-        'max_len': 400000,
-        'min_len': 5000,
-        'skip': 5000,
-        'threads': 16,
-        'arch': 'rnakinet',
-        'threshold': 0.5,
-    },
-    'Hela_batch_64': {
-        'batch_size': 64,
-        'max_len': 400000,
-        'min_len': 5000,
-        'skip': 5000,
-        'threads': 16,
-        'arch': 'rnakinet',
-        'threshold': 0.5,
-    },
-}
-inference_run_to_files = {
-    '20250529_hsa_dRNA_HeLa_5EU_1_TEST': ['outputs/splits/20250529_hsa_dRNA_HeLa_5EU_1/test.pod5'],
-    '20250529_hsa_dRNA_HeLa_DMSO_1_TEST': ['outputs/splits/20250529_hsa_dRNA_HeLa_DMSO_1/test.pod5'],
-
-    '20250528_mmu_dRNA_3T3_5EU_1_TEST':['outputs/splits/20250528_mmu_dRNA_3T3_5EU_1/test.pod5'],
-    '20250528_mmu_dRNA_3T3_DMSO_1_TEST':['outputs/splits/20250528_mmu_dRNA_3T3_DMSO_1/test.pod5'],
-
-    '20240502_mmu_dRNA_3T3_5EU_400_2_R10':Path('/home/jovyan/data/experiments/20240502_mmu_dRNA_3T3_5EU_400_2_R10').rglob("*.pod5"),
-}
-inference_run_groups = {
-    'HeLa_NIH_2025':{
-        'positives':['20250529_hsa_dRNA_HeLa_5EU_1_TEST'],
-        'negatives':['20250529_hsa_dRNA_HeLa_DMSO_1_TEST'],
-    },
-    '3T3_NIH_2025':{
-        'positives':['20250528_mmu_dRNA_3T3_5EU_1_TEST'],
-        'negatives':['20250528_mmu_dRNA_3T3_DMSO_1_TEST'],
-    },
-}
-
-# HALFLIVES CONFIGURATION
-ENSEMBL_URL = 'http://may2025.archive.ensembl.org'
-exp_to_ensembl_species = {
-    '20240502_mmu_dRNA_3T3_5EU_400_2_R10':'mmusculus',
-}
-exp_to_tl = {
-    '20240502_mmu_dRNA_3T3_5EU_400_2_R10': 2,
-}
-halflives_name_to_file = {
-    'mion':'halflives_data/3T3_mion_halflives.csv',
-    'PION':'halflives_data/3T3_PION_halflives.csv',
-}
+REFERENCES_DIR = config['REFERENCES_DIR']
+DATA_DIR = config['DATA_DIR']
+OUTPUTS_DIR = config['OUTPUTS_DIR']
+CHECKPOINTS_DIR = config['CHECKPOINTS_DIR']
+HALFLIVES_FOLDER = config['HALFLIVES_FOLDER']
+FASTA_TO_DOWNLOAD = config['FASTA_TO_DOWNLOAD']
+EXP_TO_REFERENCE = config['EXP_TO_REFERENCE']
+EXP_TO_TRANSCRIPTOME = config['EXP_TO_TRANSCRIPTOME']
+EXP_TO_PATH = config['EXP_TO_PATH']
+BASECALLING_CONFIG = config['BASECALLING_CONFIG']
+REFERENCE_TO_SPLITS = config['REFERENCE_TO_SPLITS']
+TRAINING_CONFIGS = config['TRAINING_CONFIGS']
+MODEL_TO_PATH = config['MODEL_TO_PATH']
+MODEL_INFERENCE_PARAMS = config['MODEL_INFERENCE_PARAMS']
+INFERENCE_RUN_TO_FILES = config['INFERENCE_RUN_TO_FILES']
+INFERENCE_RUN_GROUPS = config['INFERENCE_RUN_GROUPS']
+ENSEMBL_URL = config['ENSEMBL_URL']
+EXP_TO_ENSEMBL_SPECIES = config['EXP_TO_ENSEMBL_SPECIES']
+EXP_TO_TL = config['EXP_TO_TL']
+HALFLIVES_NAME_TO_FILE = config['HALFLIVES_NAME_TO_FILE']
 
 # RULES
 include: "rules/basecalling.smk"
@@ -210,15 +46,10 @@ include: "rules/halflives.smk"
 
 rule all:
     input:
-        #expand('outputs/basecalling/{experiment_name}/{dorado_version}/{basecalling_model}/DONE.txt',experiment_name=exp_to_path.keys(),dorado_version=basecalling_config['dorado_version'],basecalling_model=basecalling_config['basecalling_model'])
-        # expand('outputs/visual/predictions/{model_name}/{group}_{plot_type}.pdf', model_name='Hela_batch_64', group='3T3_NIH_2025', plot_type=['auroc','thresholds','pr_curve','pr_ratios'])
-        #expand('outputs/{model_name}/{experiment_name}/preds.csv',model_name='test_2', experiment_name=['20250529_hsa_dRNA_HeLa_5EU_1', '20250529_hsa_dRNA_HeLa_DMSO_1'])
-        #expand("outputs/splits/{experiment_name}/{split}.pod5", experiment_name=['20250529_hsa_dRNA_HeLa_5EU_1','20250529_hsa_dRNA_HeLa_DMSO_1'], split=['train','validation','test'])
-        expand('checkpoints_pl/{training_run_name}/DONE.txt', training_run_name='Human_batch_64_uniform')
-        # expand("outputs/alignment/{experiment_name}/{dorado_version}/{basecalling_model}/reads-align.transcriptome.sorted.bam.bai", experiment_name='20250529_hsa_dRNA_HeLa_5EU_1',dorado_version=basecalling_config['dorado_version'],basecalling_model=basecalling_config['basecalling_model'])
-        # expand("references/{species_id}/transcript-gene-ids.tab", species_id='hsapiens')
-        # expand('outputs/predictions/{model_name}/{experiment_name}/gene_level_predictions.tsv', model_name='Hela_batch_64', experiment_name='20250528_mmu_dRNA_3T3_5EU_1')
-        # expand('outputs/visual/predictions/{model_name}/{experiment_name}/decay/{halflives_name}_halflives_{reference_level}_read_limit_decay_plot.pdf',model_name='Hela_batch_64', experiment_name='20240502_mmu_dRNA_3T3_5EU_400_2_R10', halflives_name=['mion','PION'],reference_level=['gene','transcript'])
+        expand('checkpoints_pl/{training_run_name}/DONE.txt', training_run_name='Human_batch_64')
+        # After training, the 'model_to_path' and 'model_inference_params' need to be updated with the manually selected checkpoint, then the following lines can be ran for evaluation
+        # expand('outputs/visual/predictions/{model_name}/{group}_{plot_type}.pdf', model_name='Human_batch_64', group=list(inference_run_groups.keys()), plot_type=['auroc','thresholds','pr_curve','pr_ratios']),
+        # expand('outputs/visual/predictions/{model_name}/{experiment_name}/decay/{halflives_name}_halflives_{reference_level}_read_limit_decay_plot.pdf',model_name='Human_batch_64', experiment_name='20240502_mmu_dRNA_3T3_5EU_400_2_R10', halflives_name=['mion','PION'],reference_level=['gene','transcript']),
         
         
 
