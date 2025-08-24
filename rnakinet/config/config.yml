@@ -1,0 +1,245 @@
+REFERENCES_DIR: "references"
+DATA_DIR: "data"
+OUTPUTS_DIR: "outputs"
+CHECKPOINTS_DIR: "checkpoints_pl"
+HALFLIVES_FOLDER: "halflives_data"
+
+# DATA PREPARATION CONFIGURATION
+FASTA_TO_DOWNLOAD: {
+    'Homo_sapiens.GRCh38.dna_sm.primary_assembly.fa': 'https://ftp.ensembl.org/pub/release-114/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna_sm.primary_assembly.fa.gz',
+    'Homo_sapiens.GRCh38.cdna.all.fa': 'https://ftp.ensembl.org/pub/release-114/fasta/homo_sapiens/cdna/Homo_sapiens.GRCh38.cdna.all.fa.gz',
+    
+    'Mus_musculus.GRCm39.dna_sm.primary_assembly.fa': 'https://ftp.ensembl.org/pub/release-114/fasta/mus_musculus/dna/Mus_musculus.GRCm39.dna_sm.primary_assembly.fa.gz',
+    'Mus_musculus.GRCm39.cdna.all.fa': 'https://ftp.ensembl.org/pub/release-114/fasta/mus_musculus/cdna/Mus_musculus.GRCm39.cdna.all.fa.gz',
+}
+
+EXP_TO_REFERENCE: {
+    '20250529_hsa_dRNA_HeLa_5EU_1':       'Homo_sapiens.GRCh38.dna_sm.primary_assembly.fa',
+    '20250529_hsa_dRNA_HeLa_DMSO_1':      'Homo_sapiens.GRCh38.dna_sm.primary_assembly.fa',
+    '20250529_hsa_dRNA_Hek293_5EU_1':     'Homo_sapiens.GRCh38.dna_sm.primary_assembly.fa',
+    '20250529_hsa_dRNA_Hek293_DMSO_1':    'Homo_sapiens.GRCh38.dna_sm.primary_assembly.fa',
+    '20250612_hsa_dRNA_MCF10A_5EU_1':     'Homo_sapiens.GRCh38.dna_sm.primary_assembly.fa',
+    '20250612_hsa_dRNA_MCF10A_control_1': 'Homo_sapiens.GRCh38.dna_sm.primary_assembly.fa',
+    '20250618_hsa_dRNA_I90_5EU_1':        'Homo_sapiens.GRCh38.dna_sm.primary_assembly.fa',
+    '20250612_hsa_dRNA_I90_control_1':    'Homo_sapiens.GRCh38.dna_sm.primary_assembly.fa',
+
+    '20250528_mmu_dRNA_3T3_5EU_1':         'Mus_musculus.GRCm39.dna_sm.primary_assembly.fa',
+    '20250528_mmu_dRNA_3T3_DMSO_1':        'Mus_musculus.GRCm39.dna_sm.primary_assembly.fa',
+    '20240502_mmu_dRNA_3T3_5EU_400_2_R10': 'Mus_musculus.GRCm39.dna_sm.primary_assembly.fa',
+    
+    #TODO Macaca mulatta? primary_assembly on ensembl is shattered to separate chromosomes, not a single file
+    # '20250611_mml_dRNA_PBMC_5EU_1':,
+    # '20250612_mml_dRNA_PBMC_control_1':,
+}
+
+EXP_TO_TRANSCRIPTOME : {
+    '20240502_mmu_dRNA_3T3_5EU_400_2_R10':  'Mus_musculus.GRCm39.cdna.all.fa',
+}
+
+# Further path inside the DATA_DIR
+EXP_TO_PATH : {
+    '20250529_hsa_dRNA_HeLa_5EU_1': 'experiments/20250529_hsa_dRNA_HeLa_5EU_1/',
+    '20250529_hsa_dRNA_HeLa_DMSO_1': 'experiments/20250529_hsa_dRNA_HeLa_DMSO_1/',
+
+    '20250529_hsa_dRNA_Hek293_5EU_1': 'experiments/20250529_hsa_dRNA_Hek293_5EU_1',
+    '20250529_hsa_dRNA_Hek293_DMSO_1': 'experiments/20250529_hsa_dRNA_Hek293_DMSO_1',
+
+    '20250611_mml_dRNA_PBMC_5EU_1': 'experiments/20250611_mml_dRNA_PBMC_5EU_1',
+    '20250612_mml_dRNA_PBMC_control_1': 'experiments/20250612_mml_dRNA_PBMC_control_1',
+
+    '20250618_hsa_dRNA_I90_5EU_1': 'experiments/20250618_hsa_dRNA_I90_5EU_1',
+    '20250612_hsa_dRNA_I90_control_1': 'experiments/20250612_hsa_dRNA_I90_control_1',
+
+    '20250612_hsa_dRNA_MCF10A_5EU_1': 'experiments/20250612_hsa_dRNA_MCF10A_5EU_1',
+    '20250612_hsa_dRNA_MCF10A_control_1': 'experiments/20250612_hsa_dRNA_MCF10A_control_1',
+
+    '20250528_mmu_dRNA_3T3_5EU_1': 'experiments/20250528_mmu_dRNA_3T3_5EU_1',
+    '20250528_mmu_dRNA_3T3_DMSO_1': 'experiments/20250528_mmu_dRNA_3T3_DMSO_1',
+
+    '20240502_mmu_dRNA_3T3_5EU_400_2_R10': 'experiments/20240502_mmu_dRNA_3T3_5EU_400_2_R10',
+}
+
+BASECALLING_CONFIG : {
+    'dorado_version':'dorado-1.0.1-linux-x64', # versions: https://dorado-docs.readthedocs.io/en/latest/
+    'basecalling_model':'rna004_130bps_hac@v5.2.0',
+}
+
+REFERENCE_TO_SPLITS : {
+    'Homo_sapiens.GRCh38.dna_sm.primary_assembly.fa': {
+        'train_chrs':[2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,21,22,'X','MT'],
+        'test_chrs':[1],
+        'valid_chrs':[20],
+    },
+    'Mus_musculus.GRCm39.dna_sm.primary_assembly.fa': {
+        'train_chrs':[2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,'X','MT'],
+        'test_chrs':[1],
+        'valid_chrs':[19],
+    },
+}
+
+# TRAINING CONFIGURATIONS
+TRAINING_CONFIGS : {
+    'Hela_batch_64': {
+        'training_positives_exps': ['20250529_hsa_dRNA_HeLa_5EU_1'],
+        'training_negatives_exps': ['20250529_hsa_dRNA_HeLa_DMSO_1'],
+        'validation_positives_exps': ['20250529_hsa_dRNA_HeLa_5EU_1'], #Same experiment, but will take reads from a different chromosome
+        'validation_negatives_exps': ['20250529_hsa_dRNA_HeLa_DMSO_1'],
+        'min_len':5000,
+        'max_len':400000,
+        'skip':5000,
+        'workers':32,
+        'batch_size':64,
+        'sampler':'ratio', #sample from experiments based on their size, alternative 'uniform' for uniform sampling
+        'lr':1e-4,
+        'warmup_steps':100,
+        'wd':0.01,
+        'arch':'rnakinet', #uses the name-to-architecture mapper in scripts/helpers.py
+        'arch_hyperparams':{},
+        'grad_acc':1,
+        'early_stopping_patience':150, 
+        'wandb_project_name':'RNAkinet',
+        'logging_step':500,
+        'enable_progress_bar':'yes', #set to yes if you want to log training progress bar
+        'log_to_file':False, #set to False if you want to log to console, otherwise logged to checkpoints_pl folder
+        'valid_read_limit':5000,
+    },
+    'Human_batch_64_uniform': {
+        'training_positives_exps': ['20250529_hsa_dRNA_HeLa_5EU_1', '20250529_hsa_dRNA_Hek293_5EU_1', '20250612_hsa_dRNA_MCF10A_5EU_1', '20250618_hsa_dRNA_I90_5EU_1'],
+        'training_negatives_exps': ['20250529_hsa_dRNA_HeLa_DMSO_1', '20250529_hsa_dRNA_Hek293_DMSO_1', '20250612_hsa_dRNA_MCF10A_control_1','20250612_hsa_dRNA_I90_control_1'],
+        'validation_positives_exps': ['20250529_hsa_dRNA_HeLa_5EU_1', '20250529_hsa_dRNA_Hek293_5EU_1', '20250612_hsa_dRNA_MCF10A_5EU_1', '20250618_hsa_dRNA_I90_5EU_1'],
+        'validation_negatives_exps': ['20250529_hsa_dRNA_HeLa_DMSO_1', '20250529_hsa_dRNA_Hek293_DMSO_1', '20250612_hsa_dRNA_MCF10A_control_1','20250612_hsa_dRNA_I90_control_1'],
+        'min_len':5000,
+        'max_len':400000,
+        'skip':5000,
+        'workers':32,
+        'batch_size':64,
+        'sampler':'uniform',
+        'lr':1e-4,
+        'warmup_steps':100,
+        'wd':0.01,
+        'arch':'rnakinet',
+        'arch_hyperparams':{},
+        'grad_acc':1,
+        'early_stopping_patience':200, 
+        'wandb_project_name':'RNAkinet',
+        'logging_step':10000,
+        'enable_progress_bar':'no', 
+        'log_to_file':False,
+        'valid_read_limit':5000,
+    },
+    'Human_batch_64_uniform_cnn_big': {
+        'training_positives_exps': ['20250529_hsa_dRNA_HeLa_5EU_1', '20250529_hsa_dRNA_Hek293_5EU_1', '20250612_hsa_dRNA_MCF10A_5EU_1', '20250618_hsa_dRNA_I90_5EU_1'],
+        'training_negatives_exps': ['20250529_hsa_dRNA_HeLa_DMSO_1', '20250529_hsa_dRNA_Hek293_DMSO_1', '20250612_hsa_dRNA_MCF10A_control_1','20250612_hsa_dRNA_I90_control_1'],
+        'validation_positives_exps': ['20250529_hsa_dRNA_HeLa_5EU_1', '20250529_hsa_dRNA_Hek293_5EU_1', '20250612_hsa_dRNA_MCF10A_5EU_1', '20250618_hsa_dRNA_I90_5EU_1'],
+        'validation_negatives_exps': ['20250529_hsa_dRNA_HeLa_DMSO_1', '20250529_hsa_dRNA_Hek293_DMSO_1', '20250612_hsa_dRNA_MCF10A_control_1','20250612_hsa_dRNA_I90_control_1'],
+        'min_len':5000,
+        'max_len':400000,
+        'skip':5000,
+        'workers':32,
+        'batch_size':64,
+        'sampler':'uniform', #sample from experiments based on their size, alternative 'uniform' for uniform sampling
+        'lr':1e-4,
+        'warmup_steps':100,
+        'wd':0.01,
+        'arch':'rnakinet_cnn_big', #'rnakinet' (default) or 'rnakinet_lastonly' (different rnn pooling method)
+        'arch_hyperparams':{},
+        'grad_acc':1,
+        'early_stopping_patience':200, 
+        'wandb_project_name':'RNAkinet',
+        'logging_step':10000,
+        'enable_progress_bar':'yes', #set to yes if you want to log training progress bar
+        'log_to_file':False, #set to False if you want to log to console, otherwise logged to checkpoints_pl folder
+        'valid_read_limit':5000,
+    },
+}
+
+# INFERENCE CONFIGURATION (POST-TRAINING)
+# This needs to be set manually after you have decided which checkpoint to use as the final model
+MODEL_TO_PATH : {
+    # 'Hela_batch_64': 'checkpoints_pl/Hela_batch_64/best-step=1271000-valid_loss=0.25.ckpt',
+    # 'Human_batch_64_uniform': 'checkpoints_pl/Human_batch_64_uniform/best-step=5620000-valid_loss=0.40.ckpt',
+}
+MODEL_INFERENCE_PARAMS : {
+    'Hela_batch_64': {
+        'batch_size': 64,
+        'max_len': 400000,
+        'min_len': 5000,
+        'skip': 5000,
+        'threads': 16,
+        'arch': 'rnakinet',
+        'threshold': 0.5,
+    },
+    'Human_batch_64_uniform': {
+        'batch_size': 64,
+        'max_len': 400000,
+        'min_len': 5000,
+        'skip': 5000,
+        'threads': 16,
+        'arch': 'rnakinet',
+        'threshold': 0.5,
+    },
+}
+
+# EVALUATION CONFIGURATION (POST-TRAINING)
+INFERENCE_RUN_TO_FILES : {
+    '20250529_hsa_dRNA_HeLa_5EU_1_TEST': ['outputs/splits/20250529_hsa_dRNA_HeLa_5EU_1/test.pod5'],
+    '20250529_hsa_dRNA_HeLa_DMSO_1_TEST': ['outputs/splits/20250529_hsa_dRNA_HeLa_DMSO_1/test.pod5'],
+
+    '20250529_hsa_dRNA_Hek293_5EU_1_TEST': ['outputs/splits/20250529_hsa_dRNA_Hek293_5EU_1/test.pod5'],
+    '20250529_hsa_dRNA_Hek293_DMSO_1_TEST': ['outputs/splits/20250529_hsa_dRNA_Hek293_DMSO_1/test.pod5'],
+
+    # '20250611_mml_dRNA_PBMC_5EU_1_TEST': ['outputs/splits/20250611_mml_dRNA_PBMC_5EU_1/test.pod5'],
+    # '20250612_mml_dRNA_PBMC_control_1_TEST': ['outputs/splits/20250612_mml_dRNA_PBMC_control_1/test.pod5'],
+    
+    '20250618_hsa_dRNA_I90_5EU_1_TEST': ['outputs/splits/20250618_hsa_dRNA_I90_5EU_1/test.pod5'],
+    '20250612_hsa_dRNA_I90_control_1_TEST': ['outputs/splits/20250612_hsa_dRNA_I90_control_1/test.pod5'],
+
+    '20250612_hsa_dRNA_MCF10A_5EU_1_TEST': ['outputs/splits/20250612_hsa_dRNA_MCF10A_5EU_1/test.pod5'],
+    '20250612_hsa_dRNA_MCF10A_control_1_TEST': ['outputs/splits/20250612_hsa_dRNA_MCF10A_control_1/test.pod5'],
+    
+    '20250528_mmu_dRNA_3T3_5EU_1_TEST': ['outputs/splits/20250528_mmu_dRNA_3T3_5EU_1/test.pod5'],
+    '20250528_mmu_dRNA_3T3_DMSO_1_TEST': ['outputs/splits/20250528_mmu_dRNA_3T3_DMSO_1/test.pod5'],
+
+    '20240502_mmu_dRNA_3T3_5EU_400_2_R10': ['data/experiments/20240502_mmu_dRNA_3T3_5EU_400_2_R10/runs/no_sample/20240502_1644_2E_PAW01549_c5db9386/pass_converted.pod5'],
+}
+
+INFERENCE_RUN_GROUPS : {
+    'HeLa_NIH_2025':{
+        'positives':['20250529_hsa_dRNA_HeLa_5EU_1_TEST'],
+        'negatives':['20250529_hsa_dRNA_HeLa_DMSO_1_TEST'],
+    },
+    'Hek293_NIH_2025':{
+        'positives':['20250529_hsa_dRNA_Hek293_5EU_1_TEST'],
+        'negatives':['20250529_hsa_dRNA_Hek293_DMSO_1_TEST'],
+    },
+    # 'PBMC_NIH_2025':{
+    #     'positives':['20250611_mml_dRNA_PBMC_5EU_1_TEST'],
+    #     'negatives':['20250612_mml_dRNA_PBMC_control_1_TEST'],
+    # },
+    'I90_NIH_2025':{
+        'positives':['20250618_hsa_dRNA_I90_5EU_1_TEST'],
+        'negatives':['20250612_hsa_dRNA_I90_control_1_TEST'],
+    },
+    'MCF10A_NIH_2025':{
+        'positives':['20250612_hsa_dRNA_MCF10A_5EU_1_TEST'],
+        'negatives':['20250612_hsa_dRNA_MCF10A_control_1_TEST'],
+    },
+    '3T3_NIH_2025':{
+        'positives':['20250528_mmu_dRNA_3T3_5EU_1_TEST'],
+        'negatives':['20250528_mmu_dRNA_3T3_DMSO_1_TEST'],
+    },
+}
+
+# HALFLIVES CONFIGURATION
+ENSEMBL_URL : 'http://may2025.archive.ensembl.org'
+EXP_TO_ENSEMBL_SPECIES : {
+    '20240502_mmu_dRNA_3T3_5EU_400_2_R10':'mmusculus',
+}
+EXP_TO_TL : {
+    '20240502_mmu_dRNA_3T3_5EU_400_2_R10': 2,
+}
+HALFLIVES_NAME_TO_FILE : {
+    'mion':'3T3_mion_halflives.csv',
+    'PION':'3T3_PION_halflives.csv',
+}
+
