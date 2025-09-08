@@ -26,8 +26,13 @@ rule basecalling_dorado:
     output:
         done_txt = OUTPUTS_DIR + '/basecalling/{experiment_name}/{dorado_version}/{basecalling_model}/DONE.txt',
         out_reads = OUTPUTS_DIR + '/basecalling/{experiment_name}/{dorado_version}/{basecalling_model}/all_reads.fastq',
-    threads: 32
-    resources: gpus=1
+    threads:
+        8
+    resources:
+        gpu = 2,
+        gpu_model = "[gpuv100x|gpua100]",
+        mem_mb = 64*1024,
+        runtime = 8*24*60
     shell:
         """
         {input.dorado_location} basecaller {input.basecaller_location} {input.pod5_folder} \

@@ -34,6 +34,8 @@ rule create_split_pod5s:
     conda:
         "../envs/pod5_splitting.yaml"
     threads: 16
+    resources:
+        mem_mb = 32*1024
     shell:
         """
         pod5 filter \
