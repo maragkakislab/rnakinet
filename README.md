@@ -53,5 +53,17 @@ We recommend users to acknowledge this and put more confidence in halflife predi
 
 [1] Eisen,T.J., Eichhorn,S.W., Subtelny,A.O., Lin,K.S., McGeary,S.E., Gupta,S. and Bartel,D.P. (2020) The Dynamics of Cytoplasmic mRNA Metabolism. Mol. Cell, 77, 786-799.e10.
 
+# Model Training with Snakemake
+## Setup Conda Env
+To run the snakefile, install environment.yaml using a conda environment
+```sh
+conda env create -f environment.yaml
+```
+Run snakemake from within the created conda environment, rather than loading a module, etc.
+## Weights and Biases API
+Obtiain an API key for [Weights and Biases](https://wandb.ai/site/), and create a file `.env` that contains the line `WANDB_API_KEY=YOUR_API_KEY`
+## Inference and Visualization
+When training is complete, uncomment the appropriate lines in `Snakefile` to run the inference and visualization steps. Make sure to specify the path to the model weights in `config.yml`.
+
 # Cite
 Vlastimil Martinek, Jessica Martin, Cedric Belair, Matthew J Payea, Sulochan Malla, Panagiotis Alexiou, Manolis Maragkakis, Deep learning and direct sequencing of labeled RNA captures transcriptome dynamics, NAR Genomics and Bioinformatics, Volume 6, Issue 3, September 2024, lqae116, https://doi.org/10.1093/nargab/lqae116
