@@ -35,8 +35,11 @@ rule run_training:
         log_to_file = lambda wildcards: TRAINING_CONFIGS[wildcards.training_run_name]['log_to_file'],
         save_path = lambda wildcards: f'{CHECKPOINTS_DIR}/{wildcards.training_run_name}',
     threads: 32 
-    resources: 
-        gpus=1,
+    resources:
+        gpu = 2,
+        gpu_model = "[gpuv100x|gpua100]",
+        mem_mb = 200*1024,
+        runtime = 8*24*60
     log:
         CHECKPOINTS_DIR + '/{training_run_name}/stdout.log'
     conda:
