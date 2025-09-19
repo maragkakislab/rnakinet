@@ -12,7 +12,7 @@ rule download_fasta:
 
 rule align_to_genome:
     input:
-        basecalls = "outputs/basecalling/{experiment_name}/{dorado_version}/{basecalling_model}/all_reads.fastq",
+        basecalls = OUTPUTS_DIR + "/basecalling/{experiment_name}/{dorado_version}/{basecalling_model}/all_reads.fastq",
         dorado_location = lambda wildcards: f'{wildcards.dorado_version}/bin/dorado',
         reference_path = lambda wildcards: f'{REFERENCES_DIR}/fasta/{EXP_TO_REFERENCE[wildcards.experiment_name]}',
     output:
