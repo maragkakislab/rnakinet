@@ -36,8 +36,8 @@ rule run_training:
         save_path = lambda wildcards: f'{CHECKPOINTS_DIR}/{wildcards.training_run_name}',
     threads: 32 
     resources:
-        gpu = 2,
-        gpu_model = "[gpuv100x|gpua100]",
+        gpu = GPUS_FOR_RULES["run_training"]["gpu"],
+        gpu_model = GPUS_FOR_RULES["run_training"]["gpu_model"],
         mem_mb = 200*1024,
         runtime = 8*24*60
     log:

@@ -15,8 +15,8 @@ rule run_inference:
         threshold = lambda wildcards: MODEL_INFERENCE_PARAMS[wildcards.model_name]['threshold'],
     threads:  lambda wildcards: MODEL_INFERENCE_PARAMS[wildcards.model_name]['threads'],
     resources:
-        gpu = 1,
-        gpu_model = "[gpuv100x|gpua100]",
+        gpu = GPUS_FOR_RULES["inference_rnakinet"]["gpu"],
+        gpu_model = GPUS_FOR_RULES["inference_rnakinet"]["gpu_model"],
         mem_mb = 64*1024,
         runtime = 8*24*60
     shell:

@@ -64,6 +64,20 @@ BASECALLING_CONFIG : {
     'basecalling_model':'rna004_130bps_hac@v5.2.0',
 }
 
+GPUS_FOR_RULES : { # cann come up with another name too
+    'basecalling_dorado' : {
+        'gpu' : 2,
+        'gpu_model' : "[gpuv100x|gpua100]",
+    },
+    'inference_rnakinet' : {
+        'gpu' : 1,
+        'gpu_model' : "[gpuv100x|gpua100]",
+    },
+    'run_training' : {
+        'gpu' : 2,
+        'gpu_model' : "[gpuv100x|gpua100]",
+    }
+}
 REFERENCE_TO_SPLITS : {
     'Homo_sapiens.GRCh38.dna_sm.primary_assembly.fa': {
         'train_chrs':[2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,21,22,'X','MT'],

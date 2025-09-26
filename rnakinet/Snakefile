@@ -34,6 +34,7 @@ ENSEMBL_URL = config['ENSEMBL_URL']
 EXP_TO_ENSEMBL_SPECIES = config['EXP_TO_ENSEMBL_SPECIES']
 EXP_TO_TL = config['EXP_TO_TL']
 HALFLIVES_NAME_TO_FILE = config['HALFLIVES_NAME_TO_FILE']
+GPUS_FOR_RULES = config['GPUS_FOR_RULES']
 
 # RULES
 include: "rules/basecalling.smk"
@@ -46,12 +47,7 @@ include: "rules/halflives.smk"
 
 rule all:
     input:
-        expand('checkpoints_pl/{training_run_name}/DONE.txt', training_run_name='Human_batch_64_uniform')
+        expand('checkpoints_pl/{training_run_name}/DONE.txt', training_run_name='Human_batch_64_uniform'),
         # After training, the 'model_to_path' and 'model_inference_params' need to be updated with the manually selected checkpoint, then the following lines can be ran for evaluation
-        # expand('outputs/visual/predictions/{model_name}/{group}_{plot_type}.pdf', model_name='Human_batch_64_uniform', group=list(inference_run_groups.keys()), plot_type=['auroc','thresholds','pr_curve','pr_ratios']),
-        # expand('outputs/visual/predictions/{model_name}/{experiment_name}/decay/{halflives_name}_halflives_{reference_level}_read_limit_decay_plot.pdf',model_name='Human_batch_64_uniform', experiment_name='20240502_mmu_dRNA_3T3_5EU_400_2_R10', halflives_name=['mion','PION'],reference_level=['gene','transcript']),
-        
-        
-
-
-        
+        # expand('outputs/visual/predictions/{model_name}/{group}_{plot_type}.pdf', model_name='Human_batch_64_uniform', group=list(INFERENCE_RUN_GROUPS.keys()), plot_type=['auroc','thresholds','pr_curve','pr_ratios']),
+        # expand('outputs/visual/predictions/{model_name}/{experiment_name}/decay/{halflives_name}_halflives_{reference_level}_read_limit_decay_plot.pdf',model_name='Human_batch_64_uniform', experiment_name='20250528_mmu_dRNA_3T3_5EU_1', halflives_name=['mion','PION'],reference_level=['gene','transcript']),

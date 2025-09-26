@@ -29,8 +29,8 @@ rule basecalling_dorado:
     threads:
         8
     resources:
-        gpu = 2,
-        gpu_model = "[gpuv100x|gpua100]",
+        gpu = GPUS_FOR_RULES["basecalling_dorado"]["gpu"],
+        gpu_model = GPUS_FOR_RULES["basecalling_dorado"]["gpu_model"],
         mem_mb = 64*1024,
         runtime = 8*24*60
     shell:
