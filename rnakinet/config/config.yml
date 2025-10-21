@@ -257,3 +257,22 @@ HALFLIVES_NAME_TO_FILE : {
     'PION':'3T3_PION_halflives.csv',
 }
 
+ALL_EXPERIMENTS : [
+    '20250528_mmu_dRNA_3T3_5EU_1',
+    '20250611_mml_dRNA_PBMC_5EU_1',
+    '20250529_hsa_dRNA_HeLa_5EU_1',
+    '20250401-MN21969_Pf_no4TU_JanneGruenebast',
+    '20250612_hsa_dRNA_I90_control_1',
+    '20240502_mmu_dRNA_3T3_5EU_400_2_R10',
+    '20250207-MN23690-Tcruzi_Ystrain_JanneGruenebast',
+    '20250612_hsa_dRNA_MCF10A_control_1',
+    '20250529_hsa_dRNA_Hek293_5EU_1',
+    '20250529_hsa_dRNA_HeLa_DMSO_1',
+    '20250207-MN21969-Ldonovani_1S_JanneGruenebast',
+    '20250612_hsa_dRNA_MCF10A_5EU_1',
+    '20250529_hsa_dRNA_Hek293_DMSO_1',
+    '20250612_mml_dRNA_PBMC_control_1',
+    '20250618_hsa_dRNA_I90_5EU_1',
+    '20250528_mmu_dRNA_3T3_DMSO_1',
+    '20241118-MN21969_Tryp-CTRL_JanneGruenebast',
+]
