@@ -4,6 +4,7 @@ from torch.utils.data import DataLoader
 import pandas as pd
 import sys
 from tqdm import tqdm
+import os
 
 from rnakinet.data_utils.dataloading_pod5_batched import InferenceDataset
 from rnakinet.data_utils.workers import worker_init_fn_inference
@@ -12,6 +13,16 @@ from rnakinet.scripts.helpers import arch_map
 def run(args):
     print('CUDA', torch.cuda.is_available())
     files = args.pod5_files
+    
+    # if args.pod5_files is a directory, set "files" to all pod5 files found in that directory and all subdirectories
+    if len(files) == 1 and os.path.isdir(files[0]):
+        pod5_dir = files[0]
+        files = []
+        for root, _, filenames in os.walk(pod5_dir):
+            for fname in filenames:
+                if fname.lower().endswith('.pod5'):
+                    files.append(os.path.join(root, fname))
+    
     print(f'Number of pod5 files found: {len(files)}')
     if(len(files)==0):
         raise Exception(f'No pod5 files found')
