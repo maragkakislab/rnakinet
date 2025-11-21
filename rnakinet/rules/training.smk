@@ -1,6 +1,6 @@
 import yaml
 
-rule run_training:
+checkpoint run_training:
     input:
         train_positives_pod5s=lambda wildcards: expand(OUTPUTS_DIR + "/splits/{experiment_name}/train.pod5",
                                           experiment_name=TRAINING_CONFIGS[wildcards.training_run_name]['training_positives_exps']),
@@ -13,6 +13,7 @@ rule run_training:
     output:
         done_txt = CHECKPOINTS_DIR + '/{training_run_name}/DONE.txt',
         arch_hyperparams_yaml = CHECKPOINTS_DIR + '/{training_run_name}/arch_hyperparams.yaml',
+        ckpt_out_dir = directory(CHECKPOINTS_DIR + "/{training_run_name}/{training_run_name}")
     params:
         min_len = lambda wildcards: TRAINING_CONFIGS[wildcards.training_run_name]['min_len'],
         max_len = lambda wildcards: TRAINING_CONFIGS[wildcards.training_run_name]['max_len'],
