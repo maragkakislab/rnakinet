@@ -1,7 +1,34 @@
+import os
+import glob
+
+def get_model_path(wc):
+    # if user specifies manual path, use that
+    manual = MODEL_TO_PATH.get(wc.model_name)
+    if manual:
+        return manual
+
+    # fetching model from output specified by training rule
+    out = checkpoints.run_training.get(training_run_name=wc.model_name).output
+    ckpt_dir = out.ckpt_out_dir  # = CHECKPOINTS_DIR/{name}/{name}
+
+    # searching for best checkpoint
+    pattern = os.path.join(ckpt_dir, "best-step=*valid_loss=*.ckpt")
+    matches = glob.glob(pattern)
+    if matches:
+        return matches[0]
+
+    # if filename pattern for best checkpoint not found, use last.ckpt instead
+    last = os.path.join(ckpt_dir, "last.ckpt")
+    if os.path.exists(last):
+        return last
+
+    # if no checkpoints found, raise error
+    raise FileNotFoundError(f"No checkpoint found in {ckpt_dir}")
+
 rule run_inference:
     input: 
         pod5_files = lambda wildcards: INFERENCE_RUN_TO_FILES[wildcards.experiment_name],
-        model_path = lambda wildcards: MODEL_TO_PATH[wildcards.model_name],
+        model_path = get_model_path,
     output:
         csv_path = OUTPUTS_DIR + '/predictions/{model_name}/{experiment_name}/preds.csv',
     conda:
