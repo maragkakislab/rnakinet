@@ -14,14 +14,19 @@ def run(args):
     print('CUDA', torch.cuda.is_available())
     files = args.pod5_files
     
-    # if args.pod5_files is a directory, set "files" to all pod5 files found in that directory and all subdirectories
-    if len(files) == 1 and os.path.isdir(files[0]):
-        pod5_dir = files[0]
-        files = []
-        for root, _, filenames in os.walk(pod5_dir):
-            for fname in filenames:
-                if fname.lower().endswith('.pod5'):
-                    files.append(os.path.join(root, fname))
+    files = []
+    for pod5_path in args.pod5_paths:
+        if os.path.isdir(pod5_path):
+            # if pod5_path is a directory, search for pod5 files in it and all subdirectories
+            for root, _, filenames in os.walk(pod5_path):
+                for fname in filenames:
+                    if fname.lower().endswith('.pod5'):
+                        files.append(os.path.join(root, fname))
+        elif os.path.isfile(pod5_path):
+            if pod5_path.lower().endswith('.pod5'):
+                files.append(pod5_path)
+        else:
+            raise Exception(f'Path {pod5_path} is not a valid file or directory')
     
     print(f'Number of pod5 files found: {len(files)}')
     if(len(files)==0):
@@ -74,7 +79,8 @@ def run(args):
         
 def main():
     parser = argparse.ArgumentParser(description='Run prediction on POD5 files')
-    parser.add_argument('--pod5-files', type=str, required=True, nargs='+', help='Paths to POD5 files.')
+    parser.add_argument('--pod5-files', type=str, required=False, nargs='+', help='DEPRECATED. Use --pod5-paths instead.')
+    parser.add_argument('--pod5-paths', type=str, required=False, nargs='+', help='Paths to POD5 files or directories containing POD5 files.')
     parser.add_argument('--model-path', type=str, required=True, help='Path to model weights.')
     parser.add_argument('--arch', type=str, default='rnakinet', help='Architecture of the model')
     parser.add_argument('--output', type=str, required=True, help='Path to the output csv file.')
@@ -87,6 +93,17 @@ def main():
     parser.add_argument('--use-cpu', action='store_true', help='Use CPU for computation instead of GPU')
     
     args = parser.parse_args(sys.argv[1:])
+    
+    if args.pod5_files:
+        warnings.warn("--pod5-files is deprecated and will be removed in a future release. Use --pod5-paths instead.", FutureWarning, stacklevel=2)
+        if not args.pod5_paths:
+            args.pod5_paths = args.pod5_files
+        else:
+            args.pod5_paths.extend(args.pod5_files)
+    
+    if not (args.pod5_paths or args.pod5_files):
+        parser.error("one of --pod5-paths or --pod5-files is required")
+    
     run(args)
 
 if __name__ == "__main__":
