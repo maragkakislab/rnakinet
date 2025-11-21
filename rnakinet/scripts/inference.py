@@ -5,6 +5,7 @@ import pandas as pd
 import sys
 from tqdm import tqdm
 import os
+import warnings
 
 from rnakinet.data_utils.dataloading_pod5_batched import InferenceDataset
 from rnakinet.data_utils.workers import worker_init_fn_inference
@@ -12,7 +13,6 @@ from rnakinet.scripts.helpers import arch_map
 
 def run(args):
     print('CUDA', torch.cuda.is_available())
-    files = args.pod5_files
     
     files = []
     for pod5_path in args.pod5_paths:
