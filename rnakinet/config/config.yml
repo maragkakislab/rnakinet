@@ -54,25 +54,37 @@ EXP_TO_TRANSCRIPTOME : {
 
 # Further path inside the DATA_DIR
 EXP_TO_PATH : {
-    '20250529_hsa_dRNA_HeLa_5EU_1': 'experiments/20250529_hsa_dRNA_HeLa_5EU_1/',
-    '20250529_hsa_dRNA_HeLa_DMSO_1': 'experiments/20250529_hsa_dRNA_HeLa_DMSO_1/',
+    '20250529_hsa_dRNA_HeLa_5EU_1': 'experiments_v2/20250529_hsa_dRNA_HeLa_5EU_1/',
+    '20250529_hsa_dRNA_HeLa_DMSO_1': 'experiments_v2/20250529_hsa_dRNA_HeLa_DMSO_1/',
 
-    '20250529_hsa_dRNA_Hek293_5EU_1': 'experiments/20250529_hsa_dRNA_Hek293_5EU_1',
-    '20250529_hsa_dRNA_Hek293_DMSO_1': 'experiments/20250529_hsa_dRNA_Hek293_DMSO_1',
+    '20250529_hsa_dRNA_Hek293_5EU_1': 'experiments_v2/20250529_hsa_dRNA_Hek293_5EU_1',
+    '20250529_hsa_dRNA_Hek293_DMSO_1': 'experiments_v2/20250529_hsa_dRNA_Hek293_DMSO_1',
 
-    '20250611_mml_dRNA_PBMC_5EU_1': 'experiments/20250611_mml_dRNA_PBMC_5EU_1',
-    '20250612_mml_dRNA_PBMC_control_1': 'experiments/20250612_mml_dRNA_PBMC_control_1',
+    '20250611_mml_dRNA_PBMC_5EU_1': 'experiments_v2/20250611_mml_dRNA_PBMC_5EU_1',
+    '20250612_mml_dRNA_PBMC_control_1': 'experiments_v2/20250612_mml_dRNA_PBMC_control_1',
 
-    '20250618_hsa_dRNA_I90_5EU_1': 'experiments/20250618_hsa_dRNA_I90_5EU_1',
-    '20250612_hsa_dRNA_I90_control_1': 'experiments/20250612_hsa_dRNA_I90_control_1',
+    '20250618_hsa_dRNA_I90_5EU_1': 'experiments_v2/20250618_hsa_dRNA_I90_5EU_1',
+    '20250612_hsa_dRNA_I90_control_1': 'experiments_v2/20250612_hsa_dRNA_I90_control_1',
 
-    '20250612_hsa_dRNA_MCF10A_5EU_1': 'experiments/20250612_hsa_dRNA_MCF10A_5EU_1',
-    '20250612_hsa_dRNA_MCF10A_control_1': 'experiments/20250612_hsa_dRNA_MCF10A_control_1',
+    '20250612_hsa_dRNA_MCF10A_5EU_1': 'experiments_v2/20250612_hsa_dRNA_MCF10A_5EU_1',
+    '20250612_hsa_dRNA_MCF10A_control_1': 'experiments_v2/20250612_hsa_dRNA_MCF10A_control_1',
 
-    '20250528_mmu_dRNA_3T3_5EU_1': 'experiments/20250528_mmu_dRNA_3T3_5EU_1',
-    '20250528_mmu_dRNA_3T3_DMSO_1': 'experiments/20250528_mmu_dRNA_3T3_DMSO_1',
+    '20250528_mmu_dRNA_3T3_5EU_1': 'experiments_v2/20250528_mmu_dRNA_3T3_5EU_1',
+    '20250528_mmu_dRNA_3T3_DMSO_1': 'experiments_v2/20250528_mmu_dRNA_3T3_DMSO_1',
 
-    '20240502_mmu_dRNA_3T3_5EU_400_2_R10': 'experiments/20240502_mmu_dRNA_3T3_5EU_400_2_R10',
+    '20240502_mmu_dRNA_3T3_5EU_400_2_R10': 'experiments_v2/20240502_mmu_dRNA_3T3_5EU_400_2_R10',
+
+    '20241118-MN21969_Tryp-CTRL_JanneGruenebast': 'experiments_v2/20241118-MN21969_Tryp-CTRL_JanneGruenebast',
+    '20250207-MN21969-Ldonovani_1S_JanneGruenebast': 'experiments_v2/20250207-MN21969-Ldonovani_1S_JanneGruenebast',
+    '20250207-MN23690-Tcruzi_Ystrain_JanneGruenebast': 'experiments_v2/20250207-MN23690-Tcruzi_Ystrain_JanneGruenebast',
+    '20250401-MN21969_Pf_no4TU_JanneGruenebast': 'experiments_v2/20250401-MN21969_Pf_no4TU_JanneGruenebast',
+    '20250401-MN23690_Pf_A2_40-4TU-24h_JanneGruenebast' : 'experiments_v2/20250401-MN23690_Pf_A2_40-4TU-24h_JanneGruenebast',
+
+    '20240214_hsa_dRNA_iN3_TDP43_WT_1' : 'experiments_v1/20240214_hsa_dRNA_iN3_TDP43_WT_1',
+    '20240410_hsa_dRNA_HeLa_GFP_NoARS_1' : 'experiments_v1/20240410_hsa_dRNA_HeLa_GFP_NoARS_1',
+    '20240503_hsa_dRNA_HeLa_GFP_24h_NoARS_1' : 'experiments_v1/20240503_hsa_dRNA_HeLa_GFP_24h_NoARS_1',
+    '20240510_hsa_dRNA_HeLa_5EU_R10_1' : 'experiments_v1/20240510_hsa_dRNA_HeLa_5EU_R10_1',
+
 }
 
 BASECALLING_CONFIG : {
