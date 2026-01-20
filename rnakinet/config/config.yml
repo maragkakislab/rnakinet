@@ -11,6 +11,13 @@ FASTA_TO_DOWNLOAD: {
     
     'Mus_musculus.GRCm39.dna_sm.primary_assembly.fa': 'https://ftp.ensembl.org/pub/release-114/fasta/mus_musculus/dna/Mus_musculus.GRCm39.dna_sm.primary_assembly.fa.gz',
     'Mus_musculus.GRCm39.cdna.all.fa': 'https://ftp.ensembl.org/pub/release-114/fasta/mus_musculus/cdna/Mus_musculus.GRCm39.cdna.all.fa.gz',
+
+    'Macaca_mulatta.Mmul_10.dna.toplevel.fa': 'https://ftp.ensembl.org/pub/release-115/fasta/macaca_mulatta/dna/Macaca_mulatta.Mmul_10.dna.toplevel.fa.gz',
+    
+    'Plasmodium_falciparum.GCA000002765v3.dna_sm.toplevel.fa': 'https://ftp.ebi.ac.uk/ensemblgenomes/pub/release-62/protists/fasta/plasmodium_falciparum/dna/Plasmodium_falciparum.GCA000002765v3.dna_sm.toplevel.fa.gz',
+    'Trypanosoma_brucei.TryBru_Apr2005_chr11.dna_sm.toplevel.fa': 'https://ftp.ebi.ac.uk/ensemblgenomes/pub/release-62/protists/fasta/trypanosoma_brucei/dna/Trypanosoma_brucei.TryBru_Apr2005_chr11.dna_sm.toplevel.fa.gz',
+    'Trypanosoma_cruzi_gca_003719455.ASM371945v1.dna_sm.toplevel.fa': 'https://ftp.ebi.ac.uk/ensemblgenomes/pub/release-62/protists/fasta/protists_euglenozoa1_collection/trypanosoma_cruzi_gca_003719455/dna/Trypanosoma_cruzi_gca_003719455.ASM371945v1.dna_sm.toplevel.fa.gz',
+    'Leishmania_donovani_gca_000227135.ASM22713v2.dna_sm.toplevel.fa': 'https://ftp.ebi.ac.uk/ensemblgenomes/pub/release-62/protists/fasta/protists_euglenozoa1_collection/leishmania_donovani_gca_000227135/dna/Leishmania_donovani_gca_000227135.ASM22713v2.dna_sm.toplevel.fa.gz'
 }
 
 EXP_TO_REFERENCE: {
@@ -23,13 +30,22 @@ EXP_TO_REFERENCE: {
     '20250618_hsa_dRNA_I90_5EU_1':        'Homo_sapiens.GRCh38.dna_sm.primary_assembly.fa',
     '20250612_hsa_dRNA_I90_control_1':    'Homo_sapiens.GRCh38.dna_sm.primary_assembly.fa',
 
+    '20240214_hsa_dRNA_iN3_TDP43_WT_1' : 'Homo_sapiens.GRCh38.dna_sm.primary_assembly.fa',
+    '20240410_hsa_dRNA_HeLa_GFP_NoARS_1' : 'Homo_sapiens.GRCh38.dna_sm.primary_assembly.fa',
+    '20240503_hsa_dRNA_HeLa_GFP_24h_NoARS_1' : 'Homo_sapiens.GRCh38.dna_sm.primary_assembly.fa',
+    '20240510_hsa_dRNA_HeLa_5EU_R10_1' : 'Homo_sapiens.GRCh38.dna_sm.primary_assembly.fa',
+
+
     '20250528_mmu_dRNA_3T3_5EU_1':         'Mus_musculus.GRCm39.dna_sm.primary_assembly.fa',
     '20250528_mmu_dRNA_3T3_DMSO_1':        'Mus_musculus.GRCm39.dna_sm.primary_assembly.fa',
     '20240502_mmu_dRNA_3T3_5EU_400_2_R10': 'Mus_musculus.GRCm39.dna_sm.primary_assembly.fa',
     
     #TODO Macaca mulatta? primary_assembly on ensembl is shattered to separate chromosomes, not a single file
-    # '20250611_mml_dRNA_PBMC_5EU_1':,
-    # '20250612_mml_dRNA_PBMC_control_1':,
+    '20250611_mml_dRNA_PBMC_5EU_1':        'Macaca_mulatta.Mmul_10.dna.toplevel.fa',
+    '20250612_mml_dRNA_PBMC_control_1':    'Macaca_mulatta.Mmul_10.dna.toplevel.fa',
+
+    '20250401-MN23690_Pf_A2_40-4TU-24h_JanneGruenebast' : 'Plasmodium_falciparum.GCA000002765v3.dna_sm.toplevel.fa',
+    '20250401-MN21969_Pf_no4TU_JanneGruenebast' : 'Plasmodium_falciparum.GCA000002765v3.dna_sm.toplevel.fa',
 }
 
 EXP_TO_TRANSCRIPTOME : {
