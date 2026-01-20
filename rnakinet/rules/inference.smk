@@ -111,5 +111,16 @@ rule calculate_percent_positive:
         "../envs/inference.yaml"
     shell:
         """
-        awk -F',' 'NR>1 {{{{total++; if ($3 == "True") count++}}}} END {{{{if (total > 0) printf "%.20f\\n", count/total; else print "0"}}}}' {input.preds} > {output}
+        awk -F',' \
+            'NR>1 {{{{ \
+                total++; \
+                if ($3 == "True") \
+                    count++}}}} \
+            END {{{{ \
+                if (total > 0) \
+                    printf "%.20f\\n", \
+                    count/total; \
+                else \
+                    print "0"}}}}' \
+        {input.preds} > {output}
         """
