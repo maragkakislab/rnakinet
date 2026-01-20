@@ -159,3 +159,15 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
+
+# snakemake job logs
+*slurm*.out
+rnakinet/logs/
+
+# wandb logs
+*/wandb/
+
+# Dorado
+*/basecalling_models_dorado-1.0.1-linux-x64/
+*/dorado-1.0.1-linux-x64/
+*/dorado-1.0.1-linux-x64.tar.gz
