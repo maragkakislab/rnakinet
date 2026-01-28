@@ -99,28 +99,25 @@ rule run_full_exp_inference:
 
 rule calculate_percent_positive:
     input:
-        preds = lambda wildcards: expand(
-            OUTPUTS_DIR + '/{predictions}/{model_name}/{experiment_name}/preds.csv',
-            predictions=wildcards.predictions,
-            experiment_name=wildcards.experiment_name,
-            model_name=wildcards.model_name,
-        ),
+        preds = OUTPUTS_DIR + '/{predictions}/{model_name}/{experiment_name}/preds.csv',   
     output:
-        OUTPUTS_DIR + '/{predictions}_pct_pos/{model_name}/{experiment_name}_percent_positive.txt',
-    conda:
-        "../envs/inference.yaml"
-    shell:
-        """
-        awk -F',' \
-            'NR>1 {{{{ \
-                total++; \
-                if ($3 == "True") \
-                    count++}}}} \
-            END {{{{ \
-                if (total > 0) \
-                    printf "%.20f\\n", \
-                    count/total; \
-                else \
-                    print "0"}}}}' \
-        {input.preds} > {output}
-        """
+        OUTPUTS_DIR + '/{predictions}_pct_pos_test/{model_name}/{experiment_name}_percent_positive.txt',
+    # conda:
+    #     "../envs/inference.yaml"
+    run:
+        import csv
+
+        num_pos = 0
+        total = 0
+
+        with open(input.preds, newline="") as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                total += 1
+                if row["5eu_modified_prediction"] == "True":
+                    num_pos += 1
+
+        proportion = num_pos / total if total else 0.0
+
+        with open(output[0], "w") as out:
+            out.write(f"{proportion:.20f}\n")
