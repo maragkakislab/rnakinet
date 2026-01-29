@@ -102,14 +102,10 @@ rule calculate_percent_positive:
         preds = OUTPUTS_DIR + '/{predictions}/{model_name}/{experiment_name}/preds.csv',   
     output:
         OUTPUTS_DIR + '/{predictions}_pct_pos_test/{model_name}/{experiment_name}_percent_positive.txt',
-    # conda:
-    #     "../envs/inference.yaml"
     run:
         import csv
-
         num_pos = 0
         total = 0
-
         with open(input.preds, newline="") as f:
             reader = csv.DictReader(f)
             for row in reader:
