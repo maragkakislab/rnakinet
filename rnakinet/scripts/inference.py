@@ -10,6 +10,7 @@ import warnings
 from rnakinet.data_utils.dataloading_pod5_batched import InferenceDataset
 from rnakinet.data_utils.workers import worker_init_fn_inference
 from rnakinet.scripts.helpers import arch_map
+from rnakinet.scripts.helpers import default_models
 
 def run(args):
     print('CUDA', torch.cuda.is_available())
@@ -31,12 +32,19 @@ def run(args):
     print(f'Number of pod5 files found: {len(files)}')
     if(len(files)==0):
         raise Exception(f'No pod5 files found')
+    
+    # Load model path and architecture based on param choice.
+    if args.model_name:
+        model_path = default_models[args.model_name]['path']
+        arch = default_models[args.model_name]['arch']
+        print('Using pretrained model', args.model_name, 'with checkpoint', model_path)
+        model = arch_map[arch]()
         
-    model_path = args.model_path
-    print('Using checkpoint', model_path)
-    
-    model = arch_map[args.arch]()
-    
+    if args.model_path:
+        model_path = args.model_path
+        print('Using checkpoint', model_path)
+        model = arch_map[args.arch]()
+        
     model.load_state_dict(torch.load(model_path, map_location='cpu')['state_dict'])
     model.eval()
     
@@ -81,8 +89,12 @@ def main():
     parser = argparse.ArgumentParser(description='Run prediction on POD5 files')
     parser.add_argument('--pod5-files', type=str, required=False, nargs='+', help='DEPRECATED. Use --pod5-paths instead.')
     parser.add_argument('--pod5-paths', type=str, required=False, nargs='+', help='Paths to POD5 files or directories containing POD5 files.')
-    parser.add_argument('--model-path', type=str, required=True, help='Path to model weights.')
-    parser.add_argument('--arch', type=str, default='rnakinet', help='Architecture of the model')
+
+    model_group = parser.add_mutually_exclusive_group(required=True)
+    model_group.add_argument('--model-name', type=str, help='Name of pretrained model to use')
+    model_group.add_argument('--model-path', type=str, help='Path to model weights')
+
+    parser.add_argument('--arch', type=str, help='Architecture of the model')
     parser.add_argument('--output', type=str, required=True, help='Path to the output csv file.')
     parser.add_argument('--max-workers', type=int, default=16, help='Maximum number of workers for data loading')
     parser.add_argument('--batch-size', type=int, default=1, help='Batch size for data loading')
@@ -104,6 +116,11 @@ def main():
     if not (args.pod5_paths or args.pod5_files):
         parser.error("one of --pod5-paths or --pod5-files is required")
     
+    if args.model_path and not args.arch:
+        parser.error("--arch must be explicitly specified when using --model-path") 
+    if args.arch and not args.model_path:
+        parser.error("--model-path is required when using --arch")
+
     run(args)
 
 if __name__ == "__main__":
