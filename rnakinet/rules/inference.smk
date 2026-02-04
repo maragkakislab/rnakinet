@@ -63,7 +63,7 @@ rule run_inference:
 
 rule run_full_exp_inference:
     input: 
-        pod5_files = lambda wildcards: f'{DATA_DIR}/experiments/{wildcards.experiment_name}/',
+        pod5_files = lambda wildcards: f'{DATA_DIR}/experiments_v2/{wildcards.experiment_name}/origin.txt',
         model_path = get_model_path,
     output:
         csv_path = OUTPUTS_DIR + '/full_exp_predictions/{model_name}/{experiment_name}/preds.csv',
@@ -84,8 +84,9 @@ rule run_full_exp_inference:
         runtime = 8*24*60
     shell:
         """
+        EXP_DIR=$(dirname {input.pod5_files})
         python3 scripts/inference.py \
-            --pod5-files {input.pod5_files} \
+            --pod5-files $EXP_DIR \
             --model-path {input.model_path} \
             --arch {params.arch} \
             --max-workers {threads} \
