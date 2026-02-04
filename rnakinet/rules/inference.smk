@@ -101,7 +101,7 @@ rule calculate_percent_positive:
     input:
         preds = OUTPUTS_DIR + '/{predictions}/{model_name}/{experiment_name}/preds.csv',   
     output:
-        OUTPUTS_DIR + '/{predictions}_pct_pos_test/{model_name}/{experiment_name}_percent_positive.txt',
+        OUTPUTS_DIR + '/{predictions}_pct_pos/{model_name}/{experiment_name}_percent_positive.txt',
     run:
         import csv
         num_pos = 0
