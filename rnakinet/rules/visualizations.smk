@@ -32,4 +32,32 @@ rule create_classification_plot:
             --chosen_threshold {params.chosen_threshold} \
             --model-name {wildcards.model_name} \
         """
-        
+
+rule plot_pct_positive:
+    input:
+        lambda wc: expand(
+            "outputs/{pred_type}/{model}/{exp}_percent_positive.txt",
+            pred_type=PCT_POS_GRAPHING_PARAMS[wc.plot_name]["predictions_type"],
+            model=PCT_POS_GRAPHING_PARAMS[wc.plot_name]["models"],
+            exp=PCT_POS_GRAPHING_PARAMS[wc.plot_name]["experiments"],
+        ),
+    output:
+        plot = "outputs/visual/pct_pos/{plot_name}.png",
+    conda:
+        "../envs/visual.yaml",
+    params:
+        title = lambda wc: wc.plot_name,
+        pred_type = lambda wc: PCT_POS_GRAPHING_PARAMS[wc.plot_name]["predictions_type"],
+        models = lambda wc: PCT_POS_GRAPHING_PARAMS[wc.plot_name]["models"],
+        experiments = lambda wc: PCT_POS_GRAPHING_PARAMS[wc.plot_name]["experiments"],
+        colors = lambda wc: PCT_POS_GRAPHING_PARAMS.get("colors", []),
+    shell:
+        """
+        python3 scripts/plot_pct_pos.py \
+          --title "{params.title}" \
+          --predictions-type "{params.pred_type}" \
+          --models {params.models} \
+          --experiments {params.experiments} \
+          --colors {params.colors} \
+          --out "{output.plot}"
+        """

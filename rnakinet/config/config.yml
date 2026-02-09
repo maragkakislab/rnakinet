@@ -276,3 +276,13 @@ ALL_EXPERIMENTS : [
     '20250528_mmu_dRNA_3T3_DMSO_1',
     '20241118-MN21969_Tryp-CTRL_JanneGruenebast',
 ]
+
+PCT_POS_GRAPHING_PARAMS: {
+    graph_title1: {
+        'models' : ['Pairs_Hek293_2025', 'Human_batch_64_uniform'],
+        'experiments' : ['20240214_hsa_dRNA_iN3_TDP43_WT_1', '20240410_hsa_dRNA_HeLa_GFP_NoARS_1'],
+        'predictions_type' : 'full_exp_predictions_pct_pos',
+        'colors' : ['blue', 'orange', 'green'],
+        },
+    graph_title2: {},
+}
