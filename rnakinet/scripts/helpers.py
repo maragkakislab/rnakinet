@@ -6,7 +6,7 @@ arch_map = {
     'rnakinet_lastonly': RNAkinet_LastOnly,
 }
 default_models = {
-    'rnakinet_r10': {
+    'rnakinet_r10_5EU': {
         'path':'checkpoints_pl/Human_batch_64_uniform/Human_batch_64_uniform/best-step=3520000-valid_loss=0.35.ckpt',
         'arch':'rnakinet',
     },
