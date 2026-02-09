@@ -54,10 +54,10 @@ rule plot_pct_positive:
     shell:
         """
         python3 scripts/plot_pct_pos.py \
-          --title "{params.title}" \
-          --predictions-type "{params.pred_type}" \
-          --models {params.models} \
-          --experiments {params.experiments} \
-          --colors {params.colors} \
-          --out "{output.plot}"
+            --title "{params.title}" \
+            --predictions-type "{params.pred_type}" \
+            --models {params.models} \
+            --experiments {params.experiments} \
+            --colors {params.colors} \
+            --out "{output.plot}"
         """
