@@ -91,7 +91,8 @@ def main():
     parser.add_argument('--pod5-paths', type=str, required=False, nargs='+', help='Paths to POD5 files or directories containing POD5 files.')
 
     model_group = parser.add_mutually_exclusive_group(required=True)
-    model_group.add_argument('--model-name', type=str, help='Name of pretrained model to use')
+    model_group.add_argument('--model-name', type=str, choices=['rnakinet_r10_5EU'], help='Name of pretrained model to use')
+    
     model_group.add_argument('--model-path', type=str, help='Path to model weights')
 
     parser.add_argument('--arch', type=str, help='Architecture of the model')
