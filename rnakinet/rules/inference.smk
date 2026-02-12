@@ -76,6 +76,7 @@ rule run_full_exp_inference:
         skip = lambda wildcards: MODEL_INFERENCE_PARAMS[wildcards.model_name]['skip'],
         arch = lambda wildcards: MODEL_INFERENCE_PARAMS[wildcards.model_name]['arch'],
         threshold = lambda wildcards: MODEL_INFERENCE_PARAMS[wildcards.model_name]['threshold'],
+        exp_dir = lambda wildcards: os.path.dirname(f'{DATA_DIR}/experiments_v2/{wildcards.experiment_name}/origin.txt'),
     threads:  lambda wildcards: MODEL_INFERENCE_PARAMS[wildcards.model_name]['threads'],
     resources:
         gpu = GPUS_FOR_RULES["inference_rnakinet"]["gpu"],
@@ -84,9 +85,8 @@ rule run_full_exp_inference:
         runtime = 8*24*60
     shell:
         """
-        EXP_DIR=$(dirname {input.pod5_files})
         python3 scripts/inference.py \
-            --pod5-files $EXP_DIR \
+            --pod5-files {params.exp_dir} \
             --model-path {input.model_path} \
             --arch {params.arch} \
             --max-workers {threads} \
