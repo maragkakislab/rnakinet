@@ -83,32 +83,32 @@ def run(args):
         df = pd.DataFrame.from_dict(id_to_pred, orient='index').reset_index()
         df.columns = ['read_id', '5eu_mod_score']
         df['5eu_modified_prediction'] = df['5eu_mod_score'] > args.threshold
+        fraction_positive = (df['5eu_modified_prediction'] == True).mean()
         df.to_csv(handle, index=False)
-
-def write_logs(args):
-    if args.log is None: return
-    elif args.log: log_save_path = args.log
-    else: log_save_path = os.path.join(os.path.dirname(args.output) or '.', 'log.txt')
     
-    df_preds = pd.read_csv(args.output)
-    fraction_positive = float((df_preds['5eu_modified_prediction'].astype(str).str.lower() == 'true').mean())
-    
-    log_data = {
-        'arch': args.arch,
-        'output': args.output,
-        'max_workers': args.max_workers,
-        'batch_size': args.batch_size,
-        'max_len': args.max_len,
-        'min_len': args.min_len,
-        'skip': args.skip,
-        'threshold': args.threshold,
-        'pred_frac_5EU': fraction_positive,
-    }
-
-    os.makedirs(os.path.dirname(log_save_path) or '.', exist_ok=True)
-    with open(log_save_path, 'w') as log_out_file:
-        for key, value in log_data.items():
-            log_out_file.write(f"{key}: {value}\n")
+    if args.log is not None:
+        if args.log:
+            log_save_path = args.log
+        else:
+            log_save_path = os.path.join(os.path.dirname(args.output), 'log.txt')
+        
+        log_data = {
+            'arch': args.arch if args.arch else default_models[args.model_name]['arch'], # log user-specified arch/model name or provide info on pretrained model used
+            'model_path': model_path if args.model_path else default_models[args.model_name]['path'],
+            'model_name': args.model_name if args.model_name else 'custom',
+            'max_workers': args.max_workers,
+            'batch_size': args.batch_size,
+            'max_len': args.max_len,
+            'min_len': args.min_len,
+            'skip': args.skip,
+            'threshold': args.threshold,
+            'pred_frac_5EU': fraction_positive,
+        }
+        
+        os.makedirs(os.path.dirname(log_save_path) or '.', exist_ok=True)
+        with open(log_save_path, 'w') as log_out_file:
+            for key, value in log_data.items():
+                log_out_file.write(f"{key}: {value}\n")
 
 def main():
     model_name_choices = list(default_models.keys())
@@ -150,7 +150,6 @@ def main():
         parser.error("--model-path is required when using --arch")
 
     run(args)
-    write_logs(args)
 
 if __name__ == "__main__":
     main()
