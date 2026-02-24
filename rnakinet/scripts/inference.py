@@ -102,7 +102,7 @@ def run(args):
             'min_len': args.min_len,
             'skip': args.skip,
             'threshold': args.threshold,
-            'pred_frac_5EU': fraction_positive,
+            'pred_frac_modified': fraction_positive,
         }
         
         os.makedirs(os.path.dirname(log_save_path) or '.', exist_ok=True)
