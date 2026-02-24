@@ -26,10 +26,6 @@ EXP_TO_REFERENCE: {
     '20250528_mmu_dRNA_3T3_5EU_1':         'Mus_musculus.GRCm39.dna_sm.primary_assembly.fa',
     '20250528_mmu_dRNA_3T3_DMSO_1':        'Mus_musculus.GRCm39.dna_sm.primary_assembly.fa',
     '20240502_mmu_dRNA_3T3_5EU_400_2_R10': 'Mus_musculus.GRCm39.dna_sm.primary_assembly.fa',
-    
-    #TODO Macaca mulatta? primary_assembly on ensembl is shattered to separate chromosomes, not a single file
-    # '20250611_mml_dRNA_PBMC_5EU_1':,
-    # '20250612_mml_dRNA_PBMC_control_1':,
 }
 
 EXP_TO_TRANSCRIPTOME : {
@@ -38,25 +34,47 @@ EXP_TO_TRANSCRIPTOME : {
 
 # Further path inside the DATA_DIR
 EXP_TO_PATH : {
-    '20250529_hsa_dRNA_HeLa_5EU_1': 'experiments/20250529_hsa_dRNA_HeLa_5EU_1/',
-    '20250529_hsa_dRNA_HeLa_DMSO_1': 'experiments/20250529_hsa_dRNA_HeLa_DMSO_1/',
+    '20250529_hsa_dRNA_HeLa_5EU_1': 'experiments_v2/20250529_hsa_dRNA_HeLa_5EU_1/',
+    '20250529_hsa_dRNA_HeLa_DMSO_1': 'experiments_v2/20250529_hsa_dRNA_HeLa_DMSO_1/',
 
-    '20250529_hsa_dRNA_Hek293_5EU_1': 'experiments/20250529_hsa_dRNA_Hek293_5EU_1',
-    '20250529_hsa_dRNA_Hek293_DMSO_1': 'experiments/20250529_hsa_dRNA_Hek293_DMSO_1',
+    '20250529_hsa_dRNA_Hek293_5EU_1': 'experiments_v2/20250529_hsa_dRNA_Hek293_5EU_1',
+    '20250529_hsa_dRNA_Hek293_DMSO_1': 'experiments_v2/20250529_hsa_dRNA_Hek293_DMSO_1',
 
-    '20250611_mml_dRNA_PBMC_5EU_1': 'experiments/20250611_mml_dRNA_PBMC_5EU_1',
-    '20250612_mml_dRNA_PBMC_control_1': 'experiments/20250612_mml_dRNA_PBMC_control_1',
+    '20250611_mml_dRNA_PBMC_5EU_1': 'experiments_v2/20250611_mml_dRNA_PBMC_5EU_1',
+    '20250612_mml_dRNA_PBMC_control_1': 'experiments_v2/20250612_mml_dRNA_PBMC_control_1',
 
-    '20250618_hsa_dRNA_I90_5EU_1': 'experiments/20250618_hsa_dRNA_I90_5EU_1',
-    '20250612_hsa_dRNA_I90_control_1': 'experiments/20250612_hsa_dRNA_I90_control_1',
+    '20250618_hsa_dRNA_I90_5EU_1': 'experiments_v2/20250618_hsa_dRNA_I90_5EU_1',
+    '20250612_hsa_dRNA_I90_control_1': 'experiments_v2/20250612_hsa_dRNA_I90_control_1',
 
-    '20250612_hsa_dRNA_MCF10A_5EU_1': 'experiments/20250612_hsa_dRNA_MCF10A_5EU_1',
-    '20250612_hsa_dRNA_MCF10A_control_1': 'experiments/20250612_hsa_dRNA_MCF10A_control_1',
+    '20250612_hsa_dRNA_MCF10A_5EU_1': 'experiments_v2/20250612_hsa_dRNA_MCF10A_5EU_1',
+    '20250612_hsa_dRNA_MCF10A_control_1': 'experiments_v2/20250612_hsa_dRNA_MCF10A_control_1',
 
-    '20250528_mmu_dRNA_3T3_5EU_1': 'experiments/20250528_mmu_dRNA_3T3_5EU_1',
-    '20250528_mmu_dRNA_3T3_DMSO_1': 'experiments/20250528_mmu_dRNA_3T3_DMSO_1',
+    '20250528_mmu_dRNA_3T3_5EU_1': 'experiments_v2/20250528_mmu_dRNA_3T3_5EU_1',
+    '20250528_mmu_dRNA_3T3_DMSO_1': 'experiments_v2/20250528_mmu_dRNA_3T3_DMSO_1',
 
-    '20240502_mmu_dRNA_3T3_5EU_400_2_R10': 'experiments/20240502_mmu_dRNA_3T3_5EU_400_2_R10',
+    '20240502_mmu_dRNA_3T3_5EU_400_2_R10': 'experiments_v2/20240502_mmu_dRNA_3T3_5EU_400_2_R10',
+
+
+    # INFERENCE_RUN_TO_FILES
+    # Snakemake will automatically generate the test splits (see data_split.smk) for the experiment paths listed here according to the REFERENCE_TO_SPLITS configuration
+    # These splits (or full experiments) can be used in INFERENCE_RUN_GROUPS to generate metrics as desired. Paths should be relative to the DATA_DIR
+    '20250529_hsa_dRNA_HeLa_5EU_1_TEST': '../outputs_dev/splits/20250529_hsa_dRNA_HeLa_5EU_1/test.pod5',
+    '20250529_hsa_dRNA_HeLa_DMSO_1_TEST': '../outputs_dev/splits/20250529_hsa_dRNA_HeLa_DMSO_1/test.pod5',
+
+    '20250529_hsa_dRNA_Hek293_5EU_1_TEST': '../outputs_dev/splits/20250529_hsa_dRNA_Hek293_5EU_1/test.pod5',
+    '20250529_hsa_dRNA_Hek293_DMSO_1_TEST': '../outputs_dev/splits/20250529_hsa_dRNA_Hek293_DMSO_1/test.pod5',
+
+    '20250618_hsa_dRNA_I90_5EU_1_TEST': '../outputs_dev/splits/20250618_hsa_dRNA_I90_5EU_1/test.pod5',
+    '20250612_hsa_dRNA_I90_control_1_TEST': '../outputs_dev/splits/20250612_hsa_dRNA_I90_control_1/test.pod5',
+
+    '20250612_hsa_dRNA_MCF10A_5EU_1_TEST': '../outputs_dev/splits/20250612_hsa_dRNA_MCF10A_5EU_1/test.pod5',
+    '20250612_hsa_dRNA_MCF10A_control_1_TEST': '../outputs_dev/splits/20250612_hsa_dRNA_MCF10A_control_1/test.pod5',
+    
+    '20250528_mmu_dRNA_3T3_5EU_1_TEST': '../outputs_dev/splits/20250528_mmu_dRNA_3T3_5EU_1/test.pod5',
+    '20250528_mmu_dRNA_3T3_DMSO_1_TEST': '../outputs_dev/splits/20250528_mmu_dRNA_3T3_DMSO_1/test.pod5',
+
+    '20240502_mmu_dRNA_3T3_5EU_400_2_R10': ['data/experiments/20240502_mmu_dRNA_3T3_5EU_400_2_R10/runs/no_sample/20240502_1644_2E_PAW01549_c5db9386/pass_converted.pod5'],
+
 }
 
 BASECALLING_CONFIG : {
@@ -64,7 +82,7 @@ BASECALLING_CONFIG : {
     'basecalling_model':'rna004_130bps_hac@v5.2.0',
 }
 
-GPUS_FOR_RULES : { # cann come up with another name too
+GPUS_FOR_RULES : {
     'basecalling_dorado' : {
         'gpu' : 2,
         'gpu_model' : "[gpuv100x|gpua100]",
@@ -167,8 +185,7 @@ TRAINING_CONFIGS : {
     },
 }
 
-# INFERENCE CONFIGURATION (POST-TRAINING)
-# This needs to be set manually after you have decided which checkpoint to use as the final model
+# Can specify path to a trained model here, otherwise Snakemake will automatically use the best checkpoint in CHECKPOINTS_DIR based on the model name in TRAINING_CONFIGS
 MODEL_TO_PATH : {
     # 'Hela_batch_64': 'checkpoints_pl/Hela_batch_64/best-step=1271000-valid_loss=0.25.ckpt',
     # 'Human_batch_64_uniform': 'checkpoints_pl/Human_batch_64_uniform/best-step=5620000-valid_loss=0.40.ckpt',
@@ -194,30 +211,8 @@ MODEL_INFERENCE_PARAMS : {
     },
 }
 
-# EVALUATION CONFIGURATION (POST-TRAINING)
-INFERENCE_RUN_TO_FILES : {
-    '20250529_hsa_dRNA_HeLa_5EU_1_TEST': ['outputs/splits/20250529_hsa_dRNA_HeLa_5EU_1/test.pod5'],
-    '20250529_hsa_dRNA_HeLa_DMSO_1_TEST': ['outputs/splits/20250529_hsa_dRNA_HeLa_DMSO_1/test.pod5'],
-
-    '20250529_hsa_dRNA_Hek293_5EU_1_TEST': ['outputs/splits/20250529_hsa_dRNA_Hek293_5EU_1/test.pod5'],
-    '20250529_hsa_dRNA_Hek293_DMSO_1_TEST': ['outputs/splits/20250529_hsa_dRNA_Hek293_DMSO_1/test.pod5'],
-
-    # '20250611_mml_dRNA_PBMC_5EU_1_TEST': ['outputs/splits/20250611_mml_dRNA_PBMC_5EU_1/test.pod5'],
-    # '20250612_mml_dRNA_PBMC_control_1_TEST': ['outputs/splits/20250612_mml_dRNA_PBMC_control_1/test.pod5'],
-    
-    '20250618_hsa_dRNA_I90_5EU_1_TEST': ['outputs/splits/20250618_hsa_dRNA_I90_5EU_1/test.pod5'],
-    '20250612_hsa_dRNA_I90_control_1_TEST': ['outputs/splits/20250612_hsa_dRNA_I90_control_1/test.pod5'],
-
-    '20250612_hsa_dRNA_MCF10A_5EU_1_TEST': ['outputs/splits/20250612_hsa_dRNA_MCF10A_5EU_1/test.pod5'],
-    '20250612_hsa_dRNA_MCF10A_control_1_TEST': ['outputs/splits/20250612_hsa_dRNA_MCF10A_control_1/test.pod5'],
-    
-    '20250528_mmu_dRNA_3T3_5EU_1_TEST': ['outputs/splits/20250528_mmu_dRNA_3T3_5EU_1/test.pod5'],
-    '20250528_mmu_dRNA_3T3_DMSO_1_TEST': ['outputs/splits/20250528_mmu_dRNA_3T3_DMSO_1/test.pod5'],
-
-    '20240502_mmu_dRNA_3T3_5EU_400_2_R10': ['data/experiments/20240502_mmu_dRNA_3T3_5EU_400_2_R10/runs/no_sample/20240502_1644_2E_PAW01549_c5db9386/pass_converted.pod5'],
-}
-
 INFERENCE_RUN_GROUPS : {
+    # Specify a path to each experiment in EXP_TO_PATH. Training and validation splits will be automatically generated based on the REFERENCE_TO_SPLITS configuration.
     'HeLa_NIH_2025':{
         'positives':['20250529_hsa_dRNA_HeLa_5EU_1_TEST'],
         'negatives':['20250529_hsa_dRNA_HeLa_DMSO_1_TEST'],
@@ -226,10 +221,6 @@ INFERENCE_RUN_GROUPS : {
         'positives':['20250529_hsa_dRNA_Hek293_5EU_1_TEST'],
         'negatives':['20250529_hsa_dRNA_Hek293_DMSO_1_TEST'],
     },
-    # 'PBMC_NIH_2025':{
-    #     'positives':['20250611_mml_dRNA_PBMC_5EU_1_TEST'],
-    #     'negatives':['20250612_mml_dRNA_PBMC_control_1_TEST'],
-    # },
     'I90_NIH_2025':{
         'positives':['20250618_hsa_dRNA_I90_5EU_1_TEST'],
         'negatives':['20250612_hsa_dRNA_I90_control_1_TEST'],
