@@ -9,7 +9,7 @@ def get_model_path(wc):
 
     # fetching model from output specified by training rule
     out = checkpoints.run_training.get(training_run_name=wc.model_name).output
-    ckpt_dir = out.ckpt_out_dir  # = CHECKPOINTS_DIR/{name}/{name}
+    ckpt_dir = out.ckpt_out_dir  # = CHECKPOINTS_DIR + "/{training_run_name}/{training_run_name}"
 
     # searching for best checkpoint
     pattern = os.path.join(ckpt_dir, "best-step=*valid_loss=*.ckpt")
@@ -27,7 +27,7 @@ def get_model_path(wc):
 
 rule run_inference:
     input: 
-        pod5_files = lambda wildcards: INFERENCE_RUN_TO_FILES[wildcards.experiment_name],
+        pod5_files=lambda wc: os.path.normpath(os.path.join(DATA_DIR, EXP_TO_PATH[wc.experiment_name])),
         model_path = get_model_path,
     output:
         csv_path = OUTPUTS_DIR + '/predictions/{model_name}/{experiment_name}/preds.csv',
@@ -59,6 +59,7 @@ rule run_inference:
             --min-len {params.min_len} \
             --skip {params.skip} \
             --output {output.csv_path} \
+            --log
         """
 
 rule run_full_exp_inference:
