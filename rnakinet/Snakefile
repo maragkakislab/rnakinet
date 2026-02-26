@@ -28,7 +28,6 @@ REFERENCE_TO_SPLITS = config['REFERENCE_TO_SPLITS']
 TRAINING_CONFIGS = config['TRAINING_CONFIGS']
 MODEL_TO_PATH = config['MODEL_TO_PATH']
 MODEL_INFERENCE_PARAMS = config['MODEL_INFERENCE_PARAMS']
-INFERENCE_RUN_TO_FILES = config['INFERENCE_RUN_TO_FILES']
 INFERENCE_RUN_GROUPS = config['INFERENCE_RUN_GROUPS']
 ENSEMBL_URL = config['ENSEMBL_URL']
 EXP_TO_ENSEMBL_SPECIES = config['EXP_TO_ENSEMBL_SPECIES']
@@ -36,6 +35,8 @@ EXP_TO_TL = config['EXP_TO_TL']
 HALFLIVES_NAME_TO_FILE = config['HALFLIVES_NAME_TO_FILE']
 GPUS_FOR_RULES = config['GPUS_FOR_RULES']
 ALL_EXPERIMENTS = config['ALL_EXPERIMENTS']
+PCT_POS_GRAPHING_PARAMS = config["PCT_POS_GRAPHING_PARAMS"]
+DIAGNOSTICS_GRAPHING_PARAMS = config["DIAGNOSTICS_GRAPHING_PARAMS"]
 
 # RULES
 include: "rules/basecalling.smk"
@@ -45,6 +46,7 @@ include: "rules/training.smk"
 include: "rules/inference.smk"
 include: "rules/visualizations.smk"
 include: "rules/halflives.smk"
+include: "rules/diagnostics.smk"
 
 rule all:
     input:
