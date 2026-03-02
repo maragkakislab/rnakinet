@@ -282,6 +282,6 @@ DIAGNOSTICS_GRAPHING_PARAMS: {
     graph_title1: {
         'metric': 'mean',
         'experiments': ['20250529_hsa_dRNA_HeLa_5EU_1', '20250529_hsa_dRNA_HeLa_DMSO_1'],
-        'sampling_rate': 0.01,
+        'subsample': 0.01,
     },   
 }

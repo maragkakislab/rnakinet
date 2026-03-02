@@ -33,7 +33,7 @@ def compute_signal_stats(signal: np.ndarray) -> dict:
         "length": length,
     }
 
-def collect_signal_stats(experiment_dir: Path, sampling_rate: float) -> pd.DataFrame:
+def collect_signal_stats(experiment_dir: Path, subsample: float) -> pd.DataFrame:
     experiment_dir = experiment_dir.resolve()
     experiment_name = experiment_dir.name
     pod5_files = sorted(experiment_dir.rglob("*.pod5"))
@@ -43,7 +43,7 @@ def collect_signal_stats(experiment_dir: Path, sampling_rate: float) -> pd.DataF
         print(f"Processing {file_idx}/{len(pod5_files)}: {pod5_path.name}")
         with pod5.Reader(pod5_path) as reader:
             for read_idx, read in enumerate(reader.reads()):
-                if read_idx % int(1.0 / sampling_rate) == 0:
+                if read_idx % int(1.0 / subsample) == 0:
                     rows.append({"experiment": experiment_name,
                                  "file": pod5_path.name,
                                  "read_id": str(read.read_id),
@@ -57,10 +57,10 @@ def main():
     p = argparse.ArgumentParser(description="Sample reads from all .pod5 files under an experiment folder and write per-read signal stats.")
     p.add_argument("--experiment-dir", required=True, type=Path, help="Path to folder/experiment_name (script will search recursively for *.pod5).")
     p.add_argument("--output", required=True, type=Path, help="Output CSV path")
-    p.add_argument("--sampling-rate", required=True, type=float, help="Fraction of reads to sample, distributed evenly across and within files.")
+    p.add_argument("--subsample", required=True, type=float, help="Fraction of reads to sample, distributed evenly across and within files.")
     args = p.parse_args()
 
-    df = collect_signal_stats(args.experiment_dir, args.sampling_rate)
+    df = collect_signal_stats(args.experiment_dir, args.subsample)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     df.to_csv(args.output, index=False)
 

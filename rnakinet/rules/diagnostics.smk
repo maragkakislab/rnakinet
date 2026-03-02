@@ -2,7 +2,7 @@ rule generate_pod5_metrics:
     input:
         experiment_dir = lambda wildcards: f"{DATA_DIR}/{EXP_TO_PATH[wildcards.experiment_name]}",
     output:
-        csv_path = OUTPUTS_DIR + "/diagnostics/pod5_metrics/{experiment_name}_sr_{sampling_rate}_metrics.csv"
+        csv_path = OUTPUTS_DIR + "/diagnostics/pod5_metrics/{experiment_name}_sr_{subsample}_metrics.csv"
     conda:
         "../envs/pod5_splitting.yaml"
     shell:
@@ -10,15 +10,15 @@ rule generate_pod5_metrics:
         python scripts/pod5_metrics.py \
             --experiment-dir {input.experiment_dir} \
             --output {output.csv_path} \
-            --sampling-rate {wildcards.sampling_rate}
+            --subsample {wildcards.subsample}
         """
 
 rule plot_pod5_metrics:
     input:
         input_csvs=lambda wildcards: expand(
-            OUTPUTS_DIR + "/diagnostics/pod5_metrics/{experiment_name}_sr_{sampling_rate}_metrics.csv",
+            OUTPUTS_DIR + "/diagnostics/pod5_metrics/{experiment_name}_sr_{subsample}_metrics.csv",
             experiment_name=DIAGNOSTICS_GRAPHING_PARAMS[wildcards.plot_name]["experiments"],
-            sampling_rate=DIAGNOSTICS_GRAPHING_PARAMS[wildcards.plot_name]["sampling_rate"],
+            subsample=DIAGNOSTICS_GRAPHING_PARAMS[wildcards.plot_name]["subsample"],
         )
     output:
         plot=OUTPUTS_DIR + "/diagnostics/plots/{plot_name}.png"
