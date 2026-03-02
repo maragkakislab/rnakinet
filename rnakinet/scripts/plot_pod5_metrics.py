@@ -43,17 +43,7 @@ def plot_distributions(
     x_min, x_max = float(plot_df["value"].min()), float(plot_df["value"].max())
 
     plt.figure(figsize=(10, 6))
-    # sns.histplot(
-    #     data=plot_df,
-    #     x="value",
-    #     hue="experiment",
-    #     bins=bins,
-    #     binrange=(x_min, x_max),
-    #     element="step",
-    #     fill=False,
-    #     stat=("probability" if normalize else "count"),
-    #     common_norm=False,
-    # )
+    plt.rcParams['font.size'] = 14
     
     bin_edges = np.linspace(x_min, x_max, bins + 1)
     bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2
@@ -65,9 +55,10 @@ def plot_distributions(
         y_smooth = gaussian_filter1d(y, sigma=1.5)  # adjust sigma
         plt.plot(bin_centers, y_smooth, label=experiment_name)
 
-    plt.xlabel(f"log10({metric_name})" if log10 else metric_name)
-    plt.ylabel("Proportion of reads" if normalize else "Read count")
-    plt.title(title)
+    plt.xlabel(f"log10({metric_name})" if log10 else metric_name, fontsize=15)
+    plt.ylabel("Proportion of reads" if normalize else "Read count", fontsize=15)
+    plt.title(title, fontsize=16)
+    plt.legend(fontsize=13)
     plt.tight_layout()
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
