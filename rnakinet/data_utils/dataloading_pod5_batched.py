@@ -101,7 +101,7 @@ class UnlimitedReadsTrainingDataset(IterableDataset):
                     y = np.array(label)
                     if len(x) > self.max_len or len(x) < self.min_len:
                         continue
-                        
+                        # add boolean variable to implement padding
                     yield pad_read_with_zeros(x.reshape(-1, 1).swapaxes(0, 1), max_len=self.max_len), np.array([y], dtype=np.float32), exp
 
     def get_pod5_size(self, pod5_file):
@@ -212,11 +212,12 @@ class InferenceDataset(IterableDataset):
     Iterable Dataset that contains all reads from POD5 files
     """
 
-    def __init__(self, files, max_len, skip, min_len):
+    def __init__(self, files, max_len, skip, min_len, unpadded=False):
         self.files = files
         self.max_len = max_len
         self.skip = skip
         self.min_len = min_len
+        self.unpadded = unpadded
 
     def process_files_fully(self, files):
         for pod5_file in files:
@@ -230,8 +231,10 @@ class InferenceDataset(IterableDataset):
                             'file': str(pod5_file),
                             'readid': str(read.read_id),
                         }
-                        yield pad_read_with_zeros(x.reshape(-1, 1).swapaxes(0, 1), max_len=self.max_len), identifier
-                        
+                        if self.unpadded:
+                            yield x.reshape(-1, 1).swapaxes(0, 1), identifier
+                        else:
+                            yield pad_read_with_zeros(x.reshape(-1, 1).swapaxes(0, 1), max_len=self.max_len), identifier
             except OSError as error:
                 print(error)
                 continue
