@@ -111,14 +111,12 @@ def run(args):
                 log_out_file.write(f"{key}: {value}\n")
 
 def main():
-    model_name_choices = list(default_models.keys())
-    
     parser = argparse.ArgumentParser(description='Run prediction on POD5 files')
     parser.add_argument('--pod5-files', type=str, required=False, nargs='+', help='DEPRECATED. Use --pod5-paths instead.')
     parser.add_argument('--pod5-paths', type=str, required=False, nargs='+', help='Paths to POD5 files or directories containing POD5 files.')
 
     model_group = parser.add_mutually_exclusive_group(required=True)
-    model_group.add_argument('--model-name', type=str, choices=model_name_choices, help='Name of a pretrained model to use')
+    model_group.add_argument('--model-name', type=str, choices=list(default_models.keys()), help='Name of a pretrained model to use')
     model_group.add_argument('--model-path', type=str, help='Path to model weights')
 
     parser.add_argument('--arch', type=str, help='Architecture of the model')
