@@ -9,8 +9,8 @@ import warnings
 
 from rnakinet.data_utils.dataloading_pod5_batched import InferenceDataset
 from rnakinet.data_utils.workers import worker_init_fn_inference
-from rnakinet.scripts.helpers import arch_map
-from rnakinet.scripts.helpers import default_models
+from rnakinet.data_utils.model_loader import arch_map
+from rnakinet.data_utils.model_loader import default_models
 
 def run(args):
     print('CUDA', torch.cuda.is_available())

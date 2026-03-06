@@ -1,3 +1,4 @@
+# rename to model_loader.py, move to data_utils/
 from rnakinet.models.model import RNAkinet
 from rnakinet.models.model_experimental import RNAkinet_LastOnly
 from rnakinet.models.model_r9 import RNAkinet as RNAkinet_r9
