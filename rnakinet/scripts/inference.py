@@ -36,7 +36,8 @@ def run(args):
     unpadded_reads = False
     # Load model path and architecture based on param choice.
     if args.model_name:
-        model_path = default_models[args.model_name]['path']
+        base_dir = os.path.dirname(os.path.dirname(__file__))
+        model_path = os.path.join(base_dir, default_models[args.model_name]['path'])
         arch = default_models[args.model_name]['arch']
         unpadded_reads = default_models[args.model_name]['unpadded']
         print('Using pretrained model', args.model_name, 'with checkpoint', model_path)
