@@ -9,14 +9,17 @@ arch_map = {
     'rnakinet_r9': RNAkinet_r9,
 }
 default_models = {
-    'rnakinet_r10_5EU': {
-        'path':'checkpoints_pl/Human_batch_64_uniform/Human_batch_64_uniform/best-step=3520000-valid_loss=0.35.ckpt',
-        'arch':'rnakinet',
-        'unpadded': False
-    },
     'rnakinet_r9_5EU' : {
-        'path':'models/rnakinet_r9.ckpt',
+        # R9 model from RNAkinet v1, unpadded architecture
+        'path':'models/rnakinet_r9_5EU_unpad@v1.0',
         'arch':'rnakinet_r9',
         'unpadded': True
-    }
+    },
+    
+    'rnakinet_r10_5EU': {
+        # R10 model from RNAkinet v1, unpadded architecture
+        'path':'models/rnakinet_r10_5EU_unpad@v1.0',
+        'arch':'rnakinet',
+        'unpadded': True
+    },
 }
