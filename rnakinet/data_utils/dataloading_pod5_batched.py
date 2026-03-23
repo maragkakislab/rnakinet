@@ -101,7 +101,6 @@ class UnlimitedReadsTrainingDataset(IterableDataset):
                     y = np.array(label)
                     if len(x) > self.max_len or len(x) < self.min_len:
                         continue
-                        # add boolean variable to implement padding
                     yield pad_read_with_zeros(x.reshape(-1, 1).swapaxes(0, 1), max_len=self.max_len), np.array([y], dtype=np.float32), exp
 
     def get_pod5_size(self, pod5_file):
