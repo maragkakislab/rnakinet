@@ -39,7 +39,7 @@ def run(args):
         base_dir = os.path.dirname(os.path.dirname(__file__))
         model_path = os.path.join(base_dir, default_models[args.model_name]['path'])
         arch = default_models[args.model_name]['arch']
-        is_unpadded = default_models[args.model_name]['unpadded']
+        is_unpadded = default_models[args.model_name]['is_unpadded']
         print('Using pretrained model', args.model_name, 'with checkpoint', model_path)
         model = arch_map[arch]()
         

@@ -13,13 +13,13 @@ default_models = {
         # R9 model from RNAkinet v1, unpadded architecture
         'path':'models/rnakinet_r9_5EU_unpad@v1.0',
         'arch':'rnakinet_r9',
-        'unpadded': True
+        'is_unpadded': True
     },
     
     'rnakinet_r10_5EU': {
         # R10 model from RNAkinet v1, unpadded architecture
         'path':'models/rnakinet_r10_5EU_unpad@v1.0',
         'arch':'rnakinet',
-        'unpadded': True
+        'is_unpadded': True
     },
 }
