@@ -13,7 +13,7 @@ from rnakinet.data_utils.model_loader import arch_map
 from rnakinet.data_utils.model_loader import default_models
 
 def run(args):
-    print('CUDA', torch.cuda.is_available())
+    print('CUDA', torch.cuda.is_available(), file=sys.stderr)
     
     files = []
     for pod5_path in args.pod5_paths:
@@ -29,7 +29,7 @@ def run(args):
         else:
             raise Exception(f'Path {pod5_path} is not a valid file or directory')
     
-    print(f'Number of pod5 files found: {len(files)}')
+    print(f'Number of pod5 files found: {len(files)}', file=sys.stderr)
     if(len(files)==0):
         raise Exception(f'No pod5 files found')
     
@@ -40,12 +40,12 @@ def run(args):
         model_path = os.path.join(base_dir, default_models[args.model_name]['path'])
         arch = default_models[args.model_name]['arch']
         is_unpadded = default_models[args.model_name]['is_unpadded']
-        print('Using pretrained model', args.model_name, 'with checkpoint', model_path)
+        print('Using pretrained model', args.model_name, 'with checkpoint', model_path, file=sys.stderr)
         model = arch_map[arch]()
         
     if args.model_path:
         model_path = args.model_path
-        print('Using checkpoint', model_path)
+        print('Using checkpoint', model_path, file=sys.stderr)
         model = arch_map[args.arch]()
         
     model.load_state_dict(torch.load(model_path, map_location='cpu')['state_dict'])
