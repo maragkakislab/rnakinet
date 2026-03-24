@@ -33,13 +33,13 @@ def run(args):
     if(len(files)==0):
         raise Exception(f'No pod5 files found')
     
-    unpadded_reads = False
+    is_unpadded = False
     # Load model path and architecture based on param choice.
     if args.model_name:
         base_dir = os.path.dirname(os.path.dirname(__file__))
         model_path = os.path.join(base_dir, default_models[args.model_name]['path'])
         arch = default_models[args.model_name]['arch']
-        unpadded_reads = default_models[args.model_name]['unpadded']
+        is_unpadded = default_models[args.model_name]['unpadded']
         print('Using pretrained model', args.model_name, 'with checkpoint', model_path)
         model = arch_map[arch]()
         
@@ -56,7 +56,7 @@ def run(args):
     else:
         model.cpu()
         
-    dset = InferenceDataset(files=files, max_len=args.max_len, min_len=args.min_len, skip=args.skip, unpadded=unpadded_reads)
+    dset = InferenceDataset(files=files, max_len=args.max_len, min_len=args.min_len, skip=args.skip, unpadded=is_unpadded)
     
     dataloader = DataLoader(
         dset, 
