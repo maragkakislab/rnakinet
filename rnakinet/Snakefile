@@ -50,9 +50,6 @@ include: "rules/diagnostics.smk"
 
 rule all:
     input:
-        expand('checkpoints_pl/{training_run_name}/DONE.txt', training_run_name='Human_batch_64_uniform'),
-        # After training, the 'model_to_path' and 'model_inference_params' need to be updated with the manually selected checkpoint, then the following lines can be ran for evaluation
-        # expand('outputs/visual/predictions/{model_name}/{group}_{plot_type}.pdf', model_name='Human_batch_64_uniform', group=list(INFERENCE_RUN_GROUPS.keys()), plot_type=['auroc','thresholds','pr_curve','pr_ratios']),
-        # expand('outputs/visual/predictions/{model_name}/{experiment_name}/decay/{halflives_name}_halflives_{reference_level}_read_limit_decay_plot.pdf',model_name='Human_batch_64_uniform', experiment_name='20250528_mmu_dRNA_3T3_5EU_1', halflives_name=['mion','PION'],reference_level=['gene','transcript']),
-        # this line runs inference and calculates the percent positive predictions for all experiments using selected models
-        expand('outputs/{predictions}_pct_pos/{model_name}/{experiment_name}_percent_positive.txt', predictions= 'full_exp_predictions', model_name= ['Model1, Model2, Model3'], experiment_name=config["ALL_EXPERIMENTS"]),
+        expand('outputs_dev/visual/predictions/{model_name}/{group}_{plot_type}.pdf', model_name='model_name', group=list(INFERENCE_RUN_GROUPS.keys()), plot_type=['auroc','thresholds','pr_curve','pr_ratios']),
+        expand('outputs/visual/predictions/{model_name}/{experiment_name}/decay/{halflives_name}_halflives_{reference_level}_read_limit_decay_plot.pdf',model_name='model_name', experiment_name='experiment_name', halflives_name=['mion','PION'],reference_level=['gene','transcript']),
+        'outputs_dev/diagnostics/plots/graph_title1.png',
