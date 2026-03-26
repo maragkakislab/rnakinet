@@ -1,20 +1,21 @@
 import argparse
-import torch
-from torch.utils.data import DataLoader
-import pandas as pd
-import sys
-from tqdm import tqdm
 import os
+import sys
 import warnings
 
+import pandas as pd
+import torch
+from torch.utils.data import DataLoader
+from tqdm import tqdm
+
 from rnakinet.data_utils.dataloading_pod5_batched import InferenceDataset
+from rnakinet.data_utils.model_loader import arch_map, default_models
 from rnakinet.data_utils.workers import worker_init_fn_inference
-from rnakinet.data_utils.model_loader import arch_map
-from rnakinet.data_utils.model_loader import default_models
+
 
 def run(args):
     print('CUDA', torch.cuda.is_available(), file=sys.stderr)
-    
+
     files = []
     for pod5_path in args.pod5_paths:
         if os.path.isdir(pod5_path):
@@ -28,11 +29,11 @@ def run(args):
                 files.append(pod5_path)
         else:
             raise Exception(f'Path {pod5_path} is not a valid file or directory')
-    
+
     print(f'Number of pod5 files found: {len(files)}', file=sys.stderr)
-    if(len(files)==0):
+    if len(files) == 0:
         raise Exception(f'No pod5 files found')
-    
+
     is_unpadded = False
     # Load model path and architecture based on param choice.
     if args.model_name:
@@ -42,15 +43,15 @@ def run(args):
         is_unpadded = default_models[args.model_name]['is_unpadded']
         print('Using pretrained model', args.model_name, 'with checkpoint', model_path, file=sys.stderr)
         model = arch_map[arch]()
-        
+
     if args.model_path:
         model_path = args.model_path
         print('Using checkpoint', model_path, file=sys.stderr)
         model = arch_map[args.arch]()
-        
+
     model.load_state_dict(torch.load(model_path, map_location='cpu')['state_dict'])
     model.eval()
-    
+
     if torch.cuda.is_available() and not args.use_cpu:
         model.cuda()
     else:
@@ -59,11 +60,11 @@ def run(args):
     dset = InferenceDataset(files=files, max_len=args.max_len, min_len=args.min_len, skip=args.skip, unpadded=is_unpadded)
     
     dataloader = DataLoader(
-        dset, 
-        batch_size=args.batch_size, 
-        num_workers=min([args.max_workers, len(dset.files)]), 
-        pin_memory=False, 
-        worker_init_fn=worker_init_fn_inference
+        dset,
+        batch_size=args.batch_size,
+        num_workers=min([args.max_workers, len(dset.files)]),
+        pin_memory=False,
+        worker_init_fn=worker_init_fn_inference,
     )
 
     id_to_pred = {}
@@ -74,27 +75,27 @@ def run(args):
                 inputs = inputs.cuda()
             else:
                 inputs = inputs.cpu()
-                
+
             outputs = model(inputs)
-            
+
             readid_probs = zip(ids['readid'], outputs.cpu().numpy())
             for readid, probab in readid_probs:
                 assert len(probab) == 1
                 id_to_pred[readid] = probab[0]
-                
+
     with open(args.output, 'wb') as handle:
         df = pd.DataFrame.from_dict(id_to_pred, orient='index').reset_index()
         df.columns = ['read_id', '5eu_mod_score']
         df['5eu_modified_prediction'] = df['5eu_mod_score'] > args.threshold
         fraction_positive = (df['5eu_modified_prediction'] == True).mean()
         df.to_csv(handle, index=False)
-    
+
     if args.log is not None:
         if args.log:
             log_save_path = args.log
         else:
             log_save_path = os.path.join(os.path.dirname(args.output), 'log.txt')
-        
+
         log_data = {
             'arch': args.arch if args.arch else default_models[args.model_name]['arch'], # log user-specified arch/model name or provide info on pretrained model used
             'model_path': model_path if args.model_path else default_models[args.model_name]['path'],
@@ -107,11 +108,12 @@ def run(args):
             'threshold': args.threshold,
             'pred_frac_modified': fraction_positive,
         }
-        
+
         os.makedirs(os.path.dirname(log_save_path) or '.', exist_ok=True)
         with open(log_save_path, 'w') as log_out_file:
             for key, value in log_data.items():
-                log_out_file.write(f"{key}: {value}\n")
+                log_out_file.write(f'{key}: {value}\n')
+
 
 def main():
     parser = argparse.ArgumentParser(description='Run prediction on POD5 files')
@@ -134,23 +136,24 @@ def main():
     parser.add_argument('--log', nargs='?', const='', default=None, help='log inference params to file. Saves log.txt to output file dir by default or specify path')
     
     args = parser.parse_args(sys.argv[1:])
-    
+
     if args.pod5_files:
         warnings.warn("--pod5-files is deprecated and will be removed in a future release. Use --pod5-paths instead.", FutureWarning, stacklevel=2)
         if not args.pod5_paths:
             args.pod5_paths = args.pod5_files
         else:
             args.pod5_paths.extend(args.pod5_files)
-    
+
     if not (args.pod5_paths or args.pod5_files):
-        parser.error("one of --pod5-paths or --pod5-files is required")
-    
+        parser.error('one of --pod5-paths or --pod5-files is required')
+
     if args.model_path and not args.arch:
-        parser.error("--arch must be explicitly specified when using --model-path") 
+        parser.error('--arch must be explicitly specified when using --model-path')
     if args.arch and not args.model_path:
-        parser.error("--model-path is required when using --arch")
+        parser.error('--model-path is required when using --arch')
 
     run(args)
 
-if __name__ == "__main__":
+
+if __name__ == '__main__':
     main()

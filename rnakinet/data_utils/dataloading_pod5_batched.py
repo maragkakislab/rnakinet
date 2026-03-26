@@ -1,37 +1,39 @@
 import random
-import pytorch_lightning as pl
-import numpy as np
-from torch.utils.data import IterableDataset, Dataset
-from torch.utils.data import DataLoader
-from pod5 import Reader
 
-from rnakinet.data_utils.generators import uniform_gen, ratio_gen
-from rnakinet.data_utils.read_utils import process_pod5_read, pad_read_with_zeros
+import numpy as np
+import pytorch_lightning as pl
+from pod5 import Reader
+from torch.utils.data import DataLoader, Dataset, IterableDataset
+
+from rnakinet.data_utils.generators import ratio_gen, uniform_gen
+from rnakinet.data_utils.read_utils import pad_read_with_zeros, process_pod5_read
 from rnakinet.data_utils.workers import worker_init_fn_train
+
+
 class TrainingDatamodule(pl.LightningDataModule):
     def __init__(
-            self,
-            train_pos_pod5s, #Assumes 1 pod5 per experiment
-            train_neg_pod5s,
-            valid_pos_pod5s,
-            valid_neg_pod5s,
-            batch_size,
-            valid_read_limit,
-            shuffle_valid,
-            workers,
-            max_len,
-            skip,
-            multiexp_generator_type,
-            min_len,
+        self,
+        train_pos_pod5s,  # Assumes 1 pod5 per experiment
+        train_neg_pod5s,
+        valid_pos_pod5s,
+        valid_neg_pod5s,
+        batch_size,
+        valid_read_limit,
+        shuffle_valid,
+        workers,
+        max_len,
+        skip,
+        multiexp_generator_type,
+        min_len,
     ):
 
         super().__init__()
         self.train_pos_pod5s = train_pos_pod5s
         self.train_neg_pod5s = train_neg_pod5s
-        
+
         self.valid_pos_pod5s = valid_pos_pod5s
         self.valid_neg_pod5s = valid_neg_pod5s
-        
+
         self.batch_size = batch_size
         self.valid_read_limit = valid_read_limit
         self.shuffle_valid = shuffle_valid
@@ -42,15 +44,15 @@ class TrainingDatamodule(pl.LightningDataModule):
         self.max_len = max_len
         self.skip = skip
         self.min_len = min_len
-        
+
         self.multiexp_generator_type = multiexp_generator_type
 
     def setup(self, stage=None):
-        if (stage == 'fit' or stage is None):
+        if stage == 'fit' or stage is None:
             self.train_dataset = UnlimitedReadsTrainingDataset(
                 pos_pod5s=self.train_pos_pod5s,
                 neg_pod5s=self.train_neg_pod5s,
-                max_len = self.max_len,
+                max_len=self.max_len,
                 skip=self.skip,
                 min_len=self.min_len,
                 multiexp_generator_type=self.multiexp_generator_type,
@@ -67,20 +69,21 @@ class TrainingDatamodule(pl.LightningDataModule):
 
     def train_dataloader(self):
         return DataLoader(
-            self.train_dataset, 
-            batch_size=self.batch_size, 
+            self.train_dataset,
+            batch_size=self.batch_size,
             num_workers=self.workers,
             worker_init_fn=worker_init_fn_train,
         )
 
     def val_dataloader(self):
-        return  DataLoader(self.valid_dataset, batch_size=self.batch_size)
+        return DataLoader(self.valid_dataset, batch_size=self.batch_size)
 
-    
+
 class UnlimitedReadsTrainingDataset(IterableDataset):
     """
     Iterable Dataset that contains all reads
     """
+
     def __init__(self, pos_pod5s, neg_pod5s, max_len, skip, min_len, multiexp_generator_type):
         self.positive_pod5s = pos_pod5s
         self.negative_pod5s = neg_pod5s
@@ -90,7 +93,7 @@ class UnlimitedReadsTrainingDataset(IterableDataset):
         self.multiexp_generator_type = multiexp_generator_type
 
         # This will get modified by worker processes, if multiprocessing takes place
-        self.pod5_to_readids = {pod5: Reader(pod5).read_ids for pod5 in self.positive_pod5s+self.negative_pod5s}
+        self.pod5_to_readids = {pod5: Reader(pod5).read_ids for pod5 in self.positive_pod5s + self.negative_pod5s}
 
     def process_pod5(self, pod5_file, label, exp):
         while True:
@@ -117,30 +120,31 @@ class UnlimitedReadsTrainingDataset(IterableDataset):
         for neg_pod5 in self.negative_pod5s:
             neg_gens.append(self.process_pod5(pod5_file=neg_pod5, label=0, exp='neg'))
             neg_sizes.append(self.get_pod5_size(neg_pod5))
-            
-        if(self.multiexp_generator_type  == 'uniform'):
+
+        if self.multiexp_generator_type == 'uniform':
             global_pos_gen = uniform_gen(pos_gens)
             global_neg_gen = uniform_gen(neg_gens)
-        
-        if(self.multiexp_generator_type == 'ratio'):
-            pos_ratios = np.array(pos_sizes)/np.sum(pos_sizes)
-            neg_ratios = np.array(neg_sizes)/np.sum(neg_sizes)
+
+        if self.multiexp_generator_type == 'ratio':
+            pos_ratios = np.array(pos_sizes) / np.sum(pos_sizes)
+            neg_ratios = np.array(neg_sizes) / np.sum(neg_sizes)
             global_pos_gen = ratio_gen(pos_gens, pos_ratios)
             global_neg_gen = ratio_gen(neg_gens, neg_ratios)
-        
+
         gen = uniform_gen([global_pos_gen, global_neg_gen])
-        
+
         while True:
             yield next(gen)
 
     def __iter__(self):
         return self.get_stream()
 
-  
+
 class UnlimitedReadsValidDataset(Dataset):
     """
     Mapped Dataset that contains validation reads
     """
+
     def __init__(self, pos_pod5s, neg_pod5s, max_len, skip, min_len, multiexp_generator_type, valid_read_limit):
         self.positive_pod5s = pos_pod5s
         self.negative_pod5s = neg_pod5s
@@ -149,7 +153,7 @@ class UnlimitedReadsValidDataset(Dataset):
         self.skip = skip
         self.multiexp_generator_type = multiexp_generator_type
         self.valid_read_limit = valid_read_limit
-        
+
         print('Generating valid dataset')
         self.items = self.generate_data()
 
@@ -181,19 +185,19 @@ class UnlimitedReadsValidDataset(Dataset):
         for neg_pod5 in self.negative_pod5s:
             neg_gens.append(self.process_pod5(neg_pod5, label=0))
             neg_sizes.append(self.get_pod5_size(neg_pod5))
-            
-        if(self.multiexp_generator_type  == 'uniform'):
+
+        if self.multiexp_generator_type == 'uniform':
             global_pos_gen = uniform_gen(pos_gens)
             global_neg_gen = uniform_gen(neg_gens)
-        
-        if(self.multiexp_generator_type == 'ratio'):
-            pos_ratios = np.array(pos_sizes)/np.sum(pos_sizes)
-            neg_ratios = np.array(neg_sizes)/np.sum(neg_sizes)
+
+        if self.multiexp_generator_type == 'ratio':
+            pos_ratios = np.array(pos_sizes) / np.sum(pos_sizes)
+            neg_ratios = np.array(neg_sizes) / np.sum(neg_sizes)
             global_pos_gen = ratio_gen(pos_gens, pos_ratios)
             global_neg_gen = ratio_gen(neg_gens, neg_ratios)
-        
+
         gen = uniform_gen([global_pos_gen, global_neg_gen])
-        
+
         items = []
         for _ in range(self.valid_read_limit):
             x, y = next(gen)
@@ -205,6 +209,7 @@ class UnlimitedReadsValidDataset(Dataset):
 
     def __getitem__(self, idx):
         return self.items[idx]
+
 
 class InferenceDataset(IterableDataset):
     """
