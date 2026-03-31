@@ -17,18 +17,18 @@ def run(args):
     print('CUDA', torch.cuda.is_available(), file=sys.stderr)
 
     files = []
-    for pod5_path in args.pod5_paths:
-        if os.path.isdir(pod5_path):
-            # if pod5_path is a directory, search for pod5 files in it and all subdirectories
-            for root, _, filenames in os.walk(pod5_path):
+    for input_path in args.path:
+        if os.path.isdir(input_path):
+            # If the input path is a directory, search recursively for POD5 files.
+            for root, _, filenames in os.walk(input_path):
                 for fname in filenames:
                     if fname.lower().endswith('.pod5'):
                         files.append(os.path.join(root, fname))
-        elif os.path.isfile(pod5_path):
-            if pod5_path.lower().endswith('.pod5'):
-                files.append(pod5_path)
+        elif os.path.isfile(input_path):
+            if input_path.lower().endswith('.pod5'):
+                files.append(input_path)
         else:
-            raise Exception(f'Path {pod5_path} is not a valid file or directory')
+            raise Exception(f'Path {input_path} is not a valid file or directory')
 
     print(f'Number of pod5 files found: {len(files)}', file=sys.stderr)
     if len(files) == 0:
@@ -117,8 +117,8 @@ def run(args):
 
 def main():
     parser = argparse.ArgumentParser(description='Run prediction on POD5 files')
-    parser.add_argument('--pod5-files', type=str, required=False, nargs='+', help='DEPRECATED. Use --pod5-paths instead.')
-    parser.add_argument('--pod5-paths', type=str, required=False, nargs='+', help='Paths to POD5 files or directories containing POD5 files.')
+    parser.add_argument('--pod5-files', type=str, required=False, nargs='+', help=argparse.SUPPRESS)
+    parser.add_argument('--path', type=str, required=False, nargs='+', help='Paths to POD5 files or directories containing POD5 files.')
 
     model_group = parser.add_mutually_exclusive_group(required=True)
     model_group.add_argument('--model-name', type=str, choices=list(default_models.keys()), help='Name of a pretrained model to use')
@@ -138,14 +138,14 @@ def main():
     args = parser.parse_args(sys.argv[1:])
 
     if args.pod5_files:
-        warnings.warn("--pod5-files is deprecated and will be removed in a future release. Use --pod5-paths instead.", FutureWarning, stacklevel=2)
-        if not args.pod5_paths:
-            args.pod5_paths = args.pod5_files
+        warnings.warn("--pod5-files is deprecated and will be removed in a future release. Use --path instead.", FutureWarning, stacklevel=2)
+        if not args.path:
+            args.path = args.pod5_files
         else:
-            args.pod5_paths.extend(args.pod5_files)
+            args.path.extend(args.pod5_files)
 
-    if not (args.pod5_paths or args.pod5_files):
-        parser.error('one of --pod5-paths or --pod5-files is required')
+    if not (args.path or args.pod5_files):
+        parser.error('one of --path or --pod5-files is required')
 
     if args.model_path and not args.arch:
         parser.error('--arch must be explicitly specified when using --model-path')
