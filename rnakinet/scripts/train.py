@@ -1,17 +1,18 @@
-import torch
-print('CUDA', torch.cuda.is_available())
+import argparse
+from pathlib import Path
 
-import wandb
-from rnakinet.data_utils.dataloading_pod5_batched import TrainingDatamodule
 import pytorch_lightning as pl
-from pytorch_lightning.loggers import WandbLogger
+import torch
+import wandb
+import yaml
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.callbacks.early_stopping import EarlyStopping
-from pathlib import Path
-from rnakinet.data_utils.model_loader import arch_map #TODO refactor model mapping from strings 
-import argparse
-import yaml
+from pytorch_lightning.loggers import WandbLogger
 
+from rnakinet.data_utils.dataloading_pod5_batched import TrainingDatamodule
+from rnakinet.models.model_loader import arch_map  #TODO refactor model mapping from strings 
+
+print('CUDA', torch.cuda.is_available())
 
 def parse_args(parser):
     parser.add_argument(

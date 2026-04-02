@@ -9,8 +9,8 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 from rnakinet.data_utils.dataloading_pod5_batched import InferenceDataset
-from rnakinet.data_utils.model_loader import arch_map, default_models
 from rnakinet.data_utils.workers import worker_init_fn_inference
+from rnakinet.models.model_loader import arch_map, default_models
 
 
 def run(args):
