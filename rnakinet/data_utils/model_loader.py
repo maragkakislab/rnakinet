@@ -11,14 +11,14 @@ arch_map = {'rnakinet': RNAkinet,
 default_models = {
     'rnakinet_r9_5EU': {
         # R9 model from RNAkinet v1, unpadded architecture
-        'path': 'models/rnakinet_r9_5EU_unpad@v1.0',
+        'path': 'models/rnakinet_r9_5EU_unpad@v1.0.ckpt',
         'arch': 'rnakinet_r9',
-        'is_unpadded': True,
+        'pad_reads': False,
     },
     'rnakinet_r10_5EU': {
         # R10 model from RNAkinet v1, unpadded architecture
         'path': 'models/rnakinet_r10_5EU_unpad@v1.0',
         'arch': 'rnakinet',
-        'is_unpadded': True,
+        'pad_reads': False,
     },
 }

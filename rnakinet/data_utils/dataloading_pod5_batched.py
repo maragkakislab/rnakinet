@@ -216,12 +216,12 @@ class InferenceDataset(IterableDataset):
     Iterable Dataset that contains all reads from POD5 files
     """
 
-    def __init__(self, files, max_len, skip, min_len, unpadded=False):
+    def __init__(self, files, max_len, skip, min_len, pad_reads=True):
         self.files = files
         self.max_len = max_len
         self.skip = skip
         self.min_len = min_len
-        self.unpadded = unpadded
+        self.pad_reads = pad_reads
 
     def process_files_fully(self, files):
         for pod5_file in files:
@@ -235,10 +235,10 @@ class InferenceDataset(IterableDataset):
                             'file': str(pod5_file),
                             'readid': str(read.read_id),
                         }
-                        if self.unpadded:
-                            yield x.reshape(-1, 1).swapaxes(0, 1), identifier
-                        else:
+                        if self.pad_reads:
                             yield pad_read_with_zeros(x.reshape(-1, 1).swapaxes(0, 1), max_len=self.max_len), identifier
+                        else:
+                            yield x.reshape(-1, 1).swapaxes(0, 1), identifier
             except OSError as error:
                 print(error)
                 continue
