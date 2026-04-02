@@ -10,30 +10,26 @@ RNAkinet is a project dedicated to detecting 5eu-modified reads directly from th
 pip install rnakinet
 ```
 
-## Predict 5EU in fast5/pod5 files
+## Predict 5EU in POD5 files
 
 ```sh
-rnakinet-inference --path <path_to_folder_containing_fast5s> --output <predictions_name.csv>
+rnakinet-inference --path <pod5_file_or_directory> --model-name rnakinet_r10_5EU --output <predictions_name.csv>
 ```
 
 This creates a csv file with columns `read_id` - the read id, `5eu_mod_score` - the raw prediction score from 0 to 1, `5eu_modified_prediction` - Boolean column, True if the read is predicted to be modified by 5EU, False otherwise
 
 Nvidia GPU is recommended to run this command. If you want to run inference on a CPU-only machine, use the `--use-cpu` option. This will substantially increase runtime.
 
-If you want to use pod5 files instead, add the `--format pod5` flag.
+FAST5 input is not currently supported. Support will be reimplemented in a future release; for now, inference can still be run by converting Fast5 reads to POD5 first.
+
+Pass one or more POD5 files or directories via `--path`. Use `--model-name` to select the packaged pretrained model for your flow-cell chemistry, for example `rnakinet_r9_5EU` or `rnakinet_r10_5EU`.
+
+Users who have trained their own RNAkinet models can use `--model-path` (must be used in conjunction with `--arch`) to run inference on custom models in place of `--model-name`.
 
 ### Example
 
 ```sh
-rnakinet-inference --path data/experiment/fast5_folder --output preds.csv
-```
-
-### Selecting flow-cell chemistry
-
-RNAkinet has been extensively tested on flow-cells with the R9 chemistry. Experimental support is offered for R10. You can specify the flow-cell chemistry with the `--kit` option.
-
-```sh
-rnakinet-inference --path data/experiment/fast5_folder --kit r10 --output preds.csv
+rnakinet-inference --path data/experiment/pod5_dir --model-name rnakinet_r10_5EU --output preds.csv
 ```
 
 ## Calculate transcript halflives
@@ -78,9 +74,9 @@ Run snakemake from within the created conda environment rather than loading a mo
 
 Obtiain an API key for [Weights and Biases](https://wandb.ai/site/), and create a file `.env` (in the same directory as your Snakefile) that contains the line `WANDB_API_KEY=YOUR_API_KEY`. This will be used for tracking and visualizing model performance.
 
-## Inference and Visualization
+## GPU and snakemake profile
 
-When training is complete, uncomment the appropriate lines in `Snakefile` to run the inference and visualization steps. Make sure to specify the path to the model weights in `config.yml`.
+Please ensure that the format for compute resource allocation is compatible with your snakemake profile and GPU/cluster requirements. Specifically, GPU names/quantities can be modified from `GPUS_FOR_RULES` in `config.yml`
 
 # Cite
 
