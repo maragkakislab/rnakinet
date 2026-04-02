@@ -3,10 +3,11 @@ from rnakinet.models.model import RNAkinet
 from rnakinet.models.model_experimental import RNAkinet_LastOnly
 from rnakinet.models.model_legacy import RNAkinet as RNAkinet_legacy
 
-arch_map = {'rnakinet': RNAkinet,
-            'rnakinet_lastonly': RNAkinet_LastOnly,
-            'rnakinet_legacy': RNAkinet_legacy
-            }
+arch_map = {
+    'rnakinet': RNAkinet,
+    'rnakinet_lastonly': RNAkinet_LastOnly,
+    'rnakinet_legacy': RNAkinet_legacy,
+}
 
 default_models = {
     'rnakinet_r9_5EU': {
