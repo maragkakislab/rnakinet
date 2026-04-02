@@ -121,6 +121,7 @@ def main():
     parser.add_argument('--path', type=str, required=False, nargs='+', help='Paths to POD5 files or directories containing POD5 files.') # TODO change from pod5 files to something that can include fast5 (and add fast5 support)
 
     model_group = parser.add_mutually_exclusive_group(required=True)
+    model_group.add_argument('--kit', type=str, choices=['r9', 'r10'], help=argparse.SUPPRESS) # deprecated, use --model-name instead
     model_group.add_argument('--model-name', type=str, choices=list(default_models.keys()), help='Name of a pretrained model to use')
     model_group.add_argument('--model-path', type=str, help='Path to model weights')
 
@@ -145,8 +146,15 @@ def main():
             args.path.extend(args.pod5_files)
 
     if not (args.path or args.pod5_files):
-        parser.error('one of --path or --pod5-files is required')
+        parser.error('--path is required')
 
+    if args.kit:
+        warnings.warn("--kit is deprecated and will be removed in a future release. Use --model-name instead.", FutureWarning, stacklevel=2)
+        if args.kit == 'r9':
+            args.model_name = 'rnakinet_r9_5EU'
+        elif args.kit == 'r10':
+            args.model_name = 'rnakinet_r10_5EU'
+            
     if args.model_path and not args.arch:
         parser.error('--arch must be explicitly specified when using --model-path')
     if args.arch and not args.model_path:
