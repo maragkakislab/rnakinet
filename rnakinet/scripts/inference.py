@@ -151,9 +151,9 @@ def main():
     if args.kit:
         warnings.warn("--kit is deprecated and will be removed in a future release. Use --model-name instead.", FutureWarning, stacklevel=2)
         if args.kit == 'r9':
-            args.model_name = 'rnakinet_r9_5EU'
+            args.model_name = 'r9_5EU_v1.0'
         elif args.kit == 'r10':
-            args.model_name = 'rnakinet_r10_5EU'
+            args.model_name = 'r10_5EU_v2.0'
             
     if args.model_path and not args.arch:
         parser.error('--arch must be explicitly specified when using --model-path')
