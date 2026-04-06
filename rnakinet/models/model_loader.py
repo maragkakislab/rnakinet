@@ -9,19 +9,19 @@ arch_map = {
 
 default_models = {
     'r9_5EU_v1.0': {
-        # R9 model from RNAkinet v1, unpadded architecture
+        'tip': 'R9 model from RNAkinet v1, unpadded reads + v1.0 architecture',
         'path': 'models/rnakinet_r9_5EU_unpad@v1.0.ckpt',
         'arch': 'v1.0',
         'pad_reads': False,
     },
     'r10_5EU_v1.0': {
-        # R10 model from RNAkinet v1, unpadded architecture
+        'tip': 'R10 model from RNAkinet v1, unpadded reads + v1.0 architecture',
         'path': 'models/rnakinet_r10_5EU_unpad@v1.0',
         'arch': 'v1.0',
         'pad_reads': False,
     },
     'r10_5EU_v2.0': {
-        # R10 model from RNAkinet v2, padded architecture
+        'tip': 'R10 model from RNAkinet v2, padded reads + v2.0 architecture',
         'path': 'models/rnakinet_r10_5EU_pad@v2.0.ckpt',
         'arch': 'v2.0',
         'pad_reads': True,

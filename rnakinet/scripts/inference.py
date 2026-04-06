@@ -116,17 +116,29 @@ def run(args):
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Run prediction on POD5 files')
+    parser = argparse.ArgumentParser(
+        description='Run prediction on POD5 files',
+        formatter_class=argparse.RawTextHelpFormatter,
+    )
+    
+    # input
     parser.add_argument('--pod5-files', type=str, required=False, nargs='+', help=argparse.SUPPRESS)
-    parser.add_argument('--path', type=str, required=False, nargs='+', help='Paths to POD5 files or directories containing POD5 files.') # TODO change from pod5 files to something that can include fast5 (and add fast5 support)
-
+    parser.add_argument('--path', type=str, required=False, nargs='+', help='Paths to POD5 files or directories containing POD5 files') # TODO change from pod5 files to something that can include fast5 (and add fast5 support)
+   
+    # model options
     model_group = parser.add_mutually_exclusive_group(required=True)
+    helpstring = 'Name of a pretrained model to use. Choices:\n' + '\n'.join(
+        f"  {model_name}: {model_info['tip']}" for model_name, model_info in default_models.items())
+    model_group.add_argument('--model-name', type=str, choices=list(default_models.keys()), help=helpstring)
+    model_group.add_argument('--model-path', type=str, help='Path to model weights. Must be used in conjunction with --arch')
+    parser.add_argument('--arch', type=str, help='Architecture of the model. Must be used in conjunction with --model-path')
     model_group.add_argument('--kit', type=str, choices=['r9', 'r10'], help=argparse.SUPPRESS) # deprecated, use --model-name instead
-    model_group.add_argument('--model-name', type=str, choices=list(default_models.keys()), help='Name of a pretrained model to use')
-    model_group.add_argument('--model-path', type=str, help='Path to model weights')
+    
+    # output
+    parser.add_argument('--output', type=str, required=True, help='Path to the output csv file')
+    parser.add_argument('--log', nargs='?', const='', default=None, help='log inference params to file. Saves log.txt to output file dir by default or specify path')
 
-    parser.add_argument('--arch', type=str, help='Architecture of the model')
-    parser.add_argument('--output', type=str, required=True, help='Path to the output csv file.')
+    # inference params
     parser.add_argument('--max-workers', type=int, default=16, help='Maximum number of workers for data loading')
     parser.add_argument('--batch-size', type=int, default=1, help='Batch size for data loading')
     parser.add_argument('--max-len', type=int, default=400000, help='Maximum length of the signal sequence to process')
@@ -134,10 +146,10 @@ def main():
     parser.add_argument('--skip', type=int, default=5000, help='How many signal steps to skip at the beginning of each sequence (trimming)')
     parser.add_argument('--threshold', type=float, default=0.5, help='Threshold for the predictions to be considered positives')
     parser.add_argument('--use-cpu', action='store_true', help='Use CPU for computation instead of GPU')
-    parser.add_argument('--log', nargs='?', const='', default=None, help='log inference params to file. Saves log.txt to output file dir by default or specify path')
     
     args = parser.parse_args(sys.argv[1:])
 
+    # warnings and checks
     if args.pod5_files:
         warnings.warn("--pod5-files is deprecated and will be removed in a future release. Use --path instead.", FutureWarning, stacklevel=2)
         if not args.path:
