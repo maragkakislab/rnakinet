@@ -139,12 +139,12 @@ def main():
     parser.add_argument('--log', nargs='?', const='', default=None, help='log inference params to file. Saves log.txt to output file dir by default or specify path')
 
     # inference params
-    parser.add_argument('--max-workers', type=int, default=16, help='Maximum number of workers for data loading')
-    parser.add_argument('--batch-size', type=int, default=1, help='Batch size for data loading')
-    parser.add_argument('--max-len', type=int, default=400000, help='Maximum length of the signal sequence to process')
-    parser.add_argument('--min-len', type=int, default=5000, help='Minimum length of the signal sequence to process')
-    parser.add_argument('--skip', type=int, default=5000, help='How many signal steps to skip at the beginning of each sequence (trimming)')
-    parser.add_argument('--threshold', type=float, default=0.5, help='Threshold for the predictions to be considered positives')
+    parser.add_argument('--max-workers', type=int, default=16, help='Maximum number of workers for data loading (default: %(default)s)')
+    parser.add_argument('--batch-size', type=int, default=1, help='Batch size for data loading (default: %(default)s)')
+    parser.add_argument('--max-len', type=int, default=400000, help='Maximum length of the signal sequence to process (default: %(default)s)')
+    parser.add_argument('--min-len', type=int, default=5000, help='Minimum length of the signal sequence to process (default: %(default)s)')
+    parser.add_argument('--skip', type=int, default=5000, help='How many signal steps to skip at the beginning of each sequence (trimming) (default: %(default)s)')
+    parser.add_argument('--threshold', type=float, default=0.5, help='Threshold for the predictions to be considered positives (default: %(default)s)')
     parser.add_argument('--use-cpu', action='store_true', help='Use CPU for computation instead of GPU')
     
     args = parser.parse_args(sys.argv[1:])
