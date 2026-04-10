@@ -22,7 +22,7 @@ default_models = {
     },
     'r10_5EU_v2.0': {
         'tip': 'for ONT R10 kit with RNAkinet v2 architecture',
-        'path': 'models/rnakinet_r10_5EU_pad@v2.0.ckpt',
+        'path': 'models/rnakinet_r10_5EU@v2.0.ckpt',
         'arch': 'v2.0',
         'pad_reads': True,
     }      
