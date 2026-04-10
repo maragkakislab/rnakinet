@@ -2,6 +2,7 @@ import argparse
 import os
 import sys
 import warnings
+from importlib.metadata import version
 
 import pandas as pd
 import torch
@@ -120,6 +121,7 @@ def main():
         description='Run prediction on POD5 files',
         formatter_class=argparse.RawTextHelpFormatter,
     )
+    parser.add_argument('--version', action='version', version=f'%(prog)s {version("rnakinet")}')
     
     # input
     parser.add_argument('--pod5-files', type=str, required=False, nargs='+', help=argparse.SUPPRESS)
