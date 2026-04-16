@@ -13,7 +13,7 @@ pip install rnakinet
 ## Predict 5EU in POD5 files
 
 ```sh
-rnakinet-inference --path <pod5_file_or_directory> --model-name rnakinet_r10_5EU --output <predictions_name.csv>
+rnakinet-inference --path <pod5_file_or_directory> --model-name <model_name> --output <predictions_name.csv>
 ```
 
 This creates a csv file with columns `read_id` - the read id, `5eu_mod_score` - the raw prediction score from 0 to 1, `5eu_modified_prediction` - Boolean column, True if the read is predicted to be modified by 5EU, False otherwise
@@ -22,15 +22,10 @@ Nvidia GPU is recommended to run this command. If you want to run inference on a
 
 FAST5 input is not currently supported. Support will be reimplemented in a future release; for now, inference can still be run by converting Fast5 reads to POD5 first.
 
-Pass one or more POD5 files or directories via `--path`. Use `--model-name` to select the packaged pretrained model for your flow-cell chemistry, for example `rnakinet_r9_5EU` or `rnakinet_r10_5EU`.
+Pass one or more POD5 files or directories via `--path`. Use `--model-name` to select the packaged pretrained model for your flow-cell chemistry, for example `r9_5EU_v1.0` or `r10_5EU_v1.0`.
 
 Users who have trained their own RNAkinet models can use `--model-path` (must be used in conjunction with `--arch`) to run inference on custom models in place of `--model-name`.
 
-### Example
-
-```sh
-rnakinet-inference --path data/experiment/pod5_dir --model-name rnakinet_r10_5EU --output preds.csv
-```
 
 ## Calculate transcript halflives
 
