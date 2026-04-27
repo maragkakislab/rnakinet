@@ -1,0 +1,13 @@
+name: snakemake_env
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - python=3.9
+  - snakemake
+  - mamba=1
+  - pip
+  - pip:
+      - python-dotenv
+

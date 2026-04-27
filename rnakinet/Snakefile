@@ -1,0 +1,55 @@
+import os
+from pathlib import Path
+from dotenv import load_dotenv
+
+load_dotenv()
+WANDB_API_KEY = os.getenv("WANDB_API_KEY") #Optional and used only for training
+
+# LOAD CONFIG
+if "--configfile" in sys.argv:
+    i = sys.argv.index("--configfile")
+    config_path = sys.argv[i + 1]
+    configfile: config_path
+else:
+    config_path = "config/config.yml"
+    configfile: config_path
+
+REFERENCES_DIR = config['REFERENCES_DIR']
+DATA_DIR = config['DATA_DIR']
+OUTPUTS_DIR = config['OUTPUTS_DIR']
+CHECKPOINTS_DIR = config['CHECKPOINTS_DIR']
+HALFLIVES_FOLDER = config['HALFLIVES_FOLDER']
+FASTA_TO_DOWNLOAD = config['FASTA_TO_DOWNLOAD']
+EXP_TO_REFERENCE = config['EXP_TO_REFERENCE']
+EXP_TO_TRANSCRIPTOME = config['EXP_TO_TRANSCRIPTOME']
+EXP_TO_PATH = config['EXP_TO_PATH']
+BASECALLING_CONFIG = config['BASECALLING_CONFIG']
+REFERENCE_TO_SPLITS = config['REFERENCE_TO_SPLITS']
+TRAINING_CONFIGS = config['TRAINING_CONFIGS']
+MODEL_TO_PATH = config['MODEL_TO_PATH']
+MODEL_INFERENCE_PARAMS = config['MODEL_INFERENCE_PARAMS']
+INFERENCE_RUN_GROUPS = config['INFERENCE_RUN_GROUPS']
+ENSEMBL_URL = config['ENSEMBL_URL']
+EXP_TO_ENSEMBL_SPECIES = config['EXP_TO_ENSEMBL_SPECIES']
+EXP_TO_TL = config['EXP_TO_TL']
+HALFLIVES_NAME_TO_FILE = config['HALFLIVES_NAME_TO_FILE']
+GPUS_FOR_RULES = config['GPUS_FOR_RULES']
+ALL_EXPERIMENTS = config['ALL_EXPERIMENTS']
+PCT_POS_GRAPHING_PARAMS = config["PCT_POS_GRAPHING_PARAMS"]
+DIAGNOSTICS_GRAPHING_PARAMS = config["DIAGNOSTICS_GRAPHING_PARAMS"]
+
+# RULES
+include: "rules/basecalling.smk"
+include: "rules/alignment.smk"
+include: "rules/data_split.smk"
+include: "rules/training.smk"
+include: "rules/inference.smk"
+include: "rules/visualizations.smk"
+include: "rules/halflives.smk"
+include: "rules/diagnostics.smk"
+
+rule all:
+    input:
+        expand('outputs_dev/visual/predictions/{model_name}/{group}_{plot_type}.pdf', model_name='model_name', group=list(INFERENCE_RUN_GROUPS.keys()), plot_type=['auroc','thresholds','pr_curve','pr_ratios']),
+        expand('outputs/visual/predictions/{model_name}/{experiment_name}/decay/{halflives_name}_halflives_{reference_level}_read_limit_decay_plot.pdf',model_name='model_name', experiment_name='experiment_name', halflives_name=['mion','PION'],reference_level=['gene','transcript']),
+        'outputs_dev/diagnostics/plots/graph_title1.png',

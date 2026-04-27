@@ -15,5 +15,8 @@ def process_pod5_read(read, skip=0):
     s = (s - med) / mad
     return s[skip:]
 
+def pad_read_with_zeros(read, max_len):
+    padding = np.zeros((1, max_len-read.shape[1]), dtype=np.float32)
+    return np.concatenate((read, padding), axis=1)
 
 

@@ -1,34 +1,39 @@
 # RNAkinet
+
 RNAkinet is a project dedicated to detecting 5eu-modified reads directly from the raw nanopore sequencing signal. Furthermore, it offers tools to calculate transcript halflives.
 
 # Usage
+
 ## Installation
+
 ```sh
 pip install rnakinet
 ```
-## Predict 5EU in fast5/pod5 files
+
+## Predict 5EU in POD5 files
+
 ```sh
-rnakinet-inference --path <path_to_folder_containing_fast5s> --output <predictions_name.csv>
+rnakinet-inference --path <pod5_file_or_directory> --model-name rnakinet_r10_5EU --output <predictions_name.csv>
 ```
+
 This creates a csv file with columns `read_id` - the read id, `5eu_mod_score` - the raw prediction score from 0 to 1, `5eu_modified_prediction` - Boolean column, True if the read is predicted to be modified by 5EU, False otherwise
 
 Nvidia GPU is recommended to run this command. If you want to run inference on a CPU-only machine, use the `--use-cpu` option. This will substantially increase runtime.
 
-If you want to use pod5 files instead, add the `--format pod5` flag.
+FAST5 input is not currently supported. Support will be reimplemented in a future release; for now, inference can still be run by converting Fast5 reads to POD5 first.
+
+Pass one or more POD5 files or directories via `--path`. Use `--model-name` to select the packaged pretrained model for your flow-cell chemistry, for example `rnakinet_r9_5EU` or `rnakinet_r10_5EU`.
+
+Users who have trained their own RNAkinet models can use `--model-path` (must be used in conjunction with `--arch`) to run inference on custom models in place of `--model-name`.
 
 ### Example
-```sh
-rnakinet-inference --path data/experiment/fast5_folder --output preds.csv
-```
 
-### Selecting flow-cell chemistry
-RNAkinet has been extensively tested on flow-cells with the R9 chemistry. Experimental support is offered for R10. You can specify the flow-cell chemistry with the `--kit` option.
 ```sh
-rnakinet-inference --path data/experiment/fast5_folder --kit r10 --output preds.csv
+rnakinet-inference --path data/experiment/pod5_dir --model-name rnakinet_r10_5EU --output preds.csv
 ```
-
 
 ## Calculate transcript halflives
+
 ```sh
 rnakinet-predict-halflives --transcriptome-bam <path_to_transcriptome_alignment.bam> --predictions <predictions_name.csv> --tl <experiment_tl> --output <halflives_name.csv>
 ```
@@ -40,11 +45,13 @@ The `--predictions` parameter is the output file of the 5EU prediction step desc
 This creates a csv file with columns `transcript` - the transcript identifier from your BAM file, `reads` - the amount of reads available for the given transcript, `percentage_modified` - the percentage of reads of the given transcript that were predicted to contain 5EU, `pred_t5` - the predicted halflife of the given transcript
 
 ### Example
+
 ```sh
 rnakinet-predict-halflives --transcriptome-bam alignments/experiment/transcriptome_alignment.bam --predictions preds.csv --tl 2.0 --output halflives.csv
 ```
 
 Note that the calculated halflives `pred_t5` are the most reliable for transcripts with high read count. 
+
 The following plots show correlation of halflives computed from RNAkinet predictions with experimentaly measured halflives [1] as we increase read count requirement.
 We recommend users to acknowledge this and put more confidence in halflife predictions for transcripts with high read count, and less confidence for transcripts with low read count.
 
@@ -53,5 +60,24 @@ We recommend users to acknowledge this and put more confidence in halflife predi
 
 [1] Eisen,T.J., Eichhorn,S.W., Subtelny,A.O., Lin,K.S., McGeary,S.E., Gupta,S. and Bartel,D.P. (2020) The Dynamics of Cytoplasmic mRNA Metabolism. Mol. Cell, 77, 786-799.e10.
 
+# Model Training with Snakemake
+
+## Setup Conda Env
+
+To run the snakefile, install environment.yaml using a conda environment
+```sh
+conda env create -f environment.yaml
+```
+Run snakemake from within the created conda environment rather than loading a module, etc.
+
+## Weights and Biases API
+
+Obtiain an API key for [Weights and Biases](https://wandb.ai/site/), and create a file `.env` (in the same directory as your Snakefile) that contains the line `WANDB_API_KEY=YOUR_API_KEY`. This will be used for tracking and visualizing model performance.
+
+## GPU and snakemake profile
+
+Please ensure that the format for compute resource allocation is compatible with your snakemake profile and GPU/cluster requirements. Specifically, GPU names/quantities can be modified from `GPUS_FOR_RULES` in `config.yml`
+
 # Cite
+
 Vlastimil Martinek, Jessica Martin, Cedric Belair, Matthew J Payea, Sulochan Malla, Panagiotis Alexiou, Manolis Maragkakis, Deep learning and direct sequencing of labeled RNA captures transcriptome dynamics, NAR Genomics and Bioinformatics, Volume 6, Issue 3, September 2024, lqae116, https://doi.org/10.1093/nargab/lqae116
