@@ -48,7 +48,7 @@ rule run_inference:
         runtime = 8*24*60
     shell:
         """
-        python3 scripts/inference.py \
+        python3 ../rnakinet/scripts/inference.py \
             --pod5-files {input.pod5_files} \
             --model-path {input.model_path} \
             --arch {params.arch} \
@@ -86,7 +86,7 @@ rule run_full_exp_inference:
         runtime = 8*24*60
     shell:
         """
-        python3 scripts/inference.py \
+        python3 ../rnakinet/scripts/inference.py \
             --pod5-files {params.exp_dir} \
             --model-path {input.model_path} \
             --arch {params.arch} \
