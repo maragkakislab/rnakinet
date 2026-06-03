@@ -1,15 +1,18 @@
 # Run artifacts
-rnakinet/checkpoints_pl/
-rnakinet/data/
-rnakinet/outputs/
-rnakinet/references/
-rnakinet/logs/
-rnakinet/.snakemake/
-rnakinet/basecalling_models_dorado-1.0.1-linux-x64/
-rnakinet/dorado-1.0.1-linux-x64/
-rnakinet/dorado-1.0.1-linux-x64.tar.gz
-rnakinet/snakemake_profile/
-rnakinet/wandb/
+workflow/checkpoints_pl/
+workflow/checkpoints_pl
+workflow/data/
+workflow/outputs/
+workflow/outputs
+workflow/references/
+workflow/logs/
+workflow/.snakemake/
+workflow/basecalling_models_dorado-1.0.1-linux-x64/
+workflow/dorado-1.0.1-linux-x64/
+workflow/dorado-1.0.1-linux-x64.tar.gz
+workflow/snakemake_profile/
+workflow/wandb/
+workflow/slurm-*.out
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
