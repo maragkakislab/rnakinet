@@ -40,7 +40,8 @@ checkpoint run_training:
         gpu = GPUS_FOR_RULES["run_training"]["gpu"],
         gpu_model = GPUS_FOR_RULES["run_training"]["gpu_model"],
         mem_mb = 200*1024,
-        runtime = 8*24*60
+        runtime = 8*24*60,
+        disk_mb = 100*1024
     log:
         CHECKPOINTS_DIR + '/{training_run_name}/stdout.log'
     conda:
