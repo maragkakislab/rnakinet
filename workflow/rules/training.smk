@@ -35,6 +35,10 @@ checkpoint run_training:
         enable_progress_bar = lambda wildcards: TRAINING_CONFIGS[wildcards.training_run_name]['enable_progress_bar'],
         log_to_file = lambda wildcards: TRAINING_CONFIGS[wildcards.training_run_name]['log_to_file'],
         save_path = lambda wildcards: f'{CHECKPOINTS_DIR}/{wildcards.training_run_name}',
+        checkpoint_init_path = lambda wildcards: TRAINING_CONFIGS[wildcards.training_run_name]['init_from_checkpoint']
+        # TODO set this to checkpoints_dir/MODEL_TO_PATH [wildcards.init_from_checkpoint].
+        # if init_from_checkpoint does not exist, or if it is an empty string, set this to empty string. Update the shell script if needed to use this generated value
+        # for now, skip parsing via model_to_path and just use the value directly from the config, which can be set to empty string if not resuming from checkpoint
     threads: 32 
     resources:
         gpu = GPUS_FOR_RULES["run_training"]["gpu"],
@@ -47,6 +51,7 @@ checkpoint run_training:
     conda:
         '../envs/training.yaml'
     shell:
+    # can change ordering of param for resume training, but for now just add the init from checkpoint param to the end and make it optional in the training script
         """
         echo "{params.arch_hyperparams}" > {output.arch_hyperparams_yaml}
 
@@ -76,6 +81,7 @@ checkpoint run_training:
             --logging-step {params.logging_step} \
             --enable-progress-bar {params.enable_progress_bar} \
             --save-path {params.save_path} \
+            --init-from-checkpoint {params.checkpoint_init_path} \
             "
 
         if [ "{params.log_to_file}" = "True" ]; then

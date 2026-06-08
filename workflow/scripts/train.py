@@ -69,6 +69,8 @@ def parse_args(parser):
     parser.add_argument('--enable-progress-bar', type=str, required=True, help='Whether to print proress bar, options yes or no')
     
     parser.add_argument('--save-path', type=str, required=True, help='Path for the final model file')
+    parser.add_argument('--init-from-checkpoint', type=str, required=False, help='Path to the checkpoint to resume training from. If not resuming from checkpoint, set this to empty string', default='')
+    # TODO: adjust order/positioning of new arg to be more intuitive/stylistically sensible.
     return parser    
 
 
@@ -141,10 +143,18 @@ def get_logging_config(args):
 
 def train_save(datasets, model_params, data_params, training_params, logging_params):
     arch = model_params.pop('arch')
-    model = arch(
-        **model_params, 
-        logging_steps=logging_params['logging_step']*training_params['grad_accumulation'],
-    )
+    
+    if args.init_from_checkpoint:
+        model = arch.load_from_checkpoint(
+            args.init_from_checkpoint,
+            **model_params,
+            logging_steps=logging_params['logging_step']*training_params['grad_accumulation'],
+        )
+    else:
+        model = arch(
+            **model_params, 
+            logging_steps=logging_params['logging_step']*training_params['grad_accumulation'],
+        )
 
     dm = TrainingDatamodule(
         **datasets,
