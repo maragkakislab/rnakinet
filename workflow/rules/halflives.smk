@@ -21,6 +21,43 @@ rule aggregate_predictions:
             --output-transcript {output.transcript_out} \
         """
 
+rule aggregate_auroc:
+    input:
+        positive_predictions = lambda wildcards: expand(
+            OUTPUTS_DIR + '/predictions/{model_name}/{inference_run}/preds.csv', 
+            inference_run=INFERENCE_RUN_GROUPS[wildcards.group]['positives'],
+            model_name=wildcards.model_name,
+        ),
+        negative_predictions = lambda wildcards: expand(
+            OUTPUTS_DIR + '/predictions/{model_name}/{inference_run}/preds.csv', 
+            inference_run=INFERENCE_RUN_GROUPS[wildcards.group]['negatives'],
+            model_name=wildcards.model_name,
+        ),
+        # get the exp name from the group and then use that to get the correct transcriptome bam and transcript-to-gene table for the auroc calculation
+        positive_transcriptome_bam = lambda wildcards: f"{OUTPUTS_DIR}/alignment/{INFERENCE_RUN_GROUPS[wildcards.group]['positives'][0]}/{BASECALLING_CONFIG['dorado_version']}/{BASECALLING_CONFIG['basecalling_model']}/reads-align.transcriptome.sorted.bam",
+        negative_transcriptome_bam = lambda wildcards: f"{OUTPUTS_DIR}/alignment/{INFERENCE_RUN_GROUPS[wildcards.group]['negatives'][0]}/{BASECALLING_CONFIG['dorado_version']}/{BASECALLING_CONFIG['basecalling_model']}/reads-align.transcriptome.sorted.bam",
+        # only need to pull once since pos and neg should be same species
+        transcript_to_gene_table = lambda wildcards: f'{REFERENCES_DIR}/{EXP_TO_ENSEMBL_SPECIES[INFERENCE_RUN_GROUPS[wildcards.group]["positives"][0]]}/transcript-gene-ids.tab',
+    output:
+        gene_aurocs_out = OUTPUTS_DIR + '/predictions/{model_name}/aurocs/{group}/gene_level_aurocs.tsv',
+        transcript_aurocs_out = OUTPUTS_DIR + '/predictions/{model_name}/aurocs/{group}/transcript_level_aurocs.tsv',
+    conda:
+        "../envs/gene_aggregation.yaml"
+    shell:
+        """
+        python3 scripts/aggregate_auroc.py \
+            --positive-predictions {input.positive_predictions} \
+            --negative-predictions {input.negative_predictions} \
+            --positive-transcriptome-bam {input.positive_transcriptome_bam} \
+            --negative-transcriptome-bam {input.negative_transcriptome_bam} \
+            --transcript-to-gene-table {input.transcript_to_gene_table} \
+            --output-gene-aurocs {output.gene_aurocs_out} \
+            --output-transcript-aurocs {output.transcript_aurocs_out} \
+        """
+
+
+
+
 rule calculate_decay:
     input:
         gene_predictions = OUTPUTS_DIR + '/predictions/{model_name}/{experiment_name}/{reference_level}_level_predictions.tsv',
