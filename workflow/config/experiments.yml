@@ -66,3 +66,76 @@ EXP_TO_TL : {
     '20240502_mmu_dRNA_3T3_5EU_400_2_R10': 2,
 }
 
+EXPERIMENTS: { #exp name maps to dict with exp_path, species, tl(if applicable). replace exp_to_reference, exp_to_transcriptome with a species_to_ref and species_to_transcriptome
+    # I'll start by only including exp to path
+    '20250529_hsa_dRNA_HeLa_5EU_1': {
+        path: 'experiments_v2/20250529_hsa_dRNA_HeLa_5EU_1/',
+        ensembl_species: 'hsapiens',
+        },
+    '20250529_hsa_dRNA_HeLa_DMSO_1': {
+        path: 'experiments_v2/20250529_hsa_dRNA_HeLa_DMSO_1/',
+        ensembl_species: 'hsapiens',
+        },
+
+    '20250529_hsa_dRNA_HeLa_5EU_1_TEST': {
+        path: '../outputs/splits/20250529_hsa_dRNA_HeLa_5EU_1/test.pod5',
+        ensembl_species: 'hsapiens',
+    },
+    '20250529_hsa_dRNA_HeLa_DMSO_1_TEST': {
+        path: '../outputs/splits/20250529_hsa_dRNA_HeLa_DMSO_1/test.pod5',
+        ensembl_species: 'hsapiens',
+    },
+
+    '20250529_hsa_dRNA_Hek293_5EU_1': {
+        path: 'experiments_v2/20250529_hsa_dRNA_Hek293_5EU_1',
+        ensembl_species: 'hsapiens',
+        },
+    '20250529_hsa_dRNA_Hek293_DMSO_1': {
+        path: 'experiments_v2/20250529_hsa_dRNA_Hek293_DMSO_1',
+        ensembl_species: 'hsapiens',
+        },
+
+    '20250611_mml_dRNA_PBMC_5EU_1': {
+        path: 'experiments_v2/20250611_mml_dRNA_PBMC_5EU_1',
+        ensembl_species: 'mmulatta',
+        },
+    '20250612_mml_dRNA_PBMC_control_1': {
+        path: 'experiments_v2/20250612_mml_dRNA_PBMC_control_1',
+        ensembl_species: 'mmulatta',
+        },
+
+    '20250618_hsa_dRNA_I90_5EU_1': {
+        path: 'experiments_v2/20250618_hsa_dRNA_I90_5EU_1',
+        ensembl_species: 'hsapiens',
+        },
+
+    '20250612_hsa_dRNA_I90_control_1': {
+        path: 'experiments_v2/20250612_hsa_dRNA_I90_control_1',
+        ensembl_species: 'hsapiens',
+        },
+
+    '20250612_hsa_dRNA_MCF10A_5EU_1': {
+        path: 'experiments_v2/20250612_hsa_dRNA_MCF10A_5EU_1',
+        ensembl_species: 'hsapiens',
+        },
+    '20250612_hsa_dRNA_MCF10A_control_1': {
+        path: 'experiments_v2/20250612_hsa_dRNA_MCF10A_control_1',
+        ensembl_species: 'hsapiens',
+        },
+
+    '20250528_mmu_dRNA_3T3_5EU_1': {
+        path: 'experiments_v2/20250528_mmu_dRNA_3T3_5EU_1',
+        ensembl_species: 'mmusculus',
+        },
+    '20250528_mmu_dRNA_3T3_DMSO_1': {
+        path: 'experiments_v2/20250528_mmu_dRNA_3T3_DMSO_1',
+        ensembl_species: 'mmusculus',
+        },
+
+    '20240502_mmu_dRNA_3T3_5EU_400_2_R10': {
+        path: 'experiments_v2/20240502_mmu_dRNA_3T3_5EU_400_2_R10',
+        ensembl_species: 'mmusculus',
+        tl: 2,
+        },
+
+}
