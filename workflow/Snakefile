@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+import yaml
 
 load_dotenv()
 WANDB_API_KEY = os.getenv("WANDB_API_KEY") #Optional and used only for training
@@ -13,6 +14,11 @@ if "--configfile" in sys.argv:
 else:
     config_path = "config/config.yml"
     configfile: config_path
+
+with open(config["EXPS_CONFIG_FILE"], "r") as f:
+    exp_config = yaml.safe_load(f)
+
+config.update(exp_config)
 
 REFERENCES_DIR = config['REFERENCES_DIR']
 DATA_DIR = config['DATA_DIR']
