@@ -72,9 +72,6 @@ EXP_TO_PATH : {
     
     '20250528_mmu_dRNA_3T3_5EU_1_TEST': '../outputs_dev/splits/20250528_mmu_dRNA_3T3_5EU_1/test.pod5',
     '20250528_mmu_dRNA_3T3_DMSO_1_TEST': '../outputs_dev/splits/20250528_mmu_dRNA_3T3_DMSO_1/test.pod5',
-
-    '20240502_mmu_dRNA_3T3_5EU_400_2_R10': ['data/experiments/20240502_mmu_dRNA_3T3_5EU_400_2_R10/runs/no_sample/20240502_1644_2E_PAW01549_c5db9386/pass_converted.pod5'],
-
 }
 
 BASECALLING_CONFIG : {
