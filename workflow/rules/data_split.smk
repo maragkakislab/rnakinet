@@ -27,7 +27,7 @@ rule create_split_pod5s:
     '''
     input:
         ids = OUTPUTS_DIR + "/splits/{experiment_name}/{split}_readids.txt", #The split needs to be non-empty txt file
-        experiment_path = lambda wildcards: f'{DATA_DIR}/{EXP_TO_PATH[wildcards.experiment_name]}',
+        experiment_path = lambda wildcards: f'{DATA_DIR}/{EXPERIMENTS[wildcards.experiment_name]["path"]}',
     output: #TODO add outputs/splits/expname/{split} folder as output for viz rules
         OUTPUTS_DIR + "/splits/{experiment_name}/POD5_{split}_SPLIT_DONE.txt",
         OUTPUTS_DIR + "/splits/{experiment_name}/{split}.pod5",

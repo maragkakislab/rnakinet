@@ -15,6 +15,7 @@ rule align_to_genome:
         basecalls = OUTPUTS_DIR + "/basecalling/{experiment_name}/{dorado_version}/{basecalling_model}/all_reads.fastq",
         dorado_location = lambda wildcards: f'{wildcards.dorado_version}/bin/dorado',
         reference_path = lambda wildcards: f'{REFERENCES_DIR}/fasta/{EXP_TO_REFERENCE[wildcards.experiment_name]}',
+        # reference_path = lambda wildcards: f'{REFERENCES_DIR}/fasta/{species_to_ref[Exp_details[wildcards.experiment_name]['species']]}',
     output:
         bam = OUTPUTS_DIR + "/alignment/{experiment_name}/{dorado_version}/{basecalling_model}/reads-align.genome.sorted.bam",
         bai = OUTPUTS_DIR + "/alignment/{experiment_name}/{dorado_version}/{basecalling_model}/reads-align.genome.sorted.bam.bai"

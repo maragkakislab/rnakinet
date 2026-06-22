@@ -27,7 +27,7 @@ def get_model_path(wc):
 
 rule run_inference:
     input: 
-        pod5_files=lambda wc: os.path.normpath(os.path.join(DATA_DIR, EXP_TO_PATH[wc.experiment_name])),
+        pod5_files=lambda wildcards: os.path.normpath(os.path.join(DATA_DIR, f'{EXPERIMENTS[wildcards.experiment_name]["path"]}',)),
         model_path = get_model_path,
     output:
         csv_path = OUTPUTS_DIR + '/predictions/{model_name}/{experiment_name}/preds.csv',
