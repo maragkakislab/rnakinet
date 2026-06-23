@@ -1,22 +1,3 @@
-EXP_TO_REFERENCE: {
-    '20250529_hsa_dRNA_HeLa_5EU_1':       'Homo_sapiens.GRCh38.dna_sm.primary_assembly.fa',
-    '20250529_hsa_dRNA_HeLa_DMSO_1':      'Homo_sapiens.GRCh38.dna_sm.primary_assembly.fa',
-    '20250529_hsa_dRNA_Hek293_5EU_1':     'Homo_sapiens.GRCh38.dna_sm.primary_assembly.fa',
-    '20250529_hsa_dRNA_Hek293_DMSO_1':    'Homo_sapiens.GRCh38.dna_sm.primary_assembly.fa',
-    '20250612_hsa_dRNA_MCF10A_5EU_1':     'Homo_sapiens.GRCh38.dna_sm.primary_assembly.fa',
-    '20250612_hsa_dRNA_MCF10A_control_1': 'Homo_sapiens.GRCh38.dna_sm.primary_assembly.fa',
-    '20250618_hsa_dRNA_I90_5EU_1':        'Homo_sapiens.GRCh38.dna_sm.primary_assembly.fa',
-    '20250612_hsa_dRNA_I90_control_1':    'Homo_sapiens.GRCh38.dna_sm.primary_assembly.fa',
-
-    '20250528_mmu_dRNA_3T3_5EU_1':         'Mus_musculus.GRCm39.dna_sm.primary_assembly.fa',
-    '20250528_mmu_dRNA_3T3_DMSO_1':        'Mus_musculus.GRCm39.dna_sm.primary_assembly.fa',
-    '20240502_mmu_dRNA_3T3_5EU_400_2_R10': 'Mus_musculus.GRCm39.dna_sm.primary_assembly.fa',
-}
-
-EXP_TO_TRANSCRIPTOME : {
-    '20240502_mmu_dRNA_3T3_5EU_400_2_R10':  'Mus_musculus.GRCm39.cdna.all.fa',
-}
-
 EXP_TO_ENSEMBL_SPECIES : {
     '20240502_mmu_dRNA_3T3_5EU_400_2_R10':'mmusculus',
 }
@@ -25,7 +6,6 @@ EXP_TO_TL : {
 }
 
 EXPERIMENTS: { #exp name maps to dict with exp_path, species, tl(if applicable). replace exp_to_reference, exp_to_transcriptome with a species_to_ref and species_to_transcriptome
-    # I'll start by only including exp to path
     '20250529_hsa_dRNA_HeLa_5EU_1': {
         path: 'experiments_v2/20250529_hsa_dRNA_HeLa_5EU_1/',
         ensembl_species: 'hsapiens',
