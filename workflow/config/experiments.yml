@@ -70,7 +70,7 @@ EXPERIMENTS: { #exp name maps to dict with exp_path, species, tl(if applicable).
     '20240502_mmu_dRNA_3T3_5EU_400_2_R10': {
         path: 'experiments_v2/20240502_mmu_dRNA_3T3_5EU_400_2_R10',
         ensembl_species: 'mmusculus',
-        tl: 2,
+        labeling_time: 2,
         },
 
 }

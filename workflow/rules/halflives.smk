@@ -66,7 +66,7 @@ rule calculate_decay:
     conda:
         "../envs/visual.yaml"
     params:
-        tl = lambda wildcards: EXP_TO_TL[wildcards.experiment_name],
+        tl = lambda wildcards: EXPERIMENTS[wildcards.experiment_name]['labeling_time'],
     shell:
         """
         python3 scripts/calculate_decay.py \
@@ -86,7 +86,7 @@ rule create_decay_read_limit_plot:
     conda:
         "../envs/visual.yaml"
     params:
-        tl = lambda wildcards: [EXP_TO_TL[wildcards.experiment_name]],
+        tl = lambda wildcards: [EXPERIMENTS[wildcards.experiment_name]['labeling_time']],
         exp_name_list = lambda wildcards: [wildcards.experiment_name],
     shell:
         """
