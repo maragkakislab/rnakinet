@@ -1,11 +1,8 @@
-EXP_TO_ENSEMBL_SPECIES : {
-    '20240502_mmu_dRNA_3T3_5EU_400_2_R10':'mmusculus',
-}
 EXP_TO_TL : {
     '20240502_mmu_dRNA_3T3_5EU_400_2_R10': 2,
 }
 
-EXPERIMENTS: { #exp name maps to dict with exp_path, species, tl(if applicable). replace exp_to_reference, exp_to_transcriptome with a species_to_ref and species_to_transcriptome
+EXPERIMENTS: { #exp name maps to dict with exp_path, species, tl(if applicable).
     '20250529_hsa_dRNA_HeLa_5EU_1': {
         path: 'experiments_v2/20250529_hsa_dRNA_HeLa_5EU_1/',
         ensembl_species: 'hsapiens',
