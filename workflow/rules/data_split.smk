@@ -8,9 +8,9 @@ rule split_readids_on_chromosomes:
     conda:
         "../envs/bam_splitting.yaml"
     params:
-        train_chromosomes=lambda wildcards: REFERENCE_TO_SPLITS[EXP_TO_REFERENCE[wildcards.experiment_name]]['train_chrs'],
-        test_chromosomes=lambda wildcards: REFERENCE_TO_SPLITS[EXP_TO_REFERENCE[wildcards.experiment_name]]['test_chrs'],
-        validation_chromosomes=lambda wildcards: REFERENCE_TO_SPLITS[EXP_TO_REFERENCE[wildcards.experiment_name]]['valid_chrs'],
+        train_chromosomes=lambda wildcards: REFERENCE_TO_SPLITS[SPECIES_TO_GENOME[EXPERIMENTS[wildcards.experiment_name]["ensembl_species"]]]['train_chrs'],
+        test_chromosomes=lambda wildcards: REFERENCE_TO_SPLITS[SPECIES_TO_GENOME[EXPERIMENTS[wildcards.experiment_name]["ensembl_species"]]]['test_chrs'],
+        validation_chromosomes=lambda wildcards: REFERENCE_TO_SPLITS[SPECIES_TO_GENOME[EXPERIMENTS[wildcards.experiment_name]["ensembl_species"]]]['valid_chrs'],
     shell:
         """
         python3 scripts/splitting.py \

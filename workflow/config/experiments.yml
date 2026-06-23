@@ -97,3 +97,13 @@ EXPERIMENTS: { #exp name maps to dict with exp_path, species, tl(if applicable).
         },
 
 }
+
+SPECIES_TO_GENOME: {
+    'hsapiens': 'Homo_sapiens.GRCh38.dna_sm.primary_assembly.fa',
+    'mmusculus': 'Mus_musculus.GRCm39.dna_sm.primary_assembly.fa'
+}
+
+SPECIES_TO_TRANSCRIPTOME: {
+    'hsapiens': 'Homo_sapiens.GRCh38.cdna.all.fa',
+    'mmusculus': 'Mus_musculus.GRCm39.cdna.all.fa'
+}
