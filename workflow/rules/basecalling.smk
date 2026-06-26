@@ -20,7 +20,7 @@ rule get_basecalling_model:
 
 rule basecalling_dorado:
     input: 
-        pod5_folder = lambda wildcards: f'{DATA_DIR}/{EXPERIMENTS[wildcards.experiment_name]["path"]}',
+        pod5_folder = lambda wildcards: os.path.normpath(f'{DATA_DIR}/{EXPERIMENTS[wildcards.experiment_name]["path"]}'),
         dorado_location = lambda wildcards: f'{wildcards.dorado_version}/bin/dorado',
         basecaller_location = lambda wildcards: f'basecalling_models_{wildcards.dorado_version}/{wildcards.basecalling_model}',
     output:
