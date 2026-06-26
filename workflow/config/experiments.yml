@@ -1,7 +1,3 @@
-EXP_TO_TL : {
-    '20240502_mmu_dRNA_3T3_5EU_400_2_R10': 2,
-}
-
 EXPERIMENTS: { #exp name maps to dict with exp_path, species, tl(if applicable).
     '20250529_hsa_dRNA_HeLa_5EU_1': {
         path: 'experiments_v2/20250529_hsa_dRNA_HeLa_5EU_1/',
@@ -11,15 +7,6 @@ EXPERIMENTS: { #exp name maps to dict with exp_path, species, tl(if applicable).
         path: 'experiments_v2/20250529_hsa_dRNA_HeLa_DMSO_1/',
         ensembl_species: 'hsapiens',
         },
-
-    '20250529_hsa_dRNA_HeLa_5EU_1_TEST': {
-        path: '../outputs/splits/20250529_hsa_dRNA_HeLa_5EU_1/test.pod5',
-        ensembl_species: 'hsapiens',
-    },
-    '20250529_hsa_dRNA_HeLa_DMSO_1_TEST': {
-        path: '../outputs/splits/20250529_hsa_dRNA_HeLa_DMSO_1/test.pod5',
-        ensembl_species: 'hsapiens',
-    },
 
     '20250529_hsa_dRNA_Hek293_5EU_1': {
         path: 'experiments_v2/20250529_hsa_dRNA_Hek293_5EU_1',
