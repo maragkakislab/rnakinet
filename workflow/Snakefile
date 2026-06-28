@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+import yaml
 
 load_dotenv()
 WANDB_API_KEY = os.getenv("WANDB_API_KEY") #Optional and used only for training
@@ -14,15 +15,22 @@ else:
     config_path = "config/config.yml"
     configfile: config_path
 
+with open(config["EXPS_CONFIG_FILE"], "r") as f:
+    exp_config = yaml.safe_load(f)
+
+config.update(exp_config)
+
 REFERENCES_DIR = config['REFERENCES_DIR']
 DATA_DIR = config['DATA_DIR']
 OUTPUTS_DIR = config['OUTPUTS_DIR']
 CHECKPOINTS_DIR = config['CHECKPOINTS_DIR']
 HALFLIVES_FOLDER = config['HALFLIVES_FOLDER']
 FASTA_TO_DOWNLOAD = config['FASTA_TO_DOWNLOAD']
-EXP_TO_REFERENCE = config['EXP_TO_REFERENCE']
-EXP_TO_TRANSCRIPTOME = config['EXP_TO_TRANSCRIPTOME']
-EXP_TO_PATH = config['EXP_TO_PATH']
+
+BASE_EXPERIMENTS = config['EXPERIMENTS']
+SPECIES_TO_GENOME = config['SPECIES_TO_GENOME']
+SPECIES_TO_TRANSCRIPTOME = config['SPECIES_TO_TRANSCRIPTOME']
+
 BASECALLING_CONFIG = config['BASECALLING_CONFIG']
 REFERENCE_TO_SPLITS = config['REFERENCE_TO_SPLITS']
 TRAINING_CONFIGS = config['TRAINING_CONFIGS']
@@ -30,13 +38,21 @@ MODEL_TO_PATH = config['MODEL_TO_PATH']
 MODEL_INFERENCE_PARAMS = config['MODEL_INFERENCE_PARAMS']
 INFERENCE_RUN_GROUPS = config['INFERENCE_RUN_GROUPS']
 ENSEMBL_URL = config['ENSEMBL_URL']
-EXP_TO_ENSEMBL_SPECIES = config['EXP_TO_ENSEMBL_SPECIES']
-EXP_TO_TL = config['EXP_TO_TL']
 HALFLIVES_NAME_TO_FILE = config['HALFLIVES_NAME_TO_FILE']
 GPUS_FOR_RULES = config['GPUS_FOR_RULES']
-ALL_EXPERIMENTS = config['ALL_EXPERIMENTS']
 PCT_POS_GRAPHING_PARAMS = config["PCT_POS_GRAPHING_PARAMS"]
 DIAGNOSTICS_GRAPHING_PARAMS = config["DIAGNOSTICS_GRAPHING_PARAMS"]
+
+SPLIT_EXPERIMENTS = {}
+for exp_name, exp_data in BASE_EXPERIMENTS.items():
+    for split in ("TEST", "TRAINING", "VALIDATION"):
+        SPLIT_EXPERIMENTS[f"{exp_name}_{split}"] = {
+            **exp_data,
+            "path": f"../{OUTPUTS_DIR}/splits/{exp_name}/{split.lower()}.pod5",
+            "base_experiment": exp_name,
+            "split": split.lower(), }
+
+EXPERIMENTS = {**BASE_EXPERIMENTS, **SPLIT_EXPERIMENTS}
 
 # RULES
 include: "rules/basecalling.smk"

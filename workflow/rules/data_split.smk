@@ -8,9 +8,9 @@ rule split_readids_on_chromosomes:
     conda:
         "../envs/bam_splitting.yaml"
     params:
-        train_chromosomes=lambda wildcards: REFERENCE_TO_SPLITS[EXP_TO_REFERENCE[wildcards.experiment_name]]['train_chrs'],
-        test_chromosomes=lambda wildcards: REFERENCE_TO_SPLITS[EXP_TO_REFERENCE[wildcards.experiment_name]]['test_chrs'],
-        validation_chromosomes=lambda wildcards: REFERENCE_TO_SPLITS[EXP_TO_REFERENCE[wildcards.experiment_name]]['valid_chrs'],
+        train_chromosomes=lambda wildcards: REFERENCE_TO_SPLITS[SPECIES_TO_GENOME[EXPERIMENTS[wildcards.experiment_name]["ensembl_species"]]]['train_chrs'],
+        test_chromosomes=lambda wildcards: REFERENCE_TO_SPLITS[SPECIES_TO_GENOME[EXPERIMENTS[wildcards.experiment_name]["ensembl_species"]]]['test_chrs'],
+        validation_chromosomes=lambda wildcards: REFERENCE_TO_SPLITS[SPECIES_TO_GENOME[EXPERIMENTS[wildcards.experiment_name]["ensembl_species"]]]['valid_chrs'],
     shell:
         """
         python3 scripts/splitting.py \
@@ -27,7 +27,7 @@ rule create_split_pod5s:
     '''
     input:
         ids = OUTPUTS_DIR + "/splits/{experiment_name}/{split}_readids.txt", #The split needs to be non-empty txt file
-        experiment_path = lambda wildcards: f'{DATA_DIR}/{EXP_TO_PATH[wildcards.experiment_name]}',
+        experiment_path = lambda wildcards: f'{DATA_DIR}/{EXPERIMENTS[wildcards.experiment_name]["path"]}',
     output: #TODO add outputs/splits/expname/{split} folder as output for viz rules
         OUTPUTS_DIR + "/splits/{experiment_name}/POD5_{split}_SPLIT_DONE.txt",
         OUTPUTS_DIR + "/splits/{experiment_name}/{split}.pod5",

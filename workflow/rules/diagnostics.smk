@@ -1,6 +1,6 @@
 rule generate_pod5_stats:
     input:
-        experiment_dir = lambda wildcards: f"{DATA_DIR}/{EXP_TO_PATH[wildcards.experiment_name]}",
+        experiment_dir = lambda wildcards: f'{DATA_DIR}/{EXPERIMENTS[wildcards.experiment_name]["path"]}',
     output:
         csv_path = OUTPUTS_DIR + "/diagnostics/pod5_stats/{experiment_name}_sr_{subsample}_stats.csv"
     conda:

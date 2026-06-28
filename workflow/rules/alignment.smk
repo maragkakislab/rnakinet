@@ -14,7 +14,7 @@ rule align_to_genome:
     input:
         basecalls = OUTPUTS_DIR + "/basecalling/{experiment_name}/{dorado_version}/{basecalling_model}/all_reads.fastq",
         dorado_location = lambda wildcards: f'{wildcards.dorado_version}/bin/dorado',
-        reference_path = lambda wildcards: f'{REFERENCES_DIR}/fasta/{EXP_TO_REFERENCE[wildcards.experiment_name]}',
+        reference_path = lambda wildcards: f'{REFERENCES_DIR}/fasta/{SPECIES_TO_GENOME[EXPERIMENTS[wildcards.experiment_name]["ensembl_species"]]}',
     output:
         bam = OUTPUTS_DIR + "/alignment/{experiment_name}/{dorado_version}/{basecalling_model}/reads-align.genome.sorted.bam",
         bai = OUTPUTS_DIR + "/alignment/{experiment_name}/{dorado_version}/{basecalling_model}/reads-align.genome.sorted.bam.bai"
@@ -40,7 +40,7 @@ rule align_to_transcriptome:
     input:
         basecalls = OUTPUTS_DIR + "/basecalling/{experiment_name}/{dorado_version}/{basecalling_model}/all_reads.fastq",
         dorado_location = lambda wildcards: f'{wildcards.dorado_version}/bin/dorado',
-        reference_path = lambda wildcards: f'{REFERENCES_DIR}/fasta/{EXP_TO_TRANSCRIPTOME[wildcards.experiment_name]}',
+        reference_path = lambda wildcards: f'{REFERENCES_DIR}/fasta/{SPECIES_TO_TRANSCRIPTOME[EXPERIMENTS[wildcards.experiment_name]["ensembl_species"]]}',
     output:
         bam = OUTPUTS_DIR + "/alignment/{experiment_name}/{dorado_version}/{basecalling_model}/reads-align.transcriptome.sorted.bam",
         bai = OUTPUTS_DIR + "/alignment/{experiment_name}/{dorado_version}/{basecalling_model}/reads-align.transcriptome.sorted.bam.bai"

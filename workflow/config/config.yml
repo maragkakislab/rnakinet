@@ -3,6 +3,7 @@ DATA_DIR: "data"
 OUTPUTS_DIR: "outputs"
 CHECKPOINTS_DIR: "checkpoints_pl"
 HALFLIVES_FOLDER: "halflives_data"
+EXPS_CONFIG_FILE: "config/experiments.yml"
 
 # DATA PREPARATION CONFIGURATION
 FASTA_TO_DOWNLOAD: {
