@@ -1,15 +1,16 @@
 import yaml
+from snakemake.io import ancient
 
 checkpoint run_training:
     input:
-        train_positives_pod5s=lambda wildcards: expand(OUTPUTS_DIR + "/splits/{experiment_name}/train.pod5",
-                                          experiment_name=TRAINING_CONFIGS[wildcards.training_run_name]['training_positives_exps']),
-        train_negatives_pod5s=lambda wildcards: expand("outputs/splits/{experiment_name}/train.pod5",
-                                          experiment_name=TRAINING_CONFIGS[wildcards.training_run_name]['training_negatives_exps']),
-        validation_positives_pod5s=lambda wildcards: expand("outputs/splits/{experiment_name}/validation.pod5",
-                                          experiment_name=TRAINING_CONFIGS[wildcards.training_run_name]['validation_positives_exps']),
-        validation_negatives_pod5s=lambda wildcards: expand("outputs/splits/{experiment_name}/validation.pod5",
-                                          experiment_name=TRAINING_CONFIGS[wildcards.training_run_name]['validation_negatives_exps']),
+        train_positives_pod5s=lambda wildcards: map(ancient, expand(OUTPUTS_DIR + "/splits/{experiment_name}/train.pod5",
+                                                    experiment_name=TRAINING_CONFIGS[wildcards.training_run_name]['training_positives_exps'])),
+        train_negatives_pod5s=lambda wildcards: map(ancient, expand(OUTPUTS_DIR + "/splits/{experiment_name}/train.pod5",
+                                                    experiment_name=TRAINING_CONFIGS[wildcards.training_run_name]['training_negatives_exps'])),
+        validation_positives_pod5s=lambda wildcards: map(ancient, expand(OUTPUTS_DIR + "/splits/{experiment_name}/validation.pod5",
+                                                     experiment_name=TRAINING_CONFIGS[wildcards.training_run_name]['validation_positives_exps'])),
+        validation_negatives_pod5s=lambda wildcards: map(ancient, expand(OUTPUTS_DIR + "/splits/{experiment_name}/validation.pod5",
+                                                     experiment_name=TRAINING_CONFIGS[wildcards.training_run_name]['validation_negatives_exps'])),
     output:
         done_txt = CHECKPOINTS_DIR + '/{training_run_name}/DONE.txt',
         arch_hyperparams_yaml = CHECKPOINTS_DIR + '/{training_run_name}/arch_hyperparams.yaml',
