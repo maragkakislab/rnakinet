@@ -5,7 +5,12 @@
 */outputs/
 */data/
 */references/
-
+*/checkpoints_pl/
+figs/
+output/
+data/
+pod5_stats*/
+trash/
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -173,4 +178,6 @@ rnakinet/logs/
 */dorado-1.0.1-linux-x64.tar.gz
 
 # diagnostic/testing notebooks and related output
-notebook*
+notebooks/*
+rnakinet/snakemake_profile/
+rnakinet/dags
