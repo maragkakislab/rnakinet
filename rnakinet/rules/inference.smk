@@ -63,7 +63,7 @@ rule run_inference:
 
 rule run_full_exp_inference:
     input: 
-        pod5_files = lambda wildcards: f'{DATA_DIR}/experiments/{wildcards.experiment_name}/',
+        pod5_files = lambda wildcards: f'{DATA_DIR}/experiments_v2/{wildcards.experiment_name}/',
         model_path = get_model_path,
     output:
         csv_path = OUTPUTS_DIR + '/full_exp_predictions/{model_name}/{experiment_name}/preds.csv',

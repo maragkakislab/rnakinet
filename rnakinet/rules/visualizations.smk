@@ -21,6 +21,9 @@ rule create_classification_plot:
         pos_group_names = lambda wildcards: wildcards.group,
         neg_group_names = lambda wildcards: wildcards.group,
         chosen_threshold = lambda wildcards: MODEL_INFERENCE_PARAMS[wildcards.model_name]['threshold'],
+    resources:
+        mem_mb = 16*1024,
+        runtime = 60,
     shell:
         """
         python3 scripts/{wildcards.plot_type}.py \
