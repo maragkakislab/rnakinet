@@ -66,10 +66,8 @@ include: "rules/diagnostics.smk"
 
 rule all:
     input:
-        expand('outputs/full_exp_predictions_pct_pos/{model_name}/{experiment_name}_percent_positive.txt', model_name="R10_4SU_1", experiment_name=config["ALL_EXPERIMENTS"]),
-        expand('outputs/full_exp_predictions/{model_name}/{experiment_name}/preds.csv', model_name=['R10_4SU_1', 'R10_4SU_Gruenebast', 'R10_4SU_2'], experiment_name=ALL_EXPERIMENTS),
-        expand('outputs/R10_exp_predictions/{model_name}/{experiment_name}/preds.csv', model_name=['R10_4SU_1', 'R10_4SU_Gruenebast', 'R10_4SU_2'], experiment_name=config['ALL_R10_EXPERIMENTS']),
-        'outputs/visual/pct_pos/4SU_models_comparison.png',
+        expand('outputs/predictions_pct_pos/{model_name}/{experiment_name}_percent_positive.txt', model_name=["R10_4SU_1"], experiment_name=list(BASE_EXPERIMENTS.keys())),
+        expand('outputs/predictions/{model_name}/{experiment_name}/preds.csv', model_name=['R10_4SU_1', 'R10_4SU_Gruenebast', 'R10_4SU_2'], experiment_name=list(BASE_EXPERIMENTS.keys())),
         expand('outputs/visual/predictions/{model_name}/{group}_{plot_type}.pdf', 
                 model_name=['R10_4SU_1', 'R10_4SU_Gruenebast', 'R10_4SU_2.2',  'R10_4SU_3_Gruenebast'],
                 group=list(INFERENCE_RUN_GROUPS.keys()), plot_type=['auroc','thresholds','pr_curve','pr_ratios']),
@@ -83,4 +81,3 @@ rule all:
                 experiment_name='20260519_mmu_dRNA_3T3_4SU_2h_1',
                 halflives_name=['mion','PION'],
                 reference_level=['gene','transcript']),
-        # 'checkpoints_pl/R10_mega_model_1/DONE.txt',
