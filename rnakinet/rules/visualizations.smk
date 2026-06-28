@@ -36,8 +36,7 @@ rule create_classification_plot:
 rule plot_pct_positive:
     input:
         lambda wc: expand(
-            "outputs/{pred_type}/{model}/{exp}_percent_positive.txt",
-            pred_type=PCT_POS_GRAPHING_PARAMS[wc.plot_name]["predictions_type"],
+            OUTPUTS_DIR + "/predictions/{model}/{experiment_name}/log.txt",
             model=PCT_POS_GRAPHING_PARAMS[wc.plot_name]["models"],
             exp=PCT_POS_GRAPHING_PARAMS[wc.plot_name]["experiments"],
         ),
@@ -47,7 +46,6 @@ rule plot_pct_positive:
         "../envs/visual.yaml",
     params:
         title = lambda wc: wc.plot_name,
-        pred_type = lambda wc: PCT_POS_GRAPHING_PARAMS[wc.plot_name]["predictions_type"],
         models = lambda wc: PCT_POS_GRAPHING_PARAMS[wc.plot_name]["models"],
         experiments = lambda wc: PCT_POS_GRAPHING_PARAMS[wc.plot_name]["experiments"],
         colors = lambda wc: PCT_POS_GRAPHING_PARAMS.get("colors", []),
@@ -55,7 +53,6 @@ rule plot_pct_positive:
         """
         python3 scripts/plot_pct_pos.py \
             --title "{params.title}" \
-            --predictions-type "{params.pred_type}" \
             --models {params.models} \
             --experiments {params.experiments} \
             --colors {params.colors} \

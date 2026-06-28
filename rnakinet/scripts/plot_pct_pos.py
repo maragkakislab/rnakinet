@@ -6,29 +6,18 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def read_values(outputs_dir: Path, predictions_type: str, models: List[str], experiments: List[str]):
-
-    pct_pos_values = np.full((len(experiments), len(models)), np.nan, dtype=float)
-    # files_used: List[Path] = []
+def read_values(outputs_dir: Path, models: List[str], experiments: List[str]):
+    pred_frac_matrix = np.full((len(experiments), len(models)), np.nan, dtype=float)
 
     for exp_idx, experiment in enumerate(experiments):
         for model_idx, model in enumerate(models):
-            pct_pos_file = outputs_dir / predictions_type / model / f"{experiment}_percent_positive.txt"
-            # files_used.append(pct_pos_file)
-            if not pct_pos_file.exists():
-                raise FileNotFoundError(f"Missing percent-positive file: {pct_pos_file}")
+            log_path = outputs_dir / "predictions" / model / experiment / "log.txt"
+            lines = log_path.read_text().splitlines()
+            value_line = next(line for line in lines if line.startswith("pred_frac_modified:"))
+            pred_frac = float(value_line.split(":")[1].strip())
+            pred_frac_matrix[exp_idx, model_idx] = pred_frac
 
-            text = pct_pos_file.read_text().strip()
-            try:
-                value = float(text)
-            except ValueError as e:
-                raise ValueError(f"Could not parse float from {pct_pos_file}: {text!r}") from e
-            if not 0.0 <= value <= 1.0:
-                raise ValueError(f"Value out of range [0,1] in {pct_pos_file}: {value}")
-
-            pct_pos_values[exp_idx, model_idx] = value
-
-    return pct_pos_values #, files_used
+    return pred_frac_matrix
 
 
 def plot_grouped_bars(values: np.ndarray, models: List[str], experiments: List[str],
@@ -64,7 +53,6 @@ def plot_grouped_bars(values: np.ndarray, models: List[str], experiments: List[s
 
 def main() -> None:
     p = argparse.ArgumentParser(description="Plot percent-positive comparison bar chart.")
-    p.add_argument("--predictions-type", required=True, help="e.g. full_exp_predictions_pct_pos")
     p.add_argument("--models", nargs="+", required=True, help="Model names (order preserved).")
     p.add_argument("--experiments", nargs="+", required=True, help="Experiment names (order preserved).")
     p.add_argument("--out", required=True, help="Output image path (png/pdf/etc).")
