@@ -100,4 +100,3 @@ rule all:
             reference_level=['gene', 'transcript'],
             plot_type=['histogram','scatter']
         ),
-
