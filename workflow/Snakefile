@@ -72,7 +72,7 @@ rule all:
                 model_name=['R10_4SU_1', 'R10_4SU_Gruenebast', 'R10_4SU_2.2',  'R10_4SU_3_Gruenebast'],
                 group=list(INFERENCE_RUN_GROUPS.keys()), plot_type=['auroc','thresholds','pr_curve','pr_ratios']),
 
-        expand('outputs/full_exp_predictions/{model_name}/{experiment_name}/preds.csv',
+        expand('outputs/predictions/{model_name}/{experiment_name}/preds.csv',
                  model_name=['R10_4SU_1', 'R10_4SU_Gruenebast', 'R10_4SU_2.2', 'R10_4SU_3_Gruenebast'],
                  experiment_name='20260519_mmu_dRNA_3T3_4SU_2h_1'),
 
