@@ -1,4 +1,4 @@
-EXPERIMENTS: { #exp name maps to dict with exp_path, species, tl(if applicable).
+EXPERIMENTS: {
     '20250529_hsa_dRNA_HeLa_5EU_1': {
         path: 'experiments_v2/20250529_hsa_dRNA_HeLa_5EU_1/',
         ensembl_species: 'hsapiens',
@@ -57,12 +57,12 @@ EXPERIMENTS: { #exp name maps to dict with exp_path, species, tl(if applicable).
     '20240502_mmu_dRNA_3T3_5EU_400_2_R10': {
         path: 'experiments_v2/20240502_mmu_dRNA_3T3_5EU_400_2_R10',
         ensembl_species: 'mmusculus',
-        labeling_time: 2,
+        tl: 2,
         },
 
 }
 
-SPECIES_TO_GENOME: {
+SPECIES_TO_REFERENCE: {
     'hsapiens': 'Homo_sapiens.GRCh38.dna_sm.primary_assembly.fa',
     'mmusculus': 'Mus_musculus.GRCm39.dna_sm.primary_assembly.fa'
 }

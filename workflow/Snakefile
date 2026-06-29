@@ -66,6 +66,22 @@ include: "rules/diagnostics.smk"
 
 rule all:
     input:
-        expand('outputs_dev/visual/predictions/{model_name}/{group}_{plot_type}.pdf', model_name='model_name', group=list(INFERENCE_RUN_GROUPS.keys()), plot_type=['auroc','thresholds','pr_curve','pr_ratios']),
-        expand('outputs/visual/predictions/{model_name}/{experiment_name}/decay/{halflives_name}_halflives_{reference_level}_read_limit_decay_plot.pdf',model_name='model_name', experiment_name='experiment_name', halflives_name=['mion','PION'],reference_level=['gene','transcript']),
-        'outputs_dev/diagnostics/plots/graph_title1.png',
+        expand('outputs/visual/predictions/{model_name}/{group}_{plot_type}.pdf', model_name='HB64_sabotage_2_continue', group='HeLa_NIH_2025', plot_type=['auroc','thresholds','pr_curve','pr_ratios']),
+        expand('outputs/predictions/{model_name}/{experiment_name}/preds.csv', model_name=['HB64_sabotage_2_continue'], experiment_name=['20260122_scs_dRNA_yeast_5EU_1_TEST', '20260122_scs_dRNA_yeast_dmso_1_TEST']),
+        expand('outputs/predictions_pct_pos/{model_name}/{experiment_name}_percent_positive.txt', model_name=['HB64_sabotage_2_continue'], experiment_name=['20260122_scs_dRNA_yeast_5EU_1_TEST', '20260122_scs_dRNA_yeast_dmso_1_TEST']),
+        expand('outputs/full_exp_predictions_pct_pos/{model_name}/{experiment_name}_percent_positive.txt', model_name=['HB64_sabotage_2_continue'], experiment_name=ALL_EXPERIMENTS),
+        
+        expand('outputs/visual/predictions/{model_name}/{experiment_name}/decay/{halflives_name}_halflives_{reference_level}_read_limit_decay_plot.pdf',
+                        model_name=['Human_batch_64_uniform'], #'HB64_sabotage_2_continue', 'HB64_2024_HeLa', 'batch_64_multispecies_1'],
+                        experiment_name='20240502_mmu_dRNA_3T3_5EU_400_2_R10',
+                        halflives_name=['mion','PION'],
+                        reference_level=['gene','transcript'],
+        ),
+
+        expand('outputs/visual/predictions/{model_name}/{group}_{reference_level}_level_auroc_{plot_type}.pdf',
+            model_name=['Human_batch_64_uniform'], #'HB64_sabotage_2_continue', 'HB64_2024_HeLa', 'batch_64_multispecies_1'],
+            group=['HeLa_NIH_2025'], #_full', 'Hek293_NIH_2025_full', 'I90_NIH_2025_full', 'MCF10A_NIH_2025_full', '3T3_NIH_2025_full'],
+            reference_level=['gene', 'transcript'],
+            plot_type=['histogram','scatter']
+        ),
+
