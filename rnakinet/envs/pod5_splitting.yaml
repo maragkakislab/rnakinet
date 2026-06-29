@@ -5,3 +5,4 @@ dependencies:
     - pip
     - pip:
         - pod5
+        - pandas

@@ -1,10 +1,15 @@
-#Custom
-*.ckpt
-.snakemake
-*/rna004_130bps_hac@v3.0.1/
-*/outputs/
-*/data/
-*/references/
+# Run artifacts
+rnakinet/checkpoints_pl/
+rnakinet/data/
+rnakinet/outputs/
+rnakinet/references/
+rnakinet/logs/
+rnakinet/.snakemake/
+rnakinet/basecalling_models_dorado-1.0.1-linux-x64/
+rnakinet/dorado-1.0.1-linux-x64/
+rnakinet/dorado-1.0.1-linux-x64.tar.gz
+rnakinet/snakemake_profile/
+rnakinet/wandb/
 */checkpoints_pl/
 figs/
 output/

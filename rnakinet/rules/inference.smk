@@ -9,7 +9,7 @@ def get_model_path(wc):
 
     # fetching model from output specified by training rule
     out = checkpoints.run_training.get(training_run_name=wc.model_name).output
-    ckpt_dir = out.ckpt_out_dir  # = CHECKPOINTS_DIR/{name}/{name}
+    ckpt_dir = out.ckpt_out_dir  # = CHECKPOINTS_DIR + "/{training_run_name}/{training_run_name}"
 
     # searching for best checkpoint
     pattern = os.path.join(ckpt_dir, "best-step=*valid_loss=*.ckpt")
@@ -27,7 +27,7 @@ def get_model_path(wc):
 
 rule run_inference:
     input: 
-        pod5_files = lambda wildcards: INFERENCE_RUN_TO_FILES[wildcards.experiment_name],
+        pod5_files=lambda wc: os.path.normpath(os.path.join(DATA_DIR, EXP_TO_PATH[wc.experiment_name])),
         model_path = get_model_path,
     output:
         csv_path = OUTPUTS_DIR + '/predictions/{model_name}/{experiment_name}/preds.csv',
@@ -59,11 +59,12 @@ rule run_inference:
             --min-len {params.min_len} \
             --skip {params.skip} \
             --output {output.csv_path} \
+            --log
         """
 
 rule run_full_exp_inference:
     input: 
-        pod5_files = lambda wildcards: f'{DATA_DIR}/experiments_v2/{wildcards.experiment_name}/',
+        pod5_files = lambda wildcards: f'{DATA_DIR}/experiments_v2/{wildcards.experiment_name}/origin.txt',
         model_path = get_model_path,
     output:
         csv_path = OUTPUTS_DIR + '/full_exp_predictions/{model_name}/{experiment_name}/preds.csv',
@@ -76,6 +77,7 @@ rule run_full_exp_inference:
         skip = lambda wildcards: MODEL_INFERENCE_PARAMS[wildcards.model_name]['skip'],
         arch = lambda wildcards: MODEL_INFERENCE_PARAMS[wildcards.model_name]['arch'],
         threshold = lambda wildcards: MODEL_INFERENCE_PARAMS[wildcards.model_name]['threshold'],
+        exp_dir = lambda wildcards: os.path.dirname(f'{DATA_DIR}/experiments_v2/{wildcards.experiment_name}/origin.txt'),
     threads:  lambda wildcards: MODEL_INFERENCE_PARAMS[wildcards.model_name]['threads'],
     resources:
         gpu = GPUS_FOR_RULES["inference_rnakinet"]["gpu"],
@@ -85,7 +87,7 @@ rule run_full_exp_inference:
     shell:
         """
         python3 scripts/inference.py \
-            --pod5-files {input.pod5_files} \
+            --pod5-files {params.exp_dir} \
             --model-path {input.model_path} \
             --arch {params.arch} \
             --max-workers {threads} \
@@ -112,6 +114,7 @@ rule run_all_R10_inference:
         skip = lambda wildcards: MODEL_INFERENCE_PARAMS[wildcards.model_name]['skip'],
         arch = lambda wildcards: MODEL_INFERENCE_PARAMS[wildcards.model_name]['arch'],
         threshold = lambda wildcards: MODEL_INFERENCE_PARAMS[wildcards.model_name]['threshold'],
+        exp_dir = lambda wildcards: os.path.dirname(f'{DATA_DIR}/experiments_v2/{wildcards.experiment_name}/origin.txt'),
     threads:  lambda wildcards: MODEL_INFERENCE_PARAMS[wildcards.model_name]['threads'],
     resources:
         gpu = GPUS_FOR_RULES["inference_rnakinet"]["gpu"],
@@ -121,7 +124,7 @@ rule run_all_R10_inference:
     shell:
         """
         python3 scripts/inference.py \
-            --pod5-files {input.pod5_files} \
+            --pod5-files {params.exp_dir} \
             --model-path {input.model_path} \
             --arch {params.arch} \
             --max-workers {threads} \
@@ -135,28 +138,21 @@ rule run_all_R10_inference:
 
 rule calculate_percent_positive:
     input:
-        preds = lambda wildcards: expand(
-            OUTPUTS_DIR + '/{predictions}/{model_name}/{experiment_name}/preds.csv',
-            predictions=wildcards.predictions,
-            experiment_name=wildcards.experiment_name,
-            model_name=wildcards.model_name,
-        ),
+        preds = OUTPUTS_DIR + '/{predictions}/{model_name}/{experiment_name}/preds.csv',   
     output:
         OUTPUTS_DIR + '/{predictions}_pct_pos/{model_name}/{experiment_name}_percent_positive.txt',
-    conda:
-        "../envs/inference.yaml"
-    shell:
-        """
-        awk -F',' \
-            'NR>1 {{{{ \
-                total++; \
-                if ($3 == "True") \
-                    count++}}}} \
-            END {{{{ \
-                if (total > 0) \
-                    printf "%.20f\\n", \
-                    count/total; \
-                else \
-                    print "0"}}}}' \
-        {input.preds} > {output}
-        """
+    run:
+        import csv
+        num_pos = 0
+        total = 0
+        with open(input.preds, newline="") as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                total += 1
+                if row["5eu_modified_prediction"] == "True":
+                    num_pos += 1
+
+        proportion = num_pos / total if total else 0.0
+
+        with open(output[0], "w") as out:
+            out.write(f"{proportion:.20f}\n")

@@ -2,7 +2,7 @@
 
 source myconda
 conda activate rnakinet_snakemake_base
-
+export LD_LIBRARY_PATH=$CONDA_PREFIX/lib:$LD_LIBRARY_PATH
 
 
 snakemake -pr --keep-going --rerun-incomplete --latency-wait 120 --use-conda --use-envmodules -s Snakefile --profile snakemake_profile --rerun-triggers mtime --configfile config/config.yml --conda-frontend conda
