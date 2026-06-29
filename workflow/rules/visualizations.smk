@@ -61,3 +61,31 @@ rule plot_pct_positive:
             --colors {params.colors} \
             --out "{output.plot}"
         """
+
+rule plot_auroc_hist:
+    input:
+        auroc_tsv = OUTPUTS_DIR + '/predictions/{model_name}/aurocs/{group}/{reference_level}_level_aurocs.tsv'
+    output:
+        plot = OUTPUTS_DIR + '/visual/predictions/{model_name}/{group}_{reference_level}_level_auroc_histogram.pdf'
+    conda:
+        "../envs/visual.yaml"
+    shell:
+        """
+        python3 scripts/plot_auroc_histogram.py \
+            --auroc-tsv {input.auroc_tsv} \
+            --output {output.plot}
+        """
+
+rule plot_auroc_scatter:
+    input:
+        auroc_tsv = OUTPUTS_DIR + '/predictions/{model_name}/aurocs/{group}/{reference_level}_level_aurocs.tsv'
+    output:
+        plot = OUTPUTS_DIR + '/visual/predictions/{model_name}/{group}_{reference_level}_level_auroc_scatter.pdf'
+    conda:
+        "../envs/visual.yaml"
+    shell:
+        """
+        python3 scripts/plot_auroc_scatter.py \
+            --auroc-tsv {input.auroc_tsv} \
+            --output {output.plot}
+        """

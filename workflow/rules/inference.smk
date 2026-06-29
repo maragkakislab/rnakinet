@@ -27,7 +27,7 @@ def get_model_path(wc):
 
 rule run_inference:
     input: 
-        pod5_files=lambda wc: os.path.normpath(os.path.join(DATA_DIR, EXP_TO_PATH[wc.experiment_name])),
+        pod5_files=lambda wildcards: os.path.normpath(os.path.join(DATA_DIR, f'{EXPERIMENTS[wildcards.experiment_name]["path"]}',)),
         model_path = get_model_path,
     output:
         csv_path = OUTPUTS_DIR + '/predictions/{model_name}/{experiment_name}/preds.csv',
@@ -48,7 +48,7 @@ rule run_inference:
         runtime = 8*24*60
     shell:
         """
-        python3 scripts/inference.py \
+        python3 ../rnakinet/scripts/inference.py \
             --pod5-files {input.pod5_files} \
             --model-path {input.model_path} \
             --arch {params.arch} \
@@ -62,42 +62,6 @@ rule run_inference:
             --log
         """
 
-rule run_full_exp_inference:
-    input: 
-        pod5_files = lambda wildcards: f'{DATA_DIR}/experiments_v2/{wildcards.experiment_name}/origin.txt',
-        model_path = get_model_path,
-    output:
-        csv_path = OUTPUTS_DIR + '/full_exp_predictions/{model_name}/{experiment_name}/preds.csv',
-    conda:
-        "../envs/inference.yaml"
-    params:
-        batch_size = lambda wildcards: MODEL_INFERENCE_PARAMS[wildcards.model_name]['batch_size'],
-        max_len = lambda wildcards: MODEL_INFERENCE_PARAMS[wildcards.model_name]['max_len'],
-        min_len = lambda wildcards: MODEL_INFERENCE_PARAMS[wildcards.model_name]['min_len'],
-        skip = lambda wildcards: MODEL_INFERENCE_PARAMS[wildcards.model_name]['skip'],
-        arch = lambda wildcards: MODEL_INFERENCE_PARAMS[wildcards.model_name]['arch'],
-        threshold = lambda wildcards: MODEL_INFERENCE_PARAMS[wildcards.model_name]['threshold'],
-        exp_dir = lambda wildcards: os.path.dirname(f'{DATA_DIR}/experiments_v2/{wildcards.experiment_name}/origin.txt'),
-    threads:  lambda wildcards: MODEL_INFERENCE_PARAMS[wildcards.model_name]['threads'],
-    resources:
-        gpu = GPUS_FOR_RULES["inference_rnakinet"]["gpu"],
-        gpu_model = GPUS_FOR_RULES["inference_rnakinet"]["gpu_model"],
-        mem_mb = 64*1024,
-        runtime = 8*24*60
-    shell:
-        """
-        python3 scripts/inference.py \
-            --pod5-files {params.exp_dir} \
-            --model-path {input.model_path} \
-            --arch {params.arch} \
-            --max-workers {threads} \
-            --threshold {params.threshold} \
-            --batch-size {params.batch_size} \
-            --max-len {params.max_len} \
-            --min-len {params.min_len} \
-            --skip {params.skip} \
-            --output {output.csv_path} \
-        """
 
 rule run_all_R10_inference:
     input: 
