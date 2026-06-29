@@ -67,8 +67,8 @@ include: "rules/diagnostics.smk"
 rule all:
     input:
         expand('outputs/visual/predictions/{model_name}/{group}_{plot_type}.pdf', model_name=['batch_64_multispecies_1'], group=list(INFERENCE_RUN_GROUPS.keys()), plot_type=['auroc','thresholds','pr_curve','pr_ratios']),
-        expand('outputs/full_exp_predictions_pct_pos/{model_name}/{experiment_name}_percent_positive.txt', model_name=['batch_64_multispecies_1'], experiment_name=ALL_EXPERIMENTS_V2),
-        expand('outputs/full_exp_predictions_pct_pos/{model_name}/{experiment_name}_percent_positive.txt', model_name=['batch_64_multispecies_1', 'HB64_2024_HeLa'], experiment_name=['20260122_scs_dRNA_yeast_dmso_1','20260122_scs_dRNA_yeast_5EU_1']),
+        expand('outputs/predictions_pct_pos/{model_name}/{experiment_name}_percent_positive.txt', model_name=list(TRAINING_CONFIGS.keys()), experiment_name=list(BASE_EXPERIMENTS.keys())),
+        expand('outputs/predictions_pct_pos/{model_name}/{experiment_name}_percent_positive.txt', model_name=['batch_64_multispecies_1', 'HB64_2024_HeLa'], experiment_name=['20260122_scs_dRNA_yeast_dmso_1','20260122_scs_dRNA_yeast_5EU_1']),
         # expand('outputs/full_exp_predictions_pct_pos/{model_name}/{experiment_name}_percent_positive.txt', model_name=['batch_64_multispecies_1'], experiment_name=ALL_EXPERIMENTS),
         # expand('outputs/full_exp_predictions_pct_pos/{model_name}/{experiment_name}_percent_positive.txt', model_name=['Human_batch_64_uniform'], experiment_name=list(EXP_TO_PATH.keys())),
         # expand('outputs/visual/predictions/{model_name}/{experiment_name}/decay/{halflives_name}_halflives_{reference_level}_read_limit_decay_plot.pdf',model_name='Human_batch_64_uniform', experiment_name='20250528_mmu_dRNA_3T3_5EU_1', halflives_name=['mion','PION'],reference_level=['gene','transcript']),
