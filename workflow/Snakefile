@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 import yaml
 
 load_dotenv()
-WANDB_API_KEY = os.getenv("WANDB_API_KEY") #Optional and used only for training
+WANDB_API_KEY = os.getenv("WANDB_API_KEY")
 
 # LOAD CONFIG
 if "--configfile" in sys.argv:
@@ -20,28 +20,26 @@ with open(config["EXPS_CONFIG_FILE"], "r") as f:
 
 config.update(exp_config)
 
-REFERENCES_DIR = config['REFERENCES_DIR']
-DATA_DIR = config['DATA_DIR']
-OUTPUTS_DIR = config['OUTPUTS_DIR']
-CHECKPOINTS_DIR = config['CHECKPOINTS_DIR']
-HALFLIVES_FOLDER = config['HALFLIVES_FOLDER']
-FASTA_TO_DOWNLOAD = config['FASTA_TO_DOWNLOAD']
-
-BASE_EXPERIMENTS = config['EXPERIMENTS']
-SPECIES_TO_GENOME = config['SPECIES_TO_GENOME']
+REFERENCES_DIR          = config['REFERENCES_DIR']
+DATA_DIR                = config['DATA_DIR']
+OUTPUTS_DIR             = config['OUTPUTS_DIR']
+CHECKPOINTS_DIR         = config['CHECKPOINTS_DIR']
+HALFLIVES_FOLDER        = config['HALFLIVES_FOLDER']
+FASTA_TO_DOWNLOAD       = config['FASTA_TO_DOWNLOAD']
+BASE_EXPERIMENTS        = config['EXPERIMENTS']
+SPECIES_TO_GENOME       = config['SPECIES_TO_GENOME']
 SPECIES_TO_TRANSCRIPTOME = config['SPECIES_TO_TRANSCRIPTOME']
-
-BASECALLING_CONFIG = config['BASECALLING_CONFIG']
-REFERENCE_TO_SPLITS = config['REFERENCE_TO_SPLITS']
-TRAINING_CONFIGS = config['TRAINING_CONFIGS']
-MODEL_TO_PATH = config['MODEL_TO_PATH']
-MODEL_INFERENCE_PARAMS = config['MODEL_INFERENCE_PARAMS']
-INFERENCE_RUN_GROUPS = config['INFERENCE_RUN_GROUPS']
-ENSEMBL_URL = config['ENSEMBL_URL']
-HALFLIVES_NAME_TO_FILE = config['HALFLIVES_NAME_TO_FILE']
-GPUS_FOR_RULES = config['GPUS_FOR_RULES']
-PCT_POS_GRAPHING_PARAMS = config["PCT_POS_GRAPHING_PARAMS"]
-DIAGNOSTICS_GRAPHING_PARAMS = config["DIAGNOSTICS_GRAPHING_PARAMS"]
+BASECALLING_CONFIG      = config['BASECALLING_CONFIG']
+REFERENCE_TO_SPLITS     = config['REFERENCE_TO_SPLITS']
+TRAINING_CONFIGS        = config['TRAINING_CONFIGS']
+MODEL_TO_PATH           = config['MODEL_TO_PATH']
+MODEL_INFERENCE_PARAMS  = config['MODEL_INFERENCE_PARAMS']
+INFERENCE_RUN_GROUPS    = config['INFERENCE_RUN_GROUPS']
+ENSEMBL_URL             = config['ENSEMBL_URL']
+HALFLIVES_NAME_TO_FILE  = config['HALFLIVES_NAME_TO_FILE']
+GPUS_FOR_RULES          = config['GPUS_FOR_RULES']
+PCT_POS_GRAPHING_PARAMS     = config['PCT_POS_GRAPHING_PARAMS']
+DIAGNOSTICS_GRAPHING_PARAMS = config['DIAGNOSTICS_GRAPHING_PARAMS']
 
 SPLIT_EXPERIMENTS = {}
 for exp_name, exp_data in BASE_EXPERIMENTS.items():
@@ -50,7 +48,8 @@ for exp_name, exp_data in BASE_EXPERIMENTS.items():
             **exp_data,
             "path": f"../{OUTPUTS_DIR}/splits/{exp_name}/{split.lower()}.pod5",
             "base_experiment": exp_name,
-            "split": split.lower(), }
+            "split": split.lower(),
+        }
 
 EXPERIMENTS = {**BASE_EXPERIMENTS, **SPLIT_EXPERIMENTS}
 
@@ -64,39 +63,121 @@ include: "rules/visualizations.smk"
 include: "rules/halflives.smk"
 include: "rules/diagnostics.smk"
 
+# ── Inference group sets (derived from config) ─────────────────────────────
+EU5_GROUPS      = [k for k in INFERENCE_RUN_GROUPS if '5EU' in k and 'full' not in k]
+SU4_GROUPS      = [k for k in INFERENCE_RUN_GROUPS if ('4SU' in k or '4TU' in k) and 'full' not in k]
+EU5_GROUPS_FULL = [k for k in INFERENCE_RUN_GROUPS if '5EU' in k and 'full' in k]
+SU4_GROUPS_FULL = [k for k in INFERENCE_RUN_GROUPS if ('4SU' in k or '4TU' in k) and 'full' in k]
+
+# Base experiments derived from full inference groups (no _TEST suffix)
+EU5_BASE_EXPERIMENTS = [exp for g in EU5_GROUPS_FULL for exp in INFERENCE_RUN_GROUPS[g]['positives'] + INFERENCE_RUN_GROUPS[g]['negatives']]
+SU4_BASE_EXPERIMENTS = [exp for g in SU4_GROUPS_FULL for exp in INFERENCE_RUN_GROUPS[g]['positives'] + INFERENCE_RUN_GROUPS[g]['negatives']]
+
+# ── Model groups ───────────────────────────────────────────────────────────
+EU5_MODELS      = ['Full_Panel_5EU', 'Leave_out_5EU_HeLa', 'Leave_out_5EU_Hek293', 'Leave_out_5EU_I90', 'Leave_out_5EU_MCF10A', 'Leave_out_5EU_3T3']
+SU4_MODELS      = ['Full_Panel_4SU', 'Leave_out_4SU_HeLa', 'Leave_out_4SU_Hek293', 'Leave_out_4SU_3T3', 'Leave_out_4SU_IMR90', 'Leave_out_4SU_MCF10A']
+CANONICAL_MODELS    = ['batch_64_multispecies_2', 'R10_mega_model_1']
+LEGACY_SU4_MODELS   = ['Gruenebast_Plasmodium', 'R10_4SU_1', 'R10_4SU_Gruenebast', 'R10_4SU_2', 'R10_4SU_2.2', 'R10_4SU_3', 'R10_4SU_3_Gruenebast']
+ALL_MODELS = EU5_MODELS + SU4_MODELS + CANONICAL_MODELS + LEGACY_SU4_MODELS
+
+# ── Decay experiments ──────────────────────────────────────────────────────
+EXP_3T3_5EU_DECAY = '20240502_mmu_dRNA_3T3_5EU_400_2_R10'
+EXP_3T3_4SU_DECAY = '20260519_mmu_dRNA_3T3_4SU_2h_1'
+
+
 rule all:
     input:
-        expand('outputs/predictions_pct_pos/{model_name}/{experiment_name}_percent_positive.txt', model_name=["R10_4SU_1"], experiment_name=list(BASE_EXPERIMENTS.keys())),
-        expand('outputs/predictions/{model_name}/{experiment_name}/preds.csv', model_name=['R10_4SU_1', 'R10_4SU_Gruenebast', 'R10_4SU_2'], experiment_name=list(BASE_EXPERIMENTS.keys())),
-        expand('outputs/visual/predictions/{model_name}/{group}_{plot_type}.pdf', 
-                model_name=['R10_4SU_1', 'R10_4SU_Gruenebast', 'R10_4SU_2.2',  'R10_4SU_3_Gruenebast'],
-                group=list(INFERENCE_RUN_GROUPS.keys()), plot_type=['auroc','thresholds','pr_curve','pr_ratios']),
-
-        expand('outputs/predictions/{model_name}/{experiment_name}/preds.csv',
-                 model_name=['R10_4SU_1', 'R10_4SU_Gruenebast', 'R10_4SU_2.2', 'R10_4SU_3_Gruenebast'],
-                 experiment_name='20260519_mmu_dRNA_3T3_4SU_2h_1'),
-
-        expand('outputs/visual/predictions/{model_name}/{experiment_name}/decay/{halflives_name}_halflives_{reference_level}_read_limit_decay_plot.pdf',
-                model_name=['R10_4SU_1', 'R10_4SU_Gruenebast', 'R10_4SU_2.2',  'R10_4SU_3_Gruenebast'],
-                experiment_name='20260519_mmu_dRNA_3T3_4SU_2h_1',
-                halflives_name=['mion','PION'],
-                reference_level=['gene','transcript']),
-
-        expand('outputs/visual/predictions/{model_name}/{group}_{plot_type}.pdf', model_name='HB64_sabotage_2_continue', group='HeLa_NIH_2025', plot_type=['auroc','thresholds','pr_curve','pr_ratios']),
-        expand('outputs/predictions/{model_name}/{experiment_name}/preds.csv', model_name=['HB64_sabotage_2_continue'], experiment_name=['20260122_scs_dRNA_yeast_5EU_1_TEST', '20260122_scs_dRNA_yeast_dmso_1_TEST']),
-        expand('outputs/predictions_pct_pos/{model_name}/{experiment_name}_percent_positive.txt', model_name=['HB64_sabotage_2_continue'], experiment_name=['20260122_scs_dRNA_yeast_5EU_1_TEST', '20260122_scs_dRNA_yeast_dmso_1_TEST']),
-        expand('outputs/full_exp_predictions_pct_pos/{model_name}/{experiment_name}_percent_positive.txt', model_name=['HB64_sabotage_2_continue'], experiment_name=ALL_EXPERIMENTS),
-        
-        expand('outputs/visual/predictions/{model_name}/{experiment_name}/decay/{halflives_name}_halflives_{reference_level}_read_limit_decay_plot.pdf',
-                        model_name=['Human_batch_64_uniform'], #'HB64_sabotage_2_continue', 'HB64_2024_HeLa', 'batch_64_multispecies_1'],
-                        experiment_name='20240502_mmu_dRNA_3T3_5EU_400_2_R10',
-                        halflives_name=['mion','PION'],
-                        reference_level=['gene','transcript'],
-        ),
-
+        # ── LOO 5EU models ─────────────────────────────────────────────────
+        expand('outputs/visual/predictions/{model_name}/{group}_{plot_type}.pdf',
+            model_name=EU5_MODELS, group=EU5_GROUPS,
+            plot_type=['auroc', 'thresholds', 'pr_curve', 'pr_ratios']),
         expand('outputs/visual/predictions/{model_name}/{group}_{reference_level}_level_auroc_{plot_type}.pdf',
-            model_name=['Human_batch_64_uniform'], #'HB64_sabotage_2_continue', 'HB64_2024_HeLa', 'batch_64_multispecies_1'],
-            group=['HeLa_NIH_2025'], #_full', 'Hek293_NIH_2025_full', 'I90_NIH_2025_full', 'MCF10A_NIH_2025_full', '3T3_NIH_2025_full'],
-            reference_level=['gene', 'transcript'],
-            plot_type=['histogram','scatter']
-        ),
+            model_name=EU5_MODELS, group=EU5_GROUPS,
+            reference_level=['gene', 'transcript'], plot_type=['histogram', 'scatter']),
+        expand('outputs/visual/predictions/{model_name}/{group}_{reference_level}_level_auroc_{plot_type}.pdf',
+            model_name=EU5_MODELS, group=EU5_GROUPS_FULL,
+            reference_level=['gene', 'transcript'], plot_type=['histogram', 'scatter']),
+
+        # ── LOO 4SU models ─────────────────────────────────────────────────
+        expand('outputs/visual/predictions/{model_name}/{group}_{plot_type}.pdf',
+            model_name=SU4_MODELS, group=SU4_GROUPS,
+            plot_type=['auroc', 'thresholds', 'pr_curve', 'pr_ratios']),
+        expand('outputs/visual/predictions/{model_name}/{group}_{reference_level}_level_auroc_{plot_type}.pdf',
+            model_name=SU4_MODELS, group=SU4_GROUPS,
+            reference_level=['gene', 'transcript'], plot_type=['histogram', 'scatter']),
+        expand('outputs/visual/predictions/{model_name}/{group}_{reference_level}_level_auroc_{plot_type}.pdf',
+            model_name=SU4_MODELS, group=SU4_GROUPS_FULL,
+            reference_level=['gene', 'transcript'], plot_type=['histogram', 'scatter']),
+
+        # ── batch_64_multispecies_2 (5EU only) ─────────────────────────────
+        expand('outputs/visual/predictions/{model_name}/{group}_{plot_type}.pdf',
+            model_name=['batch_64_multispecies_2'], group=EU5_GROUPS,
+            plot_type=['auroc', 'thresholds', 'pr_curve', 'pr_ratios']),
+        expand('outputs/visual/predictions/{model_name}/{group}_{reference_level}_level_auroc_{plot_type}.pdf',
+            model_name=['batch_64_multispecies_2'], group=EU5_GROUPS,
+            reference_level=['gene', 'transcript'], plot_type=['histogram', 'scatter']),
+        expand('outputs/visual/predictions/{model_name}/{group}_{reference_level}_level_auroc_{plot_type}.pdf',
+            model_name=['batch_64_multispecies_2'], group=EU5_GROUPS_FULL,
+            reference_level=['gene', 'transcript'], plot_type=['histogram', 'scatter']),
+
+        # ── R10_mega_model_1 (5EU + 4SU) ───────────────────────────────────
+        expand('outputs/visual/predictions/{model_name}/{group}_{plot_type}.pdf',
+            model_name=['R10_mega_model_1'], group=EU5_GROUPS + SU4_GROUPS,
+            plot_type=['auroc', 'thresholds', 'pr_curve', 'pr_ratios']),
+        expand('outputs/visual/predictions/{model_name}/{group}_{reference_level}_level_auroc_{plot_type}.pdf',
+            model_name=['R10_mega_model_1'], group=EU5_GROUPS + SU4_GROUPS,
+            reference_level=['gene', 'transcript'], plot_type=['histogram', 'scatter']),
+        expand('outputs/visual/predictions/{model_name}/{group}_{reference_level}_level_auroc_{plot_type}.pdf',
+            model_name=['R10_mega_model_1'], group=EU5_GROUPS_FULL + SU4_GROUPS_FULL,
+            reference_level=['gene', 'transcript'], plot_type=['histogram', 'scatter']),
+
+        # ── Decay plots ─────────────────────────────────────────────────────
+        # batch_64_multispecies_2: 5EU only
+        expand('outputs/visual/predictions/{model_name}/{experiment_name}/decay/{halflives_name}_halflives_{reference_level}_read_limit_decay_plot.pdf',
+            model_name=['batch_64_multispecies_2'],
+            experiment_name=EXP_3T3_5EU_DECAY,
+            halflives_name=['mion', 'PION'],
+            reference_level=['gene', 'transcript']),
+        # R10_mega_model_1: both
+        expand('outputs/visual/predictions/{model_name}/{experiment_name}/decay/{halflives_name}_halflives_{reference_level}_read_limit_decay_plot.pdf',
+            model_name=['R10_mega_model_1'],
+            experiment_name=[EXP_3T3_5EU_DECAY, EXP_3T3_4SU_DECAY],
+            halflives_name=['mion', 'PION'],
+            reference_level=['gene', 'transcript']),
+        # Legacy 4SU models: 4SU decay only
+        expand('outputs/visual/predictions/{model_name}/{experiment_name}/decay/{halflives_name}_halflives_{reference_level}_read_limit_decay_plot.pdf',
+            model_name=LEGACY_SU4_MODELS,
+            experiment_name=EXP_3T3_4SU_DECAY,
+            halflives_name=['mion', 'PION'],
+            reference_level=['gene', 'transcript']),
+
+        # ── Legacy 4SU models: AUROC group plots ───────────────────────────
+        expand('outputs/visual/predictions/{model_name}/{group}_{plot_type}.pdf',
+            model_name=LEGACY_SU4_MODELS, group=SU4_GROUPS,
+            plot_type=['auroc', 'thresholds', 'pr_curve', 'pr_ratios']),
+        expand('outputs/visual/predictions/{model_name}/{group}_{reference_level}_level_auroc_{plot_type}.pdf',
+            model_name=LEGACY_SU4_MODELS, group=SU4_GROUPS + SU4_GROUPS_FULL,
+            reference_level=['gene', 'transcript'], plot_type=['histogram', 'scatter']),
+
+        # ── Plain inference: pct_pos + preds.csv ───────────────────────────
+        # 5EU models → 5EU experiments
+        expand('outputs/predictions_pct_pos/{model_name}/{experiment_name}_percent_positive.txt',
+            model_name=EU5_MODELS + ['batch_64_multispecies_2'],
+            experiment_name=EU5_BASE_EXPERIMENTS),
+        expand('outputs/predictions/{model_name}/{experiment_name}/preds.csv',
+            model_name=EU5_MODELS + ['batch_64_multispecies_2'],
+            experiment_name=EU5_BASE_EXPERIMENTS),
+        # 4SU models → 4SU experiments
+        expand('outputs/predictions_pct_pos/{model_name}/{experiment_name}_percent_positive.txt',
+            model_name=SU4_MODELS + LEGACY_SU4_MODELS,
+            experiment_name=SU4_BASE_EXPERIMENTS),
+        expand('outputs/predictions/{model_name}/{experiment_name}/preds.csv',
+            model_name=SU4_MODELS + LEGACY_SU4_MODELS,
+            experiment_name=SU4_BASE_EXPERIMENTS),
+        # Mega model → both
+        expand('outputs/predictions_pct_pos/{model_name}/{experiment_name}_percent_positive.txt',
+            model_name=['R10_mega_model_1'],
+            experiment_name=EU5_BASE_EXPERIMENTS + SU4_BASE_EXPERIMENTS),
+        expand('outputs/predictions/{model_name}/{experiment_name}/preds.csv',
+            model_name=['R10_mega_model_1'],
+            experiment_name=EU5_BASE_EXPERIMENTS + SU4_BASE_EXPERIMENTS),

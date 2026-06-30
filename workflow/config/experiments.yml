@@ -157,10 +157,12 @@ SPECIES_TO_GENOME: {
     'hsapiens': 'Homo_sapiens.GRCh38.dna_sm.primary_assembly.fa',
     'mmusculus': 'Mus_musculus.GRCm39.dna_sm.primary_assembly.fa',
     'scerevisiae': 'Saccharomyces_cerevisiae.R64-1-1.dna_sm.toplevel.fa',
+    'pfalciparum': 'Plasmodium_falciparum.GCA000002765v3.dna_sm.toplevel.fa',
 }
 
 SPECIES_TO_TRANSCRIPTOME: {
     'hsapiens': 'Homo_sapiens.GRCh38.cdna.all.fa',
     'mmusculus': 'Mus_musculus.GRCm39.cdna.all.fa',
-    'scerevisiae': 'Saccharomyces_cerevisiae.R64-1-1.cdna.all.fa'
+    'scerevisiae': 'Saccharomyces_cerevisiae.R64-1-1.cdna.all.fa',
+    'pfalciparum': 'Plasmodium_falciparum.GCA000002765v3.cdna.all.fa',
 }
