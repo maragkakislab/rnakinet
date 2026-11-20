@@ -4,8 +4,10 @@ import random
 
 import numpy as np
 import lightning.pytorch as pl
+import torch
 from pod5 import Reader
 from torch.utils.data import DataLoader, Dataset, IterableDataset
+from torch.utils.data import default_collate
 
 from rnakinet.data_utils.generators import ratio_gen, uniform_gen
 from rnakinet.data_utils.read_utils import pad_read_with_zeros, process_pod5_read
@@ -79,6 +81,54 @@ def select_reads(pod5_path, read_ids=None):
     return selection
 
 
+def collate_variable(batch):
+    """Collate reads of different lengths (input mode 'variable'): pad
+    each to the longest read of the batch and pass the lengths. Items are
+    (read (1, length), *rest); batches are (reads, lengths, *rest)."""
+    lengths = torch.tensor([item[0].shape[-1] for item in batch])
+    reads = torch.zeros(len(batch), 1, int(lengths.max()))
+    for i, item in enumerate(batch):
+        reads[i, 0, :lengths[i]] = torch.as_tensor(item[0][0])
+    rest = default_collate([item[1:] for item in batch])
+    return (reads, lengths, *rest)
+
+
+def length_balanced(stream, min_len, max_len, bins=50, slack=10):
+    """Pass items of a stream of (x, y, exp, length) so that labeled and
+    unlabeled reads end up with the same length distribution: per length
+    bin (log-spaced), a read is skipped while its class is more than slack
+    reads ahead of the other class in that bin. The label can then not be
+    inferred from read length."""
+    edges = np.geomspace(min_len, max_len, bins + 1)[1:-1]
+    counts = np.zeros((2, bins), dtype=np.int64)
+    for item in stream:
+        label = int(item[1][0] > 0.5)
+        b = int(np.digitize(item[3], edges))
+        if counts[label, b] - counts[1 - label, b] >= slack:
+            continue
+        counts[label, b] += 1
+        yield item
+
+
+def crop_read(x, crop, random_start=False):
+    """A read's first `crop` samples, or a window of that length at a random
+    position (random_start); shorter reads are kept whole. crop 0: the whole
+    read."""
+    if not crop or len(x) <= crop:
+        return x
+    start = random.randint(0, len(x) - crop) if random_start else 0
+    return x[start:start + crop]
+
+
+def shape_read(x, input_mode, max_len):
+    """A read (1, length) as the model takes it: zero-padded to max_len
+    ('padded') or as is ('unpadded', 'variable')."""
+    x = x.reshape(-1, 1).swapaxes(0, 1)
+    if input_mode == 'padded':
+        return pad_read_with_zeros(x, max_len=max_len)
+    return x
+
+
 def load_experiment(spec):
     """An experiment is given as '<raw pod5 file or dir>::<read ids file>':
     the reads listed in the ids file, read from the raw POD5 data."""
@@ -107,6 +157,12 @@ class TrainingDatamodule(pl.LightningDataModule):
         skip,
         multiexp_generator_type,
         min_len,
+        input_mode='padded',
+        length_balance=False,
+        with_runs=False,
+        crop=0,
+        random_window=False,
+        skip_max=0,
     ):
 
         super().__init__()
@@ -128,6 +184,14 @@ class TrainingDatamodule(pl.LightningDataModule):
         self.min_len = min_len
 
         self.multiexp_generator_type = multiexp_generator_type
+        self.input_mode = input_mode
+        self.length_balance = length_balance
+        self.with_runs = with_runs
+        self.crop = crop
+        self.random_window = random_window
+        self.skip_max = skip_max
+        self.collate_fn = (collate_variable if input_mode == 'variable'
+                           else None)
 
     def setup(self, stage=None):
         if stage == 'fit' or stage is None:
@@ -138,6 +202,11 @@ class TrainingDatamodule(pl.LightningDataModule):
                 skip=self.skip,
                 min_len=self.min_len,
                 multiexp_generator_type=self.multiexp_generator_type,
+                input_mode=self.input_mode,
+                length_balance=self.length_balance,
+                crop=self.crop,
+                random_window=self.random_window,
+                skip_max=self.skip_max,
             )
             self.valid_dataset = UnlimitedReadsValidDataset(
                 pos_experiments=self.valid_pos_experiments,
@@ -147,6 +216,9 @@ class TrainingDatamodule(pl.LightningDataModule):
                 max_len=self.max_len,
                 min_len=self.min_len,
                 multiexp_generator_type='uniform',
+                input_mode=self.input_mode,
+                with_runs=self.with_runs,
+                crop=self.crop,
             )
             # the read ids are only needed to build the datasets; workers
             # would otherwise each copy them
@@ -158,23 +230,36 @@ class TrainingDatamodule(pl.LightningDataModule):
             batch_size=self.batch_size,
             num_workers=self.workers,
             worker_init_fn=worker_init_fn_experiments,
+            collate_fn=self.collate_fn,
         )
 
     def val_dataloader(self):
-        return DataLoader(self.valid_dataset, batch_size=self.batch_size)
+        return DataLoader(self.valid_dataset, batch_size=self.batch_size,
+                          collate_fn=self.collate_fn)
 
 
 class UnlimitedReadsTrainingDataset(IterableDataset):
     """
-    Iterable Dataset that streams the selected reads of each experiment
+    Iterable Dataset that streams the selected reads of each experiment.
+    Reads (after skip) outside min_len..max_len are dropped; longer than
+    crop, they are cut to their first crop samples, or to a crop-long window
+    at a random position (random_window). skip_max > skip: each read skips a
+    random number of samples in skip..skip_max.
     """
 
     def __init__(self, pos_experiments, neg_experiments, max_len, skip,
-                 min_len, multiexp_generator_type):
+                 min_len, multiexp_generator_type, input_mode='padded',
+                 length_balance=False, crop=0, random_window=False,
+                 skip_max=0):
         self.max_len = max_len
         self.min_len = min_len
         self.skip = skip
+        self.skip_max = skip_max
+        self.crop = crop
+        self.random_window = random_window
         self.multiexp_generator_type = multiexp_generator_type
+        self.input_mode = input_mode
+        self.length_balance = length_balance
 
         # {(pod5 file, record batch): rows} per experiment. Worker
         # processes keep only their share of each experiment's batches
@@ -200,26 +285,31 @@ class UnlimitedReadsTrainingDataset(IterableDataset):
                     for row, read in enumerate(record_batch.reads()):
                         if not wanted[row]:
                             continue
-                        x = process_pod5_read(read, skip=self.skip)
+                        skip = (random.randint(self.skip, self.skip_max)
+                                if self.skip_max > self.skip else self.skip)
+                        x = process_pod5_read(read, skip=skip)
                         y = np.array(label)
                         if len(x) > self.max_len or len(x) < self.min_len:
                             continue
-                        x = pad_read_with_zeros(
-                            x.reshape(-1, 1).swapaxes(0, 1),
-                            max_len=self.max_len)
-                        yield x, np.array([y], dtype=np.float32), exp
+                        x = crop_read(x, self.crop, self.random_window)
+                        # the length the model sees (length balancing)
+                        length = len(x)
+                        x = shape_read(x, self.input_mode, self.max_len)
+                        yield x, np.array([y], dtype=np.float32), exp, length
 
     @staticmethod
     def experiment_size(batches):
         return sum(len(ids) for ids in batches.values())
 
     def get_stream(self):
-        pos_gens = [self.process_experiment(s, label=1, exp='pos')
-                    for s in self.positive_experiments]
+        # each read carries the index of its experiment (run) within its
+        # class, for run adversaries; other models ignore it
+        pos_gens = [self.process_experiment(s, label=1, exp=i)
+                    for i, s in enumerate(self.positive_experiments)]
         pos_sizes = [self.experiment_size(s)
                      for s in self.positive_experiments]
-        neg_gens = [self.process_experiment(s, label=0, exp='neg')
-                    for s in self.negative_experiments]
+        neg_gens = [self.process_experiment(s, label=0, exp=i)
+                    for i, s in enumerate(self.negative_experiments)]
         neg_sizes = [self.experiment_size(s)
                      for s in self.negative_experiments]
 
@@ -234,9 +324,11 @@ class UnlimitedReadsTrainingDataset(IterableDataset):
             global_neg_gen = ratio_gen(neg_gens, neg_ratios)
 
         gen = uniform_gen([global_pos_gen, global_neg_gen])
+        if self.length_balance:
+            gen = length_balanced(gen, self.min_len, self.max_len)
 
-        while True:
-            yield next(gen)
+        for x, y, exp, _ in gen:
+            yield x, y, exp
 
     def __iter__(self):
         return self.get_stream()
@@ -245,11 +337,13 @@ class UnlimitedReadsTrainingDataset(IterableDataset):
 class UnlimitedReadsValidDataset(Dataset):
     """
     Mapped Dataset of valid_read_limit reads, sampled at random from the
-    experiments' selected reads
+    experiments' selected reads; reads longer than crop are cut to their
+    first crop samples
     """
 
     def __init__(self, pos_experiments, neg_experiments, max_len, skip,
-                 min_len, multiexp_generator_type, valid_read_limit):
+                 min_len, multiexp_generator_type, valid_read_limit,
+                 input_mode='padded', with_runs=False, crop=0):
         self.positive_experiments = [
             load_experiment(e) for e in pos_experiments]
         self.negative_experiments = [
@@ -259,13 +353,17 @@ class UnlimitedReadsValidDataset(Dataset):
         self.skip = skip
         self.multiexp_generator_type = multiexp_generator_type
         self.valid_read_limit = valid_read_limit
+        self.input_mode = input_mode
+        # items also carry the run index within the class (run adversaries)
+        self.with_runs = with_runs
+        self.crop = crop
 
         print('Generating valid dataset')
         self.items = self.generate_data()
         # only the sampled reads are kept
         del self.positive_experiments, self.negative_experiments
 
-    def process_experiment(self, selection, label):
+    def process_experiment(self, selection, label, run=0):
         reads = [(f, r) for f, ids in selection.items() for r in ids]
         while True:
             # a random sample, read file by file; twice the limit leaves room
@@ -282,19 +380,17 @@ class UnlimitedReadsValidDataset(Dataset):
                         y = np.array(label)
                         if len(x) > self.max_len or len(x) < self.min_len:
                             continue
-
-                        x = pad_read_with_zeros(
-                            x.reshape(-1, 1).swapaxes(0, 1),
-                            max_len=self.max_len)
-                        yield x, np.array([y], dtype=np.float32)
+                        x = crop_read(x, self.crop)
+                        x = shape_read(x, self.input_mode, self.max_len)
+                        yield x, np.array([y], dtype=np.float32), run
 
     def generate_data(self):
-        pos_gens = [self.process_experiment(s, label=1)
-                    for s in self.positive_experiments]
+        pos_gens = [self.process_experiment(s, label=1, run=i)
+                    for i, s in enumerate(self.positive_experiments)]
         pos_sizes = [sum(len(ids) for ids in s.values())
                      for s in self.positive_experiments]
-        neg_gens = [self.process_experiment(s, label=0)
-                    for s in self.negative_experiments]
+        neg_gens = [self.process_experiment(s, label=0, run=i)
+                    for i, s in enumerate(self.negative_experiments)]
         neg_sizes = [sum(len(ids) for ids in s.values())
                      for s in self.negative_experiments]
 
@@ -312,8 +408,8 @@ class UnlimitedReadsValidDataset(Dataset):
 
         items = []
         for _ in range(self.valid_read_limit):
-            x, y = next(gen)
-            items.append((x, y))
+            x, y, run = next(gen)
+            items.append((x, y, run) if self.with_runs else (x, y))
         return items
 
     def __len__(self):
@@ -326,12 +422,14 @@ class UnlimitedReadsValidDataset(Dataset):
 class InferenceDataset(IterableDataset):
     """
     Iterable Dataset that contains all reads from POD5 files, or only the
-    reads in read_ids (a set) if given
+    reads in read_ids (a set) if given; reads longer than crop are cut to
+    their first crop samples
     """
 
     def __init__(self, files, max_len, skip, min_len, pad_reads=True,
-                 read_ids=None):
+                 read_ids=None, crop=0):
         self.files = files
+        self.crop = crop
         self.max_len = max_len
         self.skip = skip
         self.min_len = min_len
@@ -350,8 +448,11 @@ class InferenceDataset(IterableDataset):
                             continue
                     for read in reader.reads(selection=selection):
                         x = process_pod5_read(read, skip=self.skip)
-                        if len(x) > self.max_len or len(x) < self.min_len:
+                        # max_len 0: no upper limit
+                        if ((self.max_len and len(x) > self.max_len)
+                                or len(x) < self.min_len):
                             continue
+                        x = crop_read(x, self.crop)
                         identifier = {
                             'file': str(pod5_file),
                             'readid': str(read.read_id),

@@ -27,6 +27,9 @@ class RNNPooling(torch.nn.Module):
 
 
 class RNAkinet(pl.LightningModule):
+    # reads zero-padded to max_len (see model_loader.input_mode)
+    input_mode = 'padded'
+
     def __init__(
             self,
             lr=1e-3,
@@ -119,7 +122,8 @@ class RNAkinet(pl.LightningModule):
     def validation_step(self, val_batch, batch_idx, dataloader_idx=None):
         x, y = val_batch
         loss, preds = self.compute_loss(x, y, 'valid', return_preds=True)
-        self.log('valid_loss', loss, on_epoch=True)
+        # averaged over GPUs: checkpointing and early stopping act on it
+        self.log('valid_loss', loss, on_epoch=True, sync_dist=True)
 
     def predict_step(self, batch, batch_idx):
         xs, ids = batch
@@ -132,7 +136,8 @@ class RNAkinet(pl.LightningModule):
 
         acc = self.acc(is_predicted_modified, y)
         # log overall accuracy
-        self.log(f'{loss_type} acc', acc, on_epoch=True)
+        self.log(f'{loss_type} acc', acc, on_epoch=True,
+                 sync_dist=loss_type == 'valid')
 
         if (return_preds):
             return mod_loss, is_predicted_modified

@@ -1,4 +1,5 @@
 import argparse
+import json
 import os
 import sys
 import warnings
@@ -10,10 +11,10 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 from rnakinet.data_utils.dataloading_pod5_batched import (
-    InferenceDataset, pod5_read_ids, read_id_set)
+    InferenceDataset, collate_variable, pod5_read_ids, read_id_set)
 from rnakinet.data_utils.workers import worker_init_fn_inference
 from rnakinet.models.model_loader import (
-    arch_map, arch_pad_reads, default_models)
+    arch_map, default_models, get_arch, inference_lengths, input_mode)
 
 
 def run(args):
@@ -43,23 +44,34 @@ def run(args):
         model_path = os.path.join(base_dir, default_models[args.model_name]['path'])
         arch = default_models[args.model_name]['arch']
         print('Using pretrained model', args.model_name, 'with checkpoint', model_path, file=sys.stderr)
-        model = arch_map[arch]()
+        arch_class = get_arch(arch)
 
     if args.model_path:
         model_path = args.model_path
         print('Using checkpoint', model_path, file=sys.stderr)
-        model = arch_map[args.arch]()
-        arch = args.arch
+        arch_class = get_arch(args.arch)
+    # the architecture's hyperparameters as trained (e.g. layer sizes)
+    model = arch_class(**json.loads(args.arch_hyperparams))
 
     # the architecture sets the preprocessing the model was trained with
-    pad_reads = arch_pad_reads[arch]
+    mode = input_mode(arch_class)
+    pad_reads = mode == 'padded'
+    # length limits not given: the architecture's defaults
+    default_max_len, default_crop = inference_lengths(arch_class)
+    if args.max_len is None:
+        args.max_len = default_max_len
+    if args.crop is None:
+        args.crop = default_crop
+    if pad_reads and not args.max_len:
+        raise ValueError(f'{arch_class.__name__} pads reads to --max-len: '
+                         f'it cannot be 0')
 
     model.load_state_dict(torch.load(model_path, map_location='cpu')['state_dict'])
     model.eval()
 
     # unpadded reads keep their own lengths and cannot be stacked into
     # batches larger than one
-    if not pad_reads and args.batch_size > 1:
+    if mode == 'unpadded' and args.batch_size > 1:
         warnings.warn(f'reads are not padded; using --batch-size 1 '
                       f'instead of {args.batch_size}')
         args.batch_size = 1
@@ -82,6 +94,7 @@ def run(args):
                             f'the POD5 files')
     dset = InferenceDataset(files=files, max_len=args.max_len,
                             min_len=args.min_len, skip=args.skip,
+                            crop=args.crop,
                             pad_reads=pad_reads, read_ids=read_ids)
     
     dataloader = DataLoader(
@@ -90,18 +103,20 @@ def run(args):
         num_workers=min([args.max_workers, len(dset.files)]),
         pin_memory=False,
         worker_init_fn=worker_init_fn_inference,
+        collate_fn=collate_variable if mode == 'variable' else None,
     )
 
     id_to_pred = {}
     with torch.no_grad():
         for batch in tqdm(dataloader):
-            inputs, ids = batch
-            if torch.cuda.is_available() and not args.use_cpu:
-                inputs = inputs.cuda()
+            device = ('cuda' if torch.cuda.is_available()
+                      and not args.use_cpu else 'cpu')
+            if mode == 'variable':
+                inputs, lengths, ids = batch
+                outputs = model(inputs.to(device), lengths)
             else:
-                inputs = inputs.cpu()
-
-            outputs = model(inputs)
+                inputs, ids = batch
+                outputs = model(inputs.to(device))
 
             readid_probs = zip(ids['readid'], outputs.cpu().numpy())
             for readid, probab in readid_probs:
@@ -109,11 +124,12 @@ def run(args):
                 id_to_pred[readid] = probab[0]
 
     if not id_to_pred:
+        upper = (f'--skip + --max-len = {args.skip + args.max_len}'
+                 if args.max_len else 'no upper limit')
         warnings.warn(
             'no reads passed the length filter (between --skip + --min-len '
-            f'= {args.skip + args.min_len} and --skip + --max-len = '
-            f'{args.skip + args.max_len} signal samples); writing an empty '
-            'table')
+            f'= {args.skip + args.min_len} and {upper} signal samples); '
+            'writing an empty table')
     df = pd.DataFrame({'read_id': list(id_to_pred),
                        'mod_score': list(id_to_pred.values())})
     df['mod_prediction'] = df['mod_score'] > args.threshold
@@ -142,6 +158,7 @@ def run(args):
             'max_len': args.max_len,
             'min_len': args.min_len,
             'skip': args.skip,
+            'crop': args.crop,
             'threshold': args.threshold,
             'reads_predicted': len(df),
             'pred_frac_modified': fraction_positive,
@@ -173,7 +190,11 @@ def main():
         f"  {model_name}: {model_info['tip']}" for model_name, model_info in default_models.items())
     model_group.add_argument('--model-name', type=str, choices=list(default_models.keys()), help=helpstring)
     model_group.add_argument('--model-path', type=str, help='Path to model weights. Must be used in conjunction with --arch')
-    parser.add_argument('--arch', type=str, choices=list(arch_map), help='Architecture of the model. Must be used in conjunction with --model-path')
+    parser.add_argument('--arch-hyperparams', type=str, default='{}',
+                        help='Hyperparameters the model was built with, as '
+                             'a JSON object (default: the architecture\'s '
+                             'defaults)')
+    parser.add_argument('--arch', type=str, help=f'Architecture of the model: one of {list(arch_map)}, or <file.py>:<class> for one outside the package. Must be used in conjunction with --model-path')
     model_group.add_argument('--kit', type=str, choices=['r9', 'r10'], help=argparse.SUPPRESS) # deprecated, use --model-name instead
     
     # output
@@ -183,9 +204,18 @@ def main():
     # inference params
     parser.add_argument('--max-workers', type=int, default=16, help='Maximum number of workers for data loading (default: %(default)s)')
     parser.add_argument('--batch-size', type=int, default=1, help='Batch size for data loading (default: %(default)s)')
-    parser.add_argument('--max-len', type=int, default=400000, help='Maximum length of the signal sequence to process (default: %(default)s)')
+    parser.add_argument('--max-len', type=int, default=None,
+                        help='Skip reads longer than this many signal '
+                             'samples after --skip; 0: no limit (default: '
+                             "the architecture's: 0 for v3.0, 400000 for "
+                             'v1.0 and v2.0)')
     parser.add_argument('--min-len', type=int, default=5000, help='Minimum length of the signal sequence to process (default: %(default)s)')
     parser.add_argument('--skip', type=int, default=5000, help='How many signal steps to skip at the beginning of each sequence (trimming) (default: %(default)s)')
+    parser.add_argument('--crop', type=int, default=None,
+                        help='Score only the first CROP samples of longer '
+                             "reads; 0: whole reads (default: the "
+                             "architecture's: 200000 for v3.0, 0 for v1.0 "
+                             'and v2.0)')
     parser.add_argument('--threshold', type=float, default=0.5, help='Threshold for the predictions to be considered positives (default: %(default)s)')
     parser.add_argument('--use-cpu', action='store_true', help='Use CPU for computation instead of GPU')
     

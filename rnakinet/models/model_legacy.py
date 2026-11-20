@@ -18,6 +18,9 @@ class RNNPooling(torch.nn.Module):
 
 
 class RNAkinet(torch.nn.Module):
+    # v1.0 models were trained on unpadded reads, one at a time
+    input_mode = 'unpadded'
+
     def __init__(self):
         super().__init__()
 

@@ -16,7 +16,10 @@ Changes to the `rnakinet` Python package (the `rnakinet-inference` and
   checkpoints were previously run on padded reads (#14).
 - Models that do not pad reads run with `--batch-size 1`, with a warning
   (larger batches failed).
-- `--arch` accepts only the known architectures (`v1.0`, `v2.0`).
+- `--arch` takes a known architecture (`v1.0`, `v2.0`, `v3.0`) or
+  `<file.py>:<class>` for an architecture outside the package.
+- `--max-len` and `--crop` default to the architecture's values (400000 and
+  0 for v1.0 and v2.0, unchanged).
 - Requires Python >= 3.10. Uses `lightning.pytorch` (Lightning >= 2.0)
   instead of `pytorch_lightning`. Tested on Python 3.10 to 3.14.
 
@@ -24,6 +27,15 @@ Changes to the `rnakinet` Python package (the `rnakinet-inference` and
 - `--read-ids`: predict only the reads listed in a file, read directly from
   the raw POD5 files; reports how many listed reads were found and stops if
   none are.
+- The `v3.0` architecture: reads batched at their own lengths (no padding
+  seen by the model), trained with a positive-unlabeled loss and a run
+  adversary. It scores reads of any length above `--min-len`, on their
+  first 200k samples. No packaged model yet (use `--model-path`).
+- `--crop`: score only the first CROP samples of longer reads.
+- `--max-len 0`: no upper read length limit (not for padded
+  architectures).
+- `--arch-hyperparams`: build a `--model-path` model with the
+  hyperparameters it was trained with (a JSON object).
 
 ### Fixed
 - Inference no longer crashes when no reads pass the length filter; it
