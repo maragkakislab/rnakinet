@@ -14,16 +14,18 @@ def worker_init_fn_inference(worker_id):
         dataset.files = dataset.files[pos_per_worker * current_worker : pos_per_worker * (current_worker + 1)]
     assert len(dataset.files) > 0
 
-def worker_init_fn_train(worker_id):
+def worker_init_fn_experiments(worker_id):
+    """Give each worker every num_workers-th record batch of every
+    experiment, so the workers' shares are disjoint and each spans the whole
+    run, and each worker streams from every experiment."""
     worker_info = torch.utils.data.get_worker_info()
     dataset = worker_info.dataset
     total_workers = worker_info.num_workers
 
-    for pod5, readids in dataset.pod5_to_readids.items():
-        ids_per_worker = len(readids) // total_workers
-        old_ids = dataset.pod5_to_readids[pod5]
-        if worker_id == total_workers - 1:  # Last worker
-            dataset.pod5_to_readids[pod5] = old_ids[ids_per_worker * worker_id :]
-        else:
-            dataset.pod5_to_readids[pod5] = old_ids[ids_per_worker * worker_id : ids_per_worker * (worker_id + 1)]
-        assert len(dataset.pod5_to_readids[pod5]) > 0
+    for batches in dataset.experiments:
+        mine = sorted(batches)[worker_id::total_workers]
+        assert mine, 'fewer record batches in an experiment than workers'
+        kept = {b: batches[b] for b in mine}
+        # update in place: the dataset's generators use these dicts
+        batches.clear()
+        batches.update(kept)

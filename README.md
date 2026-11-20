@@ -1,6 +1,6 @@
 # RNAkinet
 
-RNAkinet is a project dedicated to detecting 5eu-modified reads directly from the raw nanopore sequencing signal. Furthermore, it offers tools to calculate transcript halflives.
+RNAkinet detects reads labeled with a nucleoside analog (5-ethynyluridine, 5EU, or 4-thiouridine, 4SU; 4SU models also apply to 4-thiouracil, 4TU) directly from the raw nanopore sequencing signal. Furthermore, it offers tools to calculate transcript halflives.
 
 # Usage
 
@@ -10,27 +10,31 @@ RNAkinet is a project dedicated to detecting 5eu-modified reads directly from th
 pip install rnakinet
 ```
 
-## Predict 5EU in POD5 files
+RNAkinet requires Python 3.10 or newer.
+
+On older NVIDIA GPUs (e.g. V100), install a CUDA 12 build of PyTorch first: the default PyTorch build uses CUDA 13, which no longer supports them.
 
 ```sh
-rnakinet-inference --path <pod5_file_or_directory> --model-name rnakinet_r10_5EU --output <predictions_name.csv>
+pip install torch --index-url https://download.pytorch.org/whl/cu126
+pip install rnakinet
 ```
 
-This creates a csv file with columns `read_id` - the read id, `5eu_mod_score` - the raw prediction score from 0 to 1, `5eu_modified_prediction` - Boolean column, True if the read is predicted to be modified by 5EU, False otherwise
+## Predict labeled reads in POD5 files
+
+```sh
+rnakinet-inference --path <pod5_file_or_directory> --model-name <model_name> --output <predictions_name.csv>
+```
+
+This creates a csv file with columns `read_id` - the read id, `mod_score` - the raw prediction score from 0 to 1, `mod_prediction` - Boolean column, True if the read is predicted to be labeled by the model's analog (5EU or 4SU), False otherwise. Earlier versions named these columns `5eu_mod_score` and `5eu_modified_prediction`; `rnakinet-predict-halflives` accepts both.
 
 Nvidia GPU is recommended to run this command. If you want to run inference on a CPU-only machine, use the `--use-cpu` option. This will substantially increase runtime.
 
 FAST5 input is not currently supported. Support will be reimplemented in a future release; for now, inference can still be run by converting Fast5 reads to POD5 first.
 
-Pass one or more POD5 files or directories via `--path`. Use `--model-name` to select the packaged pretrained model for your flow-cell chemistry, for example `rnakinet_r9_5EU` or `rnakinet_r10_5EU`.
+Pass one or more POD5 files or directories via `--path`. Use `--model-name` to select a packaged pretrained model for your analog and flow-cell chemistry, for example `r9_5EU_v1.0` or `r10_5EU_v2.0`; `rnakinet-inference --help` lists all packaged models. The packaged models currently detect 5EU; other models (e.g. 4SU) can be used with `--model-path`.
 
 Users who have trained their own RNAkinet models can use `--model-path` (must be used in conjunction with `--arch`) to run inference on custom models in place of `--model-name`.
 
-### Example
-
-```sh
-rnakinet-inference --path data/experiment/pod5_dir --model-name rnakinet_r10_5EU --output preds.csv
-```
 
 ## Calculate transcript halflives
 
@@ -38,11 +42,11 @@ rnakinet-inference --path data/experiment/pod5_dir --model-name rnakinet_r10_5EU
 rnakinet-predict-halflives --transcriptome-bam <path_to_transcriptome_alignment.bam> --predictions <predictions_name.csv> --tl <experiment_tl> --output <halflives_name.csv>
 ```
 
-The `--tl` parameter is the duration for which the cells were exposed to 5EU in hours
+The `--tl` parameter is the duration for which the cells were exposed to the analog (5EU or 4SU) in hours
 
-The `--predictions` parameter is the output file of the 5EU prediction step described above
+The `--predictions` parameter is the output file of the prediction step described above
 
-This creates a csv file with columns `transcript` - the transcript identifier from your BAM file, `reads` - the amount of reads available for the given transcript, `percentage_modified` - the percentage of reads of the given transcript that were predicted to contain 5EU, `pred_t5` - the predicted halflife of the given transcript
+This creates a csv file with columns `transcript` - the transcript identifier from your BAM file, `reads` - the amount of reads available for the given transcript, `percentage_modified` - the percentage of reads of the given transcript that were predicted to be labeled, `pred_t5` - the predicted halflife of the given transcript
 
 ### Example
 
@@ -60,23 +64,10 @@ We recommend users to acknowledge this and put more confidence in halflife predi
 
 [1] Eisen,T.J., Eichhorn,S.W., Subtelny,A.O., Lin,K.S., McGeary,S.E., Gupta,S. and Bartel,D.P. (2020) The Dynamics of Cytoplasmic mRNA Metabolism. Mol. Cell, 77, 786-799.e10.
 
-# Model Training with Snakemake
+# Model training
 
-## Setup Conda Env
-
-To run the snakefile, install environment.yaml using a conda environment
-```sh
-conda env create -f environment.yaml
-```
-Run snakemake from within the created conda environment rather than loading a module, etc.
-
-## Weights and Biases API
-
-Obtiain an API key for [Weights and Biases](https://wandb.ai/site/), and create a file `.env` (in the same directory as your Snakefile) that contains the line `WANDB_API_KEY=YOUR_API_KEY`. This will be used for tracking and visualizing model performance.
-
-## GPU and snakemake profile
-
-Please ensure that the format for compute resource allocation is compatible with your snakemake profile and GPU/cluster requirements. Specifically, GPU names/quantities can be modified from `GPUS_FOR_RULES` in `config.yml`
+The models are trained and evaluated with a separate Snakemake workflow,
+which is not part of this package.
 
 # Cite
 

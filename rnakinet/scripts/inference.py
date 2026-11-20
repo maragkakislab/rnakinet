@@ -9,9 +9,11 @@ import torch
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-from rnakinet.data_utils.dataloading_pod5_batched import InferenceDataset
+from rnakinet.data_utils.dataloading_pod5_batched import (
+    InferenceDataset, pod5_read_ids, read_id_set)
 from rnakinet.data_utils.workers import worker_init_fn_inference
-from rnakinet.models.model_loader import arch_map, default_models
+from rnakinet.models.model_loader import (
+    arch_map, arch_pad_reads, default_models)
 
 
 def run(args):
@@ -35,13 +37,11 @@ def run(args):
     if len(files) == 0:
         raise Exception(f'No pod5 files found')
 
-    pad_reads = True
     # Load model path and architecture based on param choice.
     if args.model_name:
         base_dir = os.path.dirname(os.path.dirname(__file__))
         model_path = os.path.join(base_dir, default_models[args.model_name]['path'])
         arch = default_models[args.model_name]['arch']
-        pad_reads = default_models[args.model_name]['pad_reads']
         print('Using pretrained model', args.model_name, 'with checkpoint', model_path, file=sys.stderr)
         model = arch_map[arch]()
 
@@ -49,16 +49,40 @@ def run(args):
         model_path = args.model_path
         print('Using checkpoint', model_path, file=sys.stderr)
         model = arch_map[args.arch]()
+        arch = args.arch
+
+    # the architecture sets the preprocessing the model was trained with
+    pad_reads = arch_pad_reads[arch]
 
     model.load_state_dict(torch.load(model_path, map_location='cpu')['state_dict'])
     model.eval()
+
+    # unpadded reads keep their own lengths and cannot be stacked into
+    # batches larger than one
+    if not pad_reads and args.batch_size > 1:
+        warnings.warn(f'reads are not padded; using --batch-size 1 '
+                      f'instead of {args.batch_size}')
+        args.batch_size = 1
 
     if torch.cuda.is_available() and not args.use_cpu:
         model.cuda()
     else:
         model.cpu()
         
-    dset = InferenceDataset(files=files, max_len=args.max_len, min_len=args.min_len, skip=args.skip, pad_reads=pad_reads)
+    read_ids = None
+    if args.read_ids:
+        read_ids = read_id_set(args.read_ids)
+        # report missing reads: a wrong --path or ids file would otherwise
+        # silently give fewer predictions
+        found = sum(r in read_ids for f in files for r in pod5_read_ids(f))
+        print(f'Found {found} of {len(read_ids)} listed reads in the POD5 '
+              f'files', file=sys.stderr)
+        if found == 0:
+            raise Exception(f'None of the reads in {args.read_ids} are in '
+                            f'the POD5 files')
+    dset = InferenceDataset(files=files, max_len=args.max_len,
+                            min_len=args.min_len, skip=args.skip,
+                            pad_reads=pad_reads, read_ids=read_ids)
     
     dataloader = DataLoader(
         dset,
@@ -84,12 +108,18 @@ def run(args):
                 assert len(probab) == 1
                 id_to_pred[readid] = probab[0]
 
-    with open(args.output, 'wb') as handle:
-        df = pd.DataFrame.from_dict(id_to_pred, orient='index').reset_index()
-        df.columns = ['read_id', '5eu_mod_score']
-        df['5eu_modified_prediction'] = df['5eu_mod_score'] > args.threshold
-        fraction_positive = (df['5eu_modified_prediction'] == True).mean()
-        df.to_csv(handle, index=False)
+    if not id_to_pred:
+        warnings.warn(
+            'no reads passed the length filter (between --skip + --min-len '
+            f'= {args.skip + args.min_len} and --skip + --max-len = '
+            f'{args.skip + args.max_len} signal samples); writing an empty '
+            'table')
+    df = pd.DataFrame({'read_id': list(id_to_pred),
+                       'mod_score': list(id_to_pred.values())})
+    df['mod_prediction'] = df['mod_score'] > args.threshold
+    fraction_positive = (df['mod_prediction'].mean() if len(df)
+                         else float('nan'))
+    df.to_csv(args.output, index=False)
 
     if args.log is not None:
         if args.log:
@@ -101,12 +131,19 @@ def run(args):
             'arch': args.arch if args.arch else default_models[args.model_name]['arch'], # log user-specified arch/model name or provide info on pretrained model used
             'model_path': model_path if args.model_path else default_models[args.model_name]['path'],
             'model_name': args.model_name if args.model_name else 'custom',
+            'modification': (default_models[args.model_name]['modification']
+                             if args.model_name else 'unknown'),
+            'read_ids': args.read_ids or 'all',
+            'listed_reads_found': (f'{found} of {len(read_ids)}'
+                                   if args.read_ids else 'n/a'),
             'max_workers': args.max_workers,
             'batch_size': args.batch_size,
+            'pad_reads': pad_reads,
             'max_len': args.max_len,
             'min_len': args.min_len,
             'skip': args.skip,
             'threshold': args.threshold,
+            'reads_predicted': len(df),
             'pred_frac_modified': fraction_positive,
         }
 
@@ -126,6 +163,9 @@ def main():
     # input
     parser.add_argument('--pod5-files', type=str, required=False, nargs='+', help=argparse.SUPPRESS)
     parser.add_argument('--path', type=str, required=False, nargs='+', help='Paths to POD5 files or directories containing POD5 files') # TODO change from pod5 files to something that can include fast5 (and add fast5 support)
+    parser.add_argument('--read-ids', type=str,
+                        help='File with one read id per line: predict only '
+                             'these reads')
    
     # model options
     model_group = parser.add_mutually_exclusive_group(required=True)
@@ -133,7 +173,7 @@ def main():
         f"  {model_name}: {model_info['tip']}" for model_name, model_info in default_models.items())
     model_group.add_argument('--model-name', type=str, choices=list(default_models.keys()), help=helpstring)
     model_group.add_argument('--model-path', type=str, help='Path to model weights. Must be used in conjunction with --arch')
-    parser.add_argument('--arch', type=str, help='Architecture of the model. Must be used in conjunction with --model-path')
+    parser.add_argument('--arch', type=str, choices=list(arch_map), help='Architecture of the model. Must be used in conjunction with --model-path')
     model_group.add_argument('--kit', type=str, choices=['r9', 'r10'], help=argparse.SUPPRESS) # deprecated, use --model-name instead
     
     # output

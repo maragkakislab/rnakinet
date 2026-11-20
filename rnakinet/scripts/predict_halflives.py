@@ -16,12 +16,18 @@ def run(args):
     read_to_transcript = pd.DataFrame(read_to_transcript_data)
     
     read_to_score = pd.read_csv(args.predictions)
+    # predictions from older versions used 5EU-specific column names
+    read_to_score = read_to_score.rename(
+        columns={'5eu_modified_prediction': 'mod_prediction'}
+    )
 
     read_transcript_score = read_to_score.merge(read_to_transcript, how='left', on='read_id')
     read_transcript_score = read_transcript_score.dropna()
     transcript_groups = read_transcript_score.groupby('transcript')
-    transcript_agg = transcript_groups['5eu_modified_prediction'].mean().reset_index()
-    transcript_agg = transcript_agg.rename(columns={'5eu_modified_prediction':'percentage_modified'})
+    transcript_agg = transcript_groups['mod_prediction'].mean().reset_index()
+    transcript_agg = transcript_agg.rename(
+        columns={'mod_prediction': 'percentage_modified'}
+    )
     transcript_agg['reads'] = transcript_groups.size().values
     assert len(transcript_agg)>0, 'Empty transcript level prediction file, check if read ids in predictions also appear in the bam file'
     
@@ -40,9 +46,13 @@ def main():
     parser = argparse.ArgumentParser(description="Create a table of genes and their modification predictions stats")
     parser.add_argument("--transcriptome-bam", help="transcriptome bam file path")
     parser.add_argument("--predictions", help="predictions for individual reads")
-    parser.add_argument('--tl', type=float, required=True, help='Time parameter for the decay equation')
+    parser.add_argument('--tl', type=float, required=True,
+                        help='Labeling time in hours (exposure to 5EU or 4SU)')
     parser.add_argument("--output", help="path to the transcript output table")
     
     args = parser.parse_args(sys.argv[1:])
     run(args)
-    
+
+
+if __name__ == '__main__':
+    main()
